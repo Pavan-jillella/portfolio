@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
-import { Transaction, Budget, SavingsGoal, Investment, NetWorthEntry, Subscription } from "@/types";
+import { Transaction, Budget, SavingsGoal, Investment, NetWorthEntry, Subscription, PayStub, PartTimeJob, PartTimeHourEntry, PayrollSettings, WorkSchedule } from "@/types";
 import {
   getCurrentMonth,
   getMonthlyTransactions,
@@ -34,6 +34,7 @@ import { AIAnalysis } from "./AIAnalysis";
 import { MonthlyReportEmail } from "./MonthlyReportEmail";
 import { CurrencySettings } from "./CurrencySettings";
 import { SubscriptionTracker } from "./SubscriptionTracker";
+import { PayrollTracker } from "./PayrollTracker";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { RealtimeStatus } from "@/components/ui/RealtimeStatus";
@@ -62,6 +63,7 @@ const tabs = [
   { id: "investments", label: "Investments" },
   { id: "networth", label: "Net Worth" },
   { id: "subscriptions", label: "Subscriptions" },
+  { id: "payroll", label: "Payroll" },
   { id: "analysis", label: "AI Analysis" },
   { id: "reports", label: "Reports" },
   { id: "categories", label: "Categories" },
@@ -78,6 +80,17 @@ export function FinanceTrackerClient() {
   const [investments, setInvestments] = useLocalStorage<Investment[]>("pj-investments", []);
   const [netWorthEntries, setNetWorthEntries] = useLocalStorage<NetWorthEntry[]>("pj-net-worth", []);
   const [subscriptions, setSubscriptions] = useLocalStorage<Subscription[]>("pj-subscriptions", []);
+  const [payStubs, setPayStubs] = useLocalStorage<PayStub[]>("pj-pay-stubs", []);
+  const [partTimeJobs, setPartTimeJobs] = useLocalStorage<PartTimeJob[]>("pj-part-time-jobs", []);
+  const [partTimeHours, setPartTimeHours] = useLocalStorage<PartTimeHourEntry[]>("pj-part-time-hours", []);
+  const [payrollSettings, setPayrollSettings] = useLocalStorage<PayrollSettings>("pj-payroll-settings", {
+    pay_frequency: "biweekly",
+    google_sheets_url: "",
+    default_employer: "Stemtree",
+    schedule_name: "Pavan",
+    hourly_rate: 0,
+  });
+  const [workSchedules, setWorkSchedules] = useLocalStorage<WorkSchedule[]>("pj-work-schedules", []);
   const [displayCurrency, setDisplayCurrency] = useLocalStorage<string>("pj-display-currency", "USD");
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
@@ -206,6 +219,53 @@ export function FinanceTrackerClient() {
 
   function deleteSubscription(id: string) {
     setSubscriptions((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  // Payroll handlers
+  function addPayStub(stub: PayStub) {
+    setPayStubs((prev) => [stub, ...prev]);
+  }
+
+  function editPayStub(id: string, stub: PayStub) {
+    setPayStubs((prev) => prev.map((s) => (s.id === id ? stub : s)));
+  }
+
+  function deletePayStub(id: string) {
+    setPayStubs((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  function importPayStubs(stubs: PayStub[]) {
+    setPayStubs((prev) => [...stubs, ...prev]);
+  }
+
+  function addPartTimeJob(job: PartTimeJob) {
+    setPartTimeJobs((prev) => [job, ...prev]);
+  }
+
+  function deletePartTimeJob(id: string) {
+    setPartTimeJobs((prev) => prev.filter((j) => j.id !== id));
+  }
+
+  function togglePartTimeJob(id: string) {
+    setPartTimeJobs((prev) =>
+      prev.map((j) => (j.id === id ? { ...j, active: !j.active } : j))
+    );
+  }
+
+  function addPartTimeHours(entry: PartTimeHourEntry) {
+    setPartTimeHours((prev) => [entry, ...prev]);
+  }
+
+  function deletePartTimeHours(id: string) {
+    setPartTimeHours((prev) => prev.filter((h) => h.id !== id));
+  }
+
+  function addWorkSchedule(schedule: WorkSchedule) {
+    setWorkSchedules((prev) => [schedule, ...prev]);
+  }
+
+  function deleteWorkSchedule(id: string) {
+    setWorkSchedules((prev) => prev.filter((s) => s.id !== id));
   }
 
   return (
@@ -407,6 +467,32 @@ export function FinanceTrackerClient() {
             onToggle={toggleSubscription}
             onDelete={deleteSubscription}
           />
+          </ErrorBoundary>
+        </FadeIn>
+      )}
+
+      {activeTab === "payroll" && (
+        <FadeIn>
+          <ErrorBoundary module="Payroll">
+            <PayrollTracker
+              payStubs={payStubs}
+              partTimeJobs={partTimeJobs}
+              partTimeHours={partTimeHours}
+              workSchedules={workSchedules}
+              settings={payrollSettings}
+              onAddPayStub={addPayStub}
+              onEditPayStub={editPayStub}
+              onDeletePayStub={deletePayStub}
+              onImportPayStubs={importPayStubs}
+              onAddJob={addPartTimeJob}
+              onDeleteJob={deletePartTimeJob}
+              onToggleJob={togglePartTimeJob}
+              onAddHours={addPartTimeHours}
+              onDeleteHours={deletePartTimeHours}
+              onAddSchedule={addWorkSchedule}
+              onDeleteSchedule={deleteWorkSchedule}
+              onUpdateSettings={setPayrollSettings}
+            />
           </ErrorBoundary>
         </FadeIn>
       )}

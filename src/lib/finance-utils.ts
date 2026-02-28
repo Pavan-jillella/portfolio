@@ -7,6 +7,10 @@ import {
   MonthlyReport,
   Subscription,
   NetWorthEntry,
+  PayStub,
+  PartTimeJob,
+  PartTimeHourEntry,
+  ScheduleShift,
 } from "@/types";
 import { SUPPORTED_CURRENCIES } from "@/lib/constants";
 
@@ -209,4 +213,208 @@ export function getMonthlySubscriptionTotal(subscriptions: Subscription[]): numb
       if (s.frequency === "weekly") return total + s.amount * 4.33;
       return total;
     }, 0);
+}
+
+// ===== Payroll Utils =====
+
+export function getPayrollSummary(payStubs: PayStub[]) {
+  const now = new Date();
+  const yearStart = `${now.getFullYear()}-01-01`;
+  const ytdStubs = payStubs.filter((s) => s.pay_date >= yearStart);
+
+  const totalGross = ytdStubs.reduce((s, p) => s + p.gross_pay, 0);
+  const totalNet = ytdStubs.reduce((s, p) => s + p.net_pay, 0);
+  const totalFederalTax = ytdStubs.reduce((s, p) => s + p.deductions.federal_tax, 0);
+  const totalStateTax = ytdStubs.reduce((s, p) => s + p.deductions.state_tax, 0);
+  const totalSocialSecurity = ytdStubs.reduce((s, p) => s + p.deductions.social_security, 0);
+  const totalMedicare = ytdStubs.reduce((s, p) => s + p.deductions.medicare, 0);
+  const totalOther = ytdStubs.reduce((s, p) => s + p.deductions.other_deductions, 0);
+  const totalTax = totalFederalTax + totalStateTax + totalSocialSecurity + totalMedicare + totalOther;
+  const avgNetPerPeriod = ytdStubs.length > 0 ? totalNet / ytdStubs.length : 0;
+
+  return {
+    totalGross,
+    totalNet,
+    totalTax,
+    totalFederalTax,
+    totalStateTax,
+    totalSocialSecurity,
+    totalMedicare,
+    totalOther,
+    avgNetPerPeriod,
+    periodCount: ytdStubs.length,
+  };
+}
+
+export function getPartTimeJobEarnings(
+  jobs: PartTimeJob[],
+  hours: PartTimeHourEntry[],
+  month?: string
+) {
+  const filtered = month ? hours.filter((h) => h.date.startsWith(month)) : hours;
+  return jobs.map((job) => {
+    const jobHours = filtered.filter((h) => h.job_id === job.id);
+    const totalHours = jobHours.reduce((s, h) => s + h.hours, 0);
+    return {
+      job,
+      totalHours,
+      earnings: totalHours * job.hourly_rate,
+      entries: jobHours,
+    };
+  });
+}
+
+export function parseGoogleSheetsCSV(csvText: string): Partial<PayStub>[] {
+  const lines = csvText.trim().split("\n");
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"));
+  const results: Partial<PayStub>[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    if (values.length < 2) continue;
+
+    const row: Record<string, string> = {};
+    headers.forEach((h, idx) => {
+      row[h] = (values[idx] || "").trim();
+    });
+
+    const stub: Partial<PayStub> = {
+      pay_period_start: row["pay_period_start"] || "",
+      pay_period_end: row["pay_period_end"] || "",
+      pay_date: row["pay_date"] || "",
+      gross_pay: parseFloat(row["gross_pay"]) || 0,
+      net_pay: parseFloat(row["net_pay"]) || 0,
+      regular_hours: parseFloat(row["regular_hours"]) || 0,
+      overtime_hours: parseFloat(row["overtime_hours"]) || 0,
+      hourly_rate: parseFloat(row["hourly_rate"]) || 0,
+      deductions: {
+        federal_tax: parseFloat(row["federal_tax"]) || 0,
+        state_tax: parseFloat(row["state_tax"]) || 0,
+        social_security: parseFloat(row["social_security"]) || 0,
+        medicare: parseFloat(row["medicare"]) || 0,
+        other_deductions: parseFloat(row["other_deductions"]) || 0,
+        other_deductions_label: row["other_deductions_label"] || "",
+      },
+      source: "google-sheets" as const,
+    };
+    results.push(stub);
+  }
+  return results;
+}
+
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"' && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ",") {
+        result.push(current);
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+// ===== Schedule Import Utils =====
+
+const DAY_LABELS = ["M", "T", "W", "Th", "F", "Sat", "Sun"];
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+export function calculateShiftHours(timeRange: string): { start: string; end: string; hours: number } {
+  const trimmed = timeRange.trim();
+  if (!trimmed || trimmed === " ") return { start: "", end: "", hours: 0 };
+
+  const parts = trimmed.split("-").map((p) => p.trim());
+  if (parts.length !== 2) return { start: "", end: "", hours: 0 };
+
+  const [startStr, endStr] = parts;
+  const startMinutes = parseTimeToMinutes(startStr);
+  const endMinutes = parseTimeToMinutes(endStr);
+  if (startMinutes < 0 || endMinutes < 0) return { start: startStr, end: endStr, hours: 0 };
+
+  // If end <= start, assume end is PM (add 12 hours)
+  let adjustedEnd = endMinutes;
+  if (adjustedEnd <= startMinutes) {
+    adjustedEnd += 12 * 60;
+  }
+
+  const hours = parseFloat(((adjustedEnd - startMinutes) / 60).toFixed(2));
+  return { start: startStr, end: endStr, hours: Math.max(hours, 0) };
+}
+
+function parseTimeToMinutes(time: string): number {
+  const match = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return -1;
+  return parseInt(match[1]) * 60 + parseInt(match[2]);
+}
+
+export function parseScheduleSheet(csvText: string, name: string): ScheduleShift[] {
+  const lines = csvText.trim().split("\n");
+  if (lines.length < 2) return [];
+
+  // Find the header row with day columns (M, T, W, Th, F, Sat, Sun)
+  let headerRowIdx = -1;
+  let dayColumns: number[] = [];
+
+  for (let i = 0; i < Math.min(lines.length, 5); i++) {
+    const cells = parseCSVLine(lines[i]).map((c) => c.trim());
+    // Check if this row contains day headers
+    const mIdx = cells.findIndex((c) => c === "M");
+    if (mIdx >= 0) {
+      headerRowIdx = i;
+      // Map each day label to its column index
+      dayColumns = DAY_LABELS.map((label) => {
+        const idx = cells.findIndex((c) => c === label);
+        return idx;
+      });
+      break;
+    }
+  }
+
+  if (headerRowIdx < 0) return [];
+
+  // Find the row matching the given name (case-insensitive partial match)
+  const nameLower = name.toLowerCase();
+  for (let i = headerRowIdx + 1; i < lines.length; i++) {
+    const cells = parseCSVLine(lines[i]).map((c) => c.trim());
+    if (cells.length === 0) continue;
+    const rowName = cells[0].toLowerCase();
+    if (rowName.includes(nameLower) || nameLower.includes(rowName)) {
+      // Extract shifts
+      const shifts: ScheduleShift[] = [];
+      for (let d = 0; d < DAY_LABELS.length; d++) {
+        const colIdx = dayColumns[d];
+        const cellValue = colIdx >= 0 && colIdx < cells.length ? cells[colIdx] : "";
+        const { start, end, hours } = calculateShiftHours(cellValue);
+        shifts.push({
+          day: DAY_NAMES[d],
+          start_time: start,
+          end_time: end,
+          hours,
+        });
+      }
+      return shifts;
+    }
+  }
+
+  return [];
 }

@@ -441,6 +441,79 @@ export interface RecentActivity {
   timestamp: string;
 }
 
+// ===== Payroll & Part-Time Jobs Types =====
+
+export type PayFrequency = "weekly" | "biweekly" | "semimonthly" | "monthly";
+
+export interface PayStubDeductions {
+  federal_tax: number;
+  state_tax: number;
+  social_security: number;
+  medicare: number;
+  other_deductions: number;
+  other_deductions_label: string;
+}
+
+export interface PayStub {
+  id: string;
+  employer_name: string;
+  pay_period_start: string;
+  pay_period_end: string;
+  pay_date: string;
+  regular_hours: number;
+  overtime_hours: number;
+  hourly_rate: number;
+  gross_pay: number;
+  deductions: PayStubDeductions;
+  net_pay: number;
+  source: "manual" | "google-sheets";
+  created_at: string;
+}
+
+export interface PartTimeJob {
+  id: string;
+  name: string;
+  hourly_rate: number;
+  color: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface PartTimeHourEntry {
+  id: string;
+  job_id: string;
+  date: string;
+  hours: number;
+  notes: string;
+  created_at: string;
+}
+
+export interface PayrollSettings {
+  pay_frequency: PayFrequency;
+  google_sheets_url: string;
+  default_employer: string;
+  schedule_name: string;
+  hourly_rate: number;
+}
+
+export interface ScheduleShift {
+  day: string;
+  start_time: string;
+  end_time: string;
+  hours: number;
+}
+
+export interface WorkSchedule {
+  id: string;
+  period_label: string;
+  period_start: string;
+  period_end: string;
+  shifts: ScheduleShift[];
+  total_hours: number;
+  hourly_rate: number;
+  created_at: string;
+}
+
 // ===== Activity Timeline Types =====
 
 export type ActivityType = "study" | "blog" | "code" | "project" | "note" | "course";
