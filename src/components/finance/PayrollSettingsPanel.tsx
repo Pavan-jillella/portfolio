@@ -307,25 +307,91 @@ export function PayrollSettingsPanel({ settings, onUpdate }: PayrollSettingsPane
                   )}
 
                   {section.id === "integration" && (
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-body text-sm text-white">Auto-send Payroll to Finance Income</p>
-                        <p className="font-body text-xs text-white/30 mt-1">
-                          When enabled, adding a pay stub will automatically create an income transaction.
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => onUpdate({ auto_send_to_income: !settings.auto_send_to_income })}
-                        className={`w-10 h-5 rounded-full transition-colors relative ${
-                          settings.auto_send_to_income ? "bg-blue-500/40" : "bg-white/10"
-                        }`}
-                      >
-                        <div
-                          className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
-                            settings.auto_send_to_income ? "left-5 bg-blue-400" : "left-0.5 bg-white/30"
+                    <div className="space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-body text-sm text-white">Auto-send Payroll to Finance Income</p>
+                          <p className="font-body text-xs text-white/30 mt-1">
+                            When enabled, adding a pay stub will automatically create an income transaction.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => onUpdate({ auto_send_to_income: !settings.auto_send_to_income })}
+                          className={`w-10 h-5 rounded-full transition-colors relative ${
+                            settings.auto_send_to_income ? "bg-blue-500/40" : "bg-white/10"
                           }`}
-                        />
-                      </button>
+                        >
+                          <div
+                            className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
+                              settings.auto_send_to_income ? "left-5 bg-blue-400" : "left-0.5 bg-white/30"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-body text-sm text-white">Auto-sync Schedule & Pay Stubs</p>
+                          <p className="font-body text-xs text-white/30 mt-1">
+                            Automatically fetch data from your Apps Script URL on page load and periodically.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => onUpdate({ auto_sync_enabled: !settings.auto_sync_enabled })}
+                          className={`w-10 h-5 rounded-full transition-colors relative ${
+                            settings.auto_sync_enabled ? "bg-blue-500/40" : "bg-white/10"
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
+                              settings.auto_sync_enabled ? "left-5 bg-blue-400" : "left-0.5 bg-white/30"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {settings.auto_sync_enabled && (
+                        <div>
+                          <label className={labelCls}>Sync Interval (minutes)</label>
+                          <input
+                            type="number"
+                            min="5"
+                            max="120"
+                            step="5"
+                            value={settings.auto_sync_interval_minutes || 30}
+                            onChange={(e) => onUpdate({
+                              auto_sync_interval_minutes: Math.max(5, parseInt(e.target.value) || 30)
+                            })}
+                            className={inputCls}
+                          />
+                        </div>
+                      )}
+
+                      {settings.last_synced_at && (
+                        <div className="bg-white/[0.03] rounded-xl p-3">
+                          <p className="font-mono text-[10px] text-white/25 uppercase">Last Synced</p>
+                          <p className="font-mono text-xs text-white/50">
+                            {new Date(settings.last_synced_at).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Gmail Integration Setup */}
+                      <div className="bg-white/[0.03] rounded-xl p-4 space-y-3">
+                        <p className="font-body text-sm text-white">Gmail Pay Stub Reader</p>
+                        <p className="font-body text-xs text-white/30">
+                          Deploy the Gmail Apps Script to automatically read pay stub emails
+                          and write them to a Google Sheet. The auto-sync feature will then
+                          pick up the data.
+                        </p>
+                        <ol className="list-decimal list-inside font-body text-xs text-white/40 space-y-1">
+                          <li>Open script.google.com and create a new project</li>
+                          <li>Paste the Gmail pay stub script code (see docs/gmail-paystub-script.gs)</li>
+                          <li>Run <code className="font-mono text-blue-400/60">setupTrigger()</code> once</li>
+                          <li>Deploy as web app (Execute: Me, Access: Anyone)</li>
+                          <li>Copy the web app URL into the Apps Script URL field in General settings</li>
+                        </ol>
+                      </div>
                     </div>
                   )}
                 </div>

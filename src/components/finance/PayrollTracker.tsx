@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   PayStub,
   PartTimeJob,
@@ -9,8 +9,9 @@ import {
   Employer,
   EnhancedWorkSchedule,
   EnhancedPayrollSettings,
+  AppsScriptData,
 } from "@/types";
-import { getPayrollSummary, generateId } from "@/lib/finance-utils";
+import { getPayrollSummary, generateId, parseGoogleSheetsCSV } from "@/lib/finance-utils";
 import { PayStubList } from "./PayStubList";
 import { PayStubForm } from "./PayStubForm";
 import { GoogleSheetsImport } from "./GoogleSheetsImport";
@@ -23,7 +24,8 @@ import { ShiftCalendar } from "./ShiftCalendar";
 import { ShiftConflictAlert } from "./ShiftConflictAlert";
 import { ScheduleFileManager } from "./ScheduleFileManager";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
-import { detectShiftConflicts } from "@/lib/payroll-utils";
+import { detectShiftConflicts, appsScriptToShifts, formatRelativeTime } from "@/lib/payroll-utils";
+import { useAutoSync } from "@/hooks/useAutoSync";
 import { motion } from "framer-motion";
 
 interface PayrollTrackerProps {
@@ -106,6 +108,98 @@ export function PayrollTracker({
   const conflicts = useMemo(
     () => detectShiftConflicts(enhancedSchedules, employers),
     [enhancedSchedules, employers]
+  );
+
+  // Auto-sync callbacks
+  const handleAutoSyncSchedule = useCallback((data: AppsScriptData) => {
+    if (!data.current || data.current.length === 0) return;
+    const shifts = appsScriptToShifts(data.current);
+    const totalHours = shifts.reduce((s, sh) => s + sh.hours, 0);
+    const label = data.payPeriod?.period?.label
+      ? `Week of ${data.payPeriod.period.label}`
+      : "Auto-Synced Schedule";
+
+    const existing = workSchedules.find((s) => s.period_label === label);
+    if (!existing) {
+      onAddSchedule({
+        id: generateId(),
+        period_label: label,
+        period_start: "",
+        period_end: "",
+        shifts,
+        total_hours: totalHours,
+        hourly_rate: settings.hourly_rate,
+        created_at: new Date().toISOString(),
+      });
+    }
+
+    // Auto-import history weeks
+    if (data.history) {
+      const existingLabels = new Set(workSchedules.map((s) => s.period_label));
+      for (const week of data.history) {
+        const wLabel = week.prettyLabel || week.weekLabel;
+        if (existingLabels.has(wLabel)) continue;
+        onAddSchedule({
+          id: generateId(),
+          period_label: wLabel,
+          period_start: "",
+          period_end: "",
+          shifts: [],
+          total_hours: week.totalHours,
+          hourly_rate: settings.hourly_rate,
+          created_at: new Date().toISOString(),
+        });
+        existingLabels.add(wLabel);
+      }
+    }
+  }, [workSchedules, settings.hourly_rate, onAddSchedule]);
+
+  const handleAutoSyncPayStubs = useCallback((csv: string) => {
+    const parsed = parseGoogleSheetsCSV(csv);
+    const existingKeys = new Set(
+      payStubs.map((s) => `${s.pay_date}|${s.gross_pay}`)
+    );
+    const newStubs: PayStub[] = parsed
+      .filter((p) => p.pay_date && p.gross_pay && !existingKeys.has(`${p.pay_date}|${p.gross_pay}`))
+      .map((p) => ({
+        id: generateId(),
+        employer_name: p.employer_name || settings.default_employer,
+        pay_period_start: p.pay_period_start || "",
+        pay_period_end: p.pay_period_end || "",
+        pay_date: p.pay_date || "",
+        regular_hours: p.regular_hours || 0,
+        overtime_hours: p.overtime_hours || 0,
+        hourly_rate: p.hourly_rate || settings.hourly_rate,
+        gross_pay: p.gross_pay || 0,
+        deductions: p.deductions || {
+          federal_tax: 0, state_tax: 0, social_security: 0,
+          medicare: 0, other_deductions: 0, other_deductions_label: "",
+        },
+        net_pay: p.net_pay || 0,
+        source: "google-sheets" as const,
+        created_at: new Date().toISOString(),
+      }));
+    if (newStubs.length > 0) {
+      onImportPayStubs(newStubs);
+    }
+  }, [payStubs, settings.default_employer, settings.hourly_rate, onImportPayStubs]);
+
+  const handleSyncComplete = useCallback((timestamp: string) => {
+    onUpdateEnhancedSettings?.({ last_synced_at: timestamp });
+  }, [onUpdateEnhancedSettings]);
+
+  const autoSync = useAutoSync(
+    {
+      enabled: enhancedSettings?.auto_sync_enabled ?? false,
+      url: settings.google_sheets_url,
+      intervalMinutes: enhancedSettings?.auto_sync_interval_minutes ?? 30,
+      lastSyncedAt: enhancedSettings?.last_synced_at ?? null,
+    },
+    {
+      onScheduleData: handleAutoSyncSchedule,
+      onPayStubData: handleAutoSyncPayStubs,
+      onSyncComplete: handleSyncComplete,
+    }
   );
 
   function handleEdit(stub: PayStub) {
@@ -222,6 +316,36 @@ export function PayrollTracker({
         )}
       </div>
 
+      {/* Auto-sync status */}
+      {enhancedSettings?.auto_sync_enabled && settings.google_sheets_url && (
+        <div className="flex items-center gap-3">
+          {autoSync.isSyncing && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              <span className="font-mono text-[10px] text-white/20">Syncing...</span>
+            </div>
+          )}
+          {autoSync.lastSyncedAt && !autoSync.isSyncing && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="font-mono text-[10px] text-white/20">
+                Last synced {formatRelativeTime(autoSync.lastSyncedAt)}
+              </span>
+            </div>
+          )}
+          {autoSync.syncError && (
+            <span className="font-mono text-[10px] text-yellow-400/60">{autoSync.syncError}</span>
+          )}
+          <button
+            onClick={autoSync.triggerSync}
+            disabled={autoSync.isSyncing}
+            className="font-mono text-[10px] text-blue-400/60 hover:text-blue-400 transition-colors disabled:opacity-30"
+          >
+            Sync now
+          </button>
+        </div>
+      )}
+
       {/* Sub-tab content */}
       {activeSubTab === "dashboard" && (
         <PayrollDashboard
@@ -316,6 +440,9 @@ export function PayrollTracker({
             employers: [],
             income_goals: [],
             auto_send_to_income: false,
+            auto_sync_enabled: false,
+            auto_sync_interval_minutes: 30,
+            last_synced_at: null,
           }}
           onUpdate={onUpdateEnhancedSettings || (() => {})}
         />

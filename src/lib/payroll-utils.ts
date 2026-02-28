@@ -8,6 +8,8 @@ import {
   EmployerIncome,
   WeeklyTrendEntry,
   MonthlyTrendEntry,
+  AppsScriptShift,
+  ScheduleShift,
 } from "@/types";
 import { parseTimeToMinutes } from "@/lib/finance-utils";
 
@@ -240,4 +242,47 @@ export function buildScheduleTree(
   }
 
   return tree;
+}
+
+export function formatShiftTime(raw: string): string {
+  if (!raw) return "";
+  const dateMatch = raw.match(/(\d{2}):(\d{2}):\d{2}\s+GMT/);
+  if (dateMatch) {
+    let h = parseInt(dateMatch[1]);
+    const m = dateMatch[2];
+    const suffix = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return m === "00" ? `${h}${suffix}` : `${h}:${m}${suffix}`;
+  }
+  return raw;
+}
+
+export function appsScriptToShifts(data: AppsScriptShift[]): ScheduleShift[] {
+  const allDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const shiftMap = new Map<string, AppsScriptShift>();
+  data.forEach((s) => shiftMap.set(s.day, s));
+
+  return allDays.map((day) => {
+    const s = shiftMap.get(day);
+    if (s && s.hours > 0) {
+      return {
+        day,
+        start_time: formatShiftTime(s.start),
+        end_time: formatShiftTime(s.end),
+        hours: s.hours,
+      };
+    }
+    return { day, start_time: "", end_time: "", hours: 0 };
+  });
+}
+
+export function formatRelativeTime(isoString: string): string {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }

@@ -103,6 +103,9 @@ export function FinanceTrackerClient() {
     employers: DEFAULT_EMPLOYERS,
     income_goals: [],
     auto_send_to_income: false,
+    auto_sync_enabled: true,
+    auto_sync_interval_minutes: 30,
+    last_synced_at: null,
   });
   const [displayCurrency, setDisplayCurrency] = useLocalStorage<string>("pj-display-currency", "USD");
 

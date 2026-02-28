@@ -636,6 +636,41 @@ export interface EnhancedPayrollSettings extends PayrollSettings {
   employers: Employer[];
   income_goals: IncomeGoal[];
   auto_send_to_income: boolean;
+  auto_sync_enabled: boolean;
+  auto_sync_interval_minutes: number;
+  last_synced_at: string | null;
+}
+
+// ===== Apps Script Response Types =====
+
+export interface AppsScriptShift {
+  day: string;
+  start: string;
+  end: string;
+  hours: number;
+}
+
+export interface AppsScriptWeek {
+  weekLabel: string;
+  totalHours: number;
+  change: number;
+  trend: string;
+  status: string;
+  totalPay: number;
+  prettyLabel: string;
+}
+
+export interface AppsScriptData {
+  employee: string;
+  current: AppsScriptShift[];
+  history: AppsScriptWeek[];
+  payPeriod: {
+    hours: number;
+    pay: number;
+    period: { label: string };
+    weeksDetails: string[];
+  } | null;
+  updatedAt: string;
 }
 
 // ===== Activity Timeline Types =====

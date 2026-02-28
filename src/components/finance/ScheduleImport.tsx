@@ -1,38 +1,9 @@
 "use client";
 import { useState } from "react";
-import { WorkSchedule, ScheduleShift, PayrollSettings } from "@/types";
+import { WorkSchedule, ScheduleShift, PayrollSettings, AppsScriptData } from "@/types";
 import { parseScheduleSheet, generateId, formatCurrency } from "@/lib/finance-utils";
+import { appsScriptToShifts } from "@/lib/payroll-utils";
 import { motion } from "framer-motion";
-
-interface AppsScriptShift {
-  day: string;
-  start: string;
-  end: string;
-  hours: number;
-}
-
-interface AppsScriptWeek {
-  weekLabel: string;
-  totalHours: number;
-  change: number;
-  trend: string;
-  status: string;
-  totalPay: number;
-  prettyLabel: string;
-}
-
-interface AppsScriptData {
-  employee: string;
-  current: AppsScriptShift[];
-  history: AppsScriptWeek[];
-  payPeriod: {
-    hours: number;
-    pay: number;
-    period: { label: string };
-    weeksDetails: string[];
-  } | null;
-  updatedAt: string;
-}
 
 interface ScheduleImportProps {
   schedules: WorkSchedule[];
@@ -40,42 +11,6 @@ interface ScheduleImportProps {
   onAddSchedule: (schedule: WorkSchedule) => void;
   onDeleteSchedule: (id: string) => void;
   onCreatePayStub: (totalHours: number, periodLabel: string) => void;
-}
-
-function formatShiftTime(raw: string): string {
-  if (!raw) return "";
-  // Handle full Date strings like "Sat Dec 30 1899 10:00:00 GMT-0500 ..."
-  const dateMatch = raw.match(/(\d{2}):(\d{2}):\d{2}\s+GMT/);
-  if (dateMatch) {
-    let h = parseInt(dateMatch[1]);
-    const m = dateMatch[2];
-    // Convert 24h to 12h display
-    const suffix = h >= 12 ? "PM" : "AM";
-    if (h > 12) h -= 12;
-    if (h === 0) h = 12;
-    return m === "00" ? `${h}${suffix}` : `${h}:${m}${suffix}`;
-  }
-  // Already formatted like "10:00" or "4:30"
-  return raw;
-}
-
-function appsScriptToShifts(data: AppsScriptShift[]): ScheduleShift[] {
-  const allDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const shiftMap = new Map<string, AppsScriptShift>();
-  data.forEach((s) => shiftMap.set(s.day, s));
-
-  return allDays.map((day) => {
-    const s = shiftMap.get(day);
-    if (s && s.hours > 0) {
-      return {
-        day,
-        start_time: formatShiftTime(s.start),
-        end_time: formatShiftTime(s.end),
-        hours: s.hours,
-      };
-    }
-    return { day, start_time: "", end_time: "", hours: 0 };
-  });
 }
 
 export function ScheduleImport({
