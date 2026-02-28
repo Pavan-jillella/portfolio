@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
-import { Transaction, Budget, SavingsGoal, Investment, NetWorthEntry, Subscription, PayStub, PartTimeJob, PartTimeHourEntry, PayrollSettings, WorkSchedule } from "@/types";
+import { Transaction, Budget, SavingsGoal, Investment, NetWorthEntry, Subscription, PayStub, PartTimeJob, PartTimeHourEntry, PayrollSettings, WorkSchedule, Employer, EnhancedWorkSchedule, EnhancedPayrollSettings, TaxConfig, IncomeGoal } from "@/types";
 import {
   getCurrentMonth,
   getMonthlyTransactions,
@@ -16,7 +16,7 @@ import {
   getMonthlySubscriptionTotal,
   formatCurrency,
 } from "@/lib/finance-utils";
-import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES } from "@/lib/constants";
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TAX_CONFIG, DEFAULT_EMPLOYERS } from "@/lib/constants";
 import { MonthPicker } from "./MonthPicker";
 import { MonthlySummaryCards } from "./MonthlySummaryCards";
 import { TransactionForm } from "./TransactionForm";
@@ -91,6 +91,19 @@ export function FinanceTrackerClient() {
     hourly_rate: 0,
   });
   const [workSchedules, setWorkSchedules] = useLocalStorage<WorkSchedule[]>("pj-work-schedules", []);
+  const [employers, setEmployers] = useLocalStorage<Employer[]>("pj-employers", DEFAULT_EMPLOYERS);
+  const [enhancedSchedules, setEnhancedSchedules] = useLocalStorage<EnhancedWorkSchedule[]>("pj-enhanced-schedules", []);
+  const [enhancedPayrollSettings, setEnhancedPayrollSettings] = useLocalStorage<EnhancedPayrollSettings>("pj-enhanced-payroll-settings", {
+    pay_frequency: "biweekly",
+    google_sheets_url: "",
+    default_employer: "Stemtree",
+    schedule_name: "Pavan",
+    hourly_rate: 14,
+    tax_config: DEFAULT_TAX_CONFIG,
+    employers: DEFAULT_EMPLOYERS,
+    income_goals: [],
+    auto_send_to_income: false,
+  });
   const [displayCurrency, setDisplayCurrency] = useLocalStorage<string>("pj-display-currency", "USD");
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
@@ -266,6 +279,52 @@ export function FinanceTrackerClient() {
 
   function deleteWorkSchedule(id: string) {
     setWorkSchedules((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  // Employer handlers
+  function addEmployer(emp: Employer) {
+    setEmployers((prev) => [emp, ...prev]);
+  }
+
+  function updateEmployer(id: string, updates: Partial<Employer>) {
+    setEmployers((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } : e))
+    );
+  }
+
+  function deleteEmployer(id: string) {
+    setEmployers((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  // Enhanced schedule handlers
+  function addEnhancedSchedule(schedule: EnhancedWorkSchedule) {
+    setEnhancedSchedules((prev) => [schedule, ...prev]);
+  }
+
+  function deleteEnhancedSchedule(id: string) {
+    setEnhancedSchedules((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  // Enhanced payroll settings handlers
+  function updateEnhancedPayrollSettings(updates: Partial<EnhancedPayrollSettings>) {
+    setEnhancedPayrollSettings((prev) => ({ ...prev, ...updates }));
+  }
+
+  // Budget integration: when adding pay stub with auto_send_to_income
+  function addPayStubWithIntegration(stub: PayStub) {
+    setPayStubs((prev) => [stub, ...prev]);
+    if (enhancedPayrollSettings.auto_send_to_income && stub.net_pay > 0) {
+      const tx: Transaction = {
+        id: crypto.randomUUID(),
+        type: "income",
+        amount: stub.net_pay,
+        category: "Salary",
+        description: `Payroll: ${stub.employer_name} (${stub.pay_period_start} - ${stub.pay_period_end})`,
+        date: stub.pay_date || new Date().toISOString().slice(0, 10),
+        created_at: new Date().toISOString(),
+      };
+      setTransactions((prev) => [tx, ...prev]);
+    }
   }
 
   return (
@@ -480,7 +539,10 @@ export function FinanceTrackerClient() {
               partTimeHours={partTimeHours}
               workSchedules={workSchedules}
               settings={payrollSettings}
-              onAddPayStub={addPayStub}
+              employers={employers}
+              enhancedSchedules={enhancedSchedules}
+              enhancedSettings={enhancedPayrollSettings}
+              onAddPayStub={addPayStubWithIntegration}
               onEditPayStub={editPayStub}
               onDeletePayStub={deletePayStub}
               onImportPayStubs={importPayStubs}
@@ -492,6 +554,12 @@ export function FinanceTrackerClient() {
               onAddSchedule={addWorkSchedule}
               onDeleteSchedule={deleteWorkSchedule}
               onUpdateSettings={setPayrollSettings}
+              onAddEmployer={addEmployer}
+              onUpdateEmployer={updateEmployer}
+              onDeleteEmployer={deleteEmployer}
+              onAddEnhancedSchedule={addEnhancedSchedule}
+              onDeleteEnhancedSchedule={deleteEnhancedSchedule}
+              onUpdateEnhancedSettings={updateEnhancedPayrollSettings}
             />
           </ErrorBoundary>
         </FadeIn>

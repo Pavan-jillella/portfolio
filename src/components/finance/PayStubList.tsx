@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
-import { PayStub } from "@/types";
+import { PayStub, Employer } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
+import { downloadPayStubPDF } from "@/lib/payroll-pdf";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PayStubListProps {
   stubs: PayStub[];
   onEdit: (stub: PayStub) => void;
   onDelete: (id: string) => void;
+  employers?: Employer[];
 }
 
-export function PayStubList({ stubs, onEdit, onDelete }: PayStubListProps) {
+export function PayStubList({ stubs, onEdit, onDelete, employers }: PayStubListProps) {
+  const employerMap = new Map((employers || []).map((e) => [e.id, e]));
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const sorted = [...stubs].sort((a, b) => b.pay_date.localeCompare(a.pay_date));
@@ -149,6 +152,15 @@ export function PayStubList({ stubs, onEdit, onDelete }: PayStubListProps) {
                         <span className="font-mono text-xs text-white/40">{stub.source}</span>
                       </div>
                       <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const emp = stub.employer_id ? employerMap.get(stub.employer_id) : undefined;
+                            downloadPayStubPDF(stub, emp);
+                          }}
+                          className="px-3 py-1 rounded-lg text-xs font-body text-white/40 hover:text-purple-400 hover:bg-white/5 transition-all"
+                        >
+                          PDF
+                        </button>
                         <button
                           onClick={() => onEdit(stub)}
                           className="px-3 py-1 rounded-lg text-xs font-body text-white/40 hover:text-blue-400 hover:bg-white/5 transition-all"

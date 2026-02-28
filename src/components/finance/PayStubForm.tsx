@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { PayStub, PayStubDeductions } from "@/types";
+import { PayStub, PayStubDeductions, Employer, TaxConfig } from "@/types";
 import { generateId } from "@/lib/finance-utils";
+import { calculateTaxBreakdown } from "@/lib/payroll-tax";
 
 interface PayStubFormProps {
   open: boolean;
@@ -9,6 +10,8 @@ interface PayStubFormProps {
   onSubmit: (stub: PayStub) => void;
   editStub?: PayStub;
   defaultEmployer?: string;
+  employers?: Employer[];
+  taxConfig?: TaxConfig;
 }
 
 const emptyDeductions: PayStubDeductions = {
@@ -20,8 +23,9 @@ const emptyDeductions: PayStubDeductions = {
   other_deductions_label: "",
 };
 
-export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer }: PayStubFormProps) {
+export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer, employers, taxConfig }: PayStubFormProps) {
   const [employer, setEmployer] = useState(defaultEmployer || "");
+  const [selectedEmployerId, setSelectedEmployerId] = useState<string>("");
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [payDate, setPayDate] = useState("");
@@ -33,10 +37,12 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
   const [netOverride, setNetOverride] = useState(false);
   const [deductions, setDeductions] = useState<PayStubDeductions>({ ...emptyDeductions });
   const [netPay, setNetPay] = useState(0);
+  const [autoTax, setAutoTax] = useState(true);
 
   useEffect(() => {
     if (editStub) {
       setEmployer(editStub.employer_name);
+      setSelectedEmployerId(editStub.employer_id || "");
       setPeriodStart(editStub.pay_period_start);
       setPeriodEnd(editStub.pay_period_end);
       setPayDate(editStub.pay_date);
@@ -53,6 +59,19 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
     }
   }, [editStub, open]);
 
+  // When employer selected from dropdown, populate rate
+  function handleEmployerSelect(empId: string) {
+    setSelectedEmployerId(empId);
+    if (!employers) return;
+    const emp = employers.find((e) => e.id === empId);
+    if (emp) {
+      setEmployer(emp.name);
+      if (emp.pay_type === "hourly" && emp.hourly_rate > 0) {
+        setHourlyRate(emp.hourly_rate);
+      }
+    }
+  }
+
   // Auto-calc gross from hours * rate
   const calculatedGross = useMemo(() => {
     return regularHours * hourlyRate + overtimeHours * hourlyRate * 1.5;
@@ -63,6 +82,21 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
       setGrossPay(parseFloat(calculatedGross.toFixed(2)));
     }
   }, [calculatedGross, grossOverride, hourlyRate]);
+
+  // Auto-calculate taxes when gross changes and autoTax is on
+  useEffect(() => {
+    if (!autoTax || !taxConfig || grossPay <= 0) return;
+    const annualEstimate = grossPay * 26; // biweekly assumption
+    const breakdown = calculateTaxBreakdown(grossPay, annualEstimate, taxConfig);
+    setDeductions({
+      federal_tax: breakdown.federal_tax,
+      state_tax: breakdown.state_tax,
+      social_security: breakdown.fica,
+      medicare: breakdown.medicare,
+      other_deductions: 0,
+      other_deductions_label: "",
+    });
+  }, [grossPay, autoTax, taxConfig]);
 
   // Auto-calc net from gross - deductions
   const totalDeductions = useMemo(() => {
@@ -83,6 +117,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
 
   function resetForm() {
     setEmployer(defaultEmployer || "");
+    setSelectedEmployerId("");
     setPeriodStart("");
     setPeriodEnd("");
     setPayDate("");
@@ -101,6 +136,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
     const stub: PayStub = {
       id: editStub?.id || generateId(),
       employer_name: employer,
+      employer_id: selectedEmployerId || undefined,
       pay_period_start: periodStart,
       pay_period_end: periodEnd,
       pay_date: payDate,
@@ -110,7 +146,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
       gross_pay: grossPay,
       deductions,
       net_pay: netPay,
-      source: editStub?.source || "manual",
+      source: autoTax && taxConfig ? "auto-calculated" : (editStub?.source || "manual"),
       created_at: editStub?.created_at || new Date().toISOString(),
     };
     onSubmit(stub);
@@ -130,6 +166,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
 
   const inputCls = "w-full bg-white/5 border border-white/10 text-white rounded-2xl px-5 py-3 font-body focus:border-blue-500/50 transition-all";
   const labelCls = "font-mono text-xs text-white/40 uppercase tracking-widest mb-2 block";
+  const activeEmployers = employers?.filter((e) => e.active) || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -147,7 +184,20 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
           {/* Employer */}
           <div>
             <label className={labelCls}>Employer</label>
-            <input type="text" value={employer} onChange={(e) => setEmployer(e.target.value)} className={inputCls} required />
+            {activeEmployers.length > 0 ? (
+              <select
+                value={selectedEmployerId}
+                onChange={(e) => handleEmployerSelect(e.target.value)}
+                className={inputCls}
+              >
+                <option value="" className="bg-charcoal-950">Select employer...</option>
+                {activeEmployers.map((emp) => (
+                  <option key={emp.id} value={emp.id} className="bg-charcoal-950">{emp.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input type="text" value={employer} onChange={(e) => setEmployer(e.target.value)} className={inputCls} required />
+            )}
           </div>
 
           {/* Period dates */}
@@ -204,6 +254,29 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
               </button>
             )}
           </div>
+
+          {/* Auto-Tax Toggle */}
+          {taxConfig && (
+            <div className="flex items-center justify-between bg-white/[0.03] rounded-xl px-4 py-3">
+              <div>
+                <p className="font-body text-sm text-white">Auto-Calculate Taxes</p>
+                <p className="font-body text-xs text-white/30">Uses Virginia + Federal tax brackets</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAutoTax(!autoTax)}
+                className={`w-10 h-5 rounded-full transition-colors relative ${
+                  autoTax ? "bg-blue-500/40" : "bg-white/10"
+                }`}
+              >
+                <div
+                  className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
+                    autoTax ? "left-5 bg-blue-400" : "left-0.5 bg-white/30"
+                  }`}
+                />
+              </button>
+            </div>
+          )}
 
           {/* Deductions */}
           <div className="space-y-3">

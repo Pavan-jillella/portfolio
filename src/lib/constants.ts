@@ -1,4 +1,4 @@
-import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, SubscriptionFrequency, ProjectStatus } from "@/types";
+import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
 
 export const DEFAULT_EXPENSE_CATEGORIES: string[] = [
   "Rent", "Groceries", "Dining", "Travel", "Subscriptions",
@@ -188,3 +188,62 @@ export const DASHBOARD_TABS = [
 ] as const;
 
 export type DashboardTabId = (typeof DASHBOARD_TABS)[number]["id"];
+
+// ===== Payroll Constants =====
+
+export const EMPLOYER_COLORS: string[] = [
+  "#3b82f6", // blue
+  "#10b981", // emerald
+  "#f59e0b", // amber
+  "#8b5cf6", // violet
+  "#ef4444", // red
+  "#06b6d4", // cyan
+  "#ec4899", // pink
+  "#f97316", // orange
+  "#14b8a6", // teal
+  "#6366f1", // indigo
+];
+
+export const PAY_TYPE_LABELS: Record<PayType, string> = {
+  hourly: "Hourly",
+  salary: "Salary",
+  commission: "Commission",
+  fixed_weekly: "Fixed Weekly",
+  per_shift: "Per Shift",
+};
+
+export const DEFAULT_TAX_CONFIG: TaxConfig = {
+  filing_status: "single",
+  federal_standard_deduction: 14600,
+  fica_rate: 0.062,
+  fica_wage_cap: 168600,
+  medicare_rate: 0.0145,
+  state: "VA",
+  custom_deductions: [],
+};
+
+export const DEFAULT_EMPLOYERS: Employer[] = [
+  {
+    id: "default-stemtree",
+    name: "Stemtree",
+    pay_type: "hourly",
+    hourly_rate: 14,
+    fixed_amount: 0,
+    commission_rate: 0,
+    color: "#3b82f6",
+    overtime_enabled: false,
+    overtime_multiplier: 1.5,
+    overtime_threshold: 40,
+    holiday_multiplier: 1.5,
+    active: true,
+    created_at: new Date().toISOString(),
+  },
+];
+
+export const FILING_STATUS_LABELS: Record<TaxConfig["filing_status"], string> = {
+  single: "Single",
+  married_jointly: "Married Filing Jointly",
+  married_separately: "Married Filing Separately",
+  head_of_household: "Head of Household",
+};
+

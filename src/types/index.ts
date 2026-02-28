@@ -445,6 +445,24 @@ export interface RecentActivity {
 
 export type PayFrequency = "weekly" | "biweekly" | "semimonthly" | "monthly";
 
+export type PayType = "hourly" | "salary" | "commission" | "fixed_weekly" | "per_shift";
+
+export interface Employer {
+  id: string;
+  name: string;
+  pay_type: PayType;
+  hourly_rate: number;
+  fixed_amount: number;
+  commission_rate: number;
+  color: string;
+  overtime_enabled: boolean;
+  overtime_multiplier: number;
+  overtime_threshold: number;
+  holiday_multiplier: number;
+  active: boolean;
+  created_at: string;
+}
+
 export interface PayStubDeductions {
   federal_tax: number;
   state_tax: number;
@@ -457,6 +475,7 @@ export interface PayStubDeductions {
 export interface PayStub {
   id: string;
   employer_name: string;
+  employer_id?: string;
   pay_period_start: string;
   pay_period_end: string;
   pay_date: string;
@@ -466,7 +485,7 @@ export interface PayStub {
   gross_pay: number;
   deductions: PayStubDeductions;
   net_pay: number;
-  source: "manual" | "google-sheets";
+  source: "manual" | "google-sheets" | "auto-calculated";
   created_at: string;
 }
 
@@ -503,6 +522,17 @@ export interface ScheduleShift {
   hours: number;
 }
 
+export interface EnhancedShift {
+  id: string;
+  schedule_id: string;
+  date: string;
+  day: string;
+  start_time: string;
+  end_time: string;
+  hours: number;
+  is_holiday: boolean;
+}
+
 export interface WorkSchedule {
   id: string;
   period_label: string;
@@ -512,6 +542,100 @@ export interface WorkSchedule {
   total_hours: number;
   hourly_rate: number;
   created_at: string;
+}
+
+export interface EnhancedWorkSchedule {
+  id: string;
+  employer_id: string;
+  period_label: string;
+  start_date: string;
+  end_date: string;
+  shifts: EnhancedShift[];
+  total_hours: number;
+  gross_amount: number;
+  created_at: string;
+}
+
+export interface CustomDeduction {
+  label: string;
+  amount: number;
+  is_percentage: boolean;
+}
+
+export interface TaxConfig {
+  filing_status: "single" | "married_jointly" | "married_separately" | "head_of_household";
+  federal_standard_deduction: number;
+  fica_rate: number;
+  fica_wage_cap: number;
+  medicare_rate: number;
+  state: "VA";
+  custom_deductions: CustomDeduction[];
+}
+
+export interface TaxBreakdown {
+  gross: number;
+  federal_tax: number;
+  state_tax: number;
+  fica: number;
+  medicare: number;
+  custom_deductions_total: number;
+  total_deductions: number;
+  net_pay: number;
+  effective_rate: number;
+}
+
+export interface IncomeGoal {
+  id: string;
+  year: number;
+  target_amount: number;
+}
+
+export interface EmployerIncome {
+  employer_id: string;
+  employer_name: string;
+  color: string;
+  gross: number;
+  hours: number;
+}
+
+export interface WeeklyTrendEntry {
+  week_label: string;
+  gross: number;
+  net: number;
+  hours: number;
+}
+
+export interface MonthlyTrendEntry {
+  month: string;
+  gross: number;
+  net: number;
+  hours: number;
+}
+
+export interface PayrollDashboardStats {
+  total_hours_month: number;
+  gross_month: number;
+  net_month: number;
+  taxes_month: number;
+  effective_hourly_rate: number;
+  income_by_employer: EmployerIncome[];
+  weekly_trend: WeeklyTrendEntry[];
+  monthly_trend: MonthlyTrendEntry[];
+}
+
+export interface ShiftConflict {
+  shift_a: EnhancedShift;
+  shift_b: EnhancedShift;
+  employer_a: string;
+  employer_b: string;
+  overlap_minutes: number;
+}
+
+export interface EnhancedPayrollSettings extends PayrollSettings {
+  tax_config: TaxConfig;
+  employers: Employer[];
+  income_goals: IncomeGoal[];
+  auto_send_to_income: boolean;
 }
 
 // ===== Activity Timeline Types =====

@@ -1,6 +1,15 @@
 "use client";
 import { useState, useMemo } from "react";
-import { PayStub, PartTimeJob, PartTimeHourEntry, PayrollSettings, WorkSchedule } from "@/types";
+import {
+  PayStub,
+  PartTimeJob,
+  PartTimeHourEntry,
+  PayrollSettings,
+  WorkSchedule,
+  Employer,
+  EnhancedWorkSchedule,
+  EnhancedPayrollSettings,
+} from "@/types";
 import { getPayrollSummary, generateId } from "@/lib/finance-utils";
 import { PayStubList } from "./PayStubList";
 import { PayStubForm } from "./PayStubForm";
@@ -8,7 +17,13 @@ import { GoogleSheetsImport } from "./GoogleSheetsImport";
 import { PartTimeJobsTracker } from "./PartTimeJobsTracker";
 import { PayrollSettingsPanel } from "./PayrollSettingsPanel";
 import { ScheduleImport } from "./ScheduleImport";
+import { EmployerManager } from "./EmployerManager";
+import { PayrollDashboard } from "./PayrollDashboard";
+import { ShiftCalendar } from "./ShiftCalendar";
+import { ShiftConflictAlert } from "./ShiftConflictAlert";
+import { ScheduleFileManager } from "./ScheduleFileManager";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
+import { detectShiftConflicts } from "@/lib/payroll-utils";
 import { motion } from "framer-motion";
 
 interface PayrollTrackerProps {
@@ -29,12 +44,26 @@ interface PayrollTrackerProps {
   onAddSchedule: (schedule: WorkSchedule) => void;
   onDeleteSchedule: (id: string) => void;
   onUpdateSettings: (settings: PayrollSettings) => void;
+  // New enhanced props
+  employers?: Employer[];
+  enhancedSchedules?: EnhancedWorkSchedule[];
+  enhancedSettings?: EnhancedPayrollSettings;
+  onAddEmployer?: (employer: Employer) => void;
+  onUpdateEmployer?: (id: string, updates: Partial<Employer>) => void;
+  onDeleteEmployer?: (id: string) => void;
+  onAddEnhancedSchedule?: (schedule: EnhancedWorkSchedule) => void;
+  onDeleteEnhancedSchedule?: (id: string) => void;
+  onUpdateEnhancedSettings?: (updates: Partial<EnhancedPayrollSettings>) => void;
 }
 
 const subTabs = [
+  { id: "dashboard", label: "Dashboard" },
   { id: "schedule", label: "Schedule" },
+  { id: "files", label: "Files" },
   { id: "stubs", label: "Pay Stubs" },
+  { id: "employers", label: "Employers" },
   { id: "jobs", label: "Part-Time Jobs" },
+  { id: "calendar", label: "Calendar" },
   { id: "import", label: "CSV Import" },
   { id: "settings", label: "Settings" },
 ];
@@ -57,13 +86,27 @@ export function PayrollTracker({
   onAddSchedule,
   onDeleteSchedule,
   onUpdateSettings,
+  employers = [],
+  enhancedSchedules = [],
+  enhancedSettings,
+  onAddEmployer,
+  onUpdateEmployer,
+  onDeleteEmployer,
+  onAddEnhancedSchedule,
+  onDeleteEnhancedSchedule,
+  onUpdateEnhancedSettings,
 }: PayrollTrackerProps) {
-  const [activeSubTab, setActiveSubTab] = useState("schedule");
+  const [activeSubTab, setActiveSubTab] = useState("dashboard");
   const [showForm, setShowForm] = useState(false);
   const [editingStub, setEditingStub] = useState<PayStub | null>(null);
   const [prefillHours, setPrefillHours] = useState(0);
 
   const summary = useMemo(() => getPayrollSummary(payStubs), [payStubs]);
+
+  const conflicts = useMemo(
+    () => detectShiftConflicts(enhancedSchedules, employers),
+    [enhancedSchedules, employers]
+  );
 
   function handleEdit(stub: PayStub) {
     setEditingStub(stub);
@@ -86,7 +129,7 @@ export function PayrollTracker({
     setPrefillHours(0);
   }
 
-  function handleCreatePayStubFromSchedule(totalHours: number, periodLabel: string) {
+  function handleCreatePayStubFromSchedule(totalHours: number) {
     setPrefillHours(totalHours);
     setEditingStub(null);
     setShowForm(true);
@@ -146,8 +189,11 @@ export function PayrollTracker({
         </motion.div>
       </div>
 
+      {/* Shift Conflicts Alert */}
+      {conflicts.length > 0 && <ShiftConflictAlert conflicts={conflicts} />}
+
       {/* Sub-tabs */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         {subTabs.map((tab) => (
           <button
             key={tab.id}
@@ -177,6 +223,15 @@ export function PayrollTracker({
       </div>
 
       {/* Sub-tab content */}
+      {activeSubTab === "dashboard" && (
+        <PayrollDashboard
+          payStubs={payStubs}
+          employers={employers}
+          enhancedSchedules={enhancedSchedules}
+          incomeGoals={enhancedSettings?.income_goals || []}
+        />
+      )}
+
       {activeSubTab === "schedule" && (
         <ScheduleImport
           schedules={workSchedules}
@@ -187,11 +242,29 @@ export function PayrollTracker({
         />
       )}
 
+      {activeSubTab === "files" && (
+        <ScheduleFileManager
+          schedules={enhancedSchedules}
+          employers={employers}
+          onDelete={onDeleteEnhancedSchedule}
+        />
+      )}
+
       {activeSubTab === "stubs" && (
         <PayStubList
           stubs={payStubs}
           onEdit={handleEdit}
           onDelete={onDeletePayStub}
+          employers={employers}
+        />
+      )}
+
+      {activeSubTab === "employers" && onAddEmployer && onUpdateEmployer && onDeleteEmployer && (
+        <EmployerManager
+          employers={employers}
+          onAdd={onAddEmployer}
+          onUpdate={onUpdateEmployer}
+          onDelete={onDeleteEmployer}
         />
       )}
 
@@ -207,6 +280,13 @@ export function PayrollTracker({
         />
       )}
 
+      {activeSubTab === "calendar" && (
+        <ShiftCalendar
+          schedules={enhancedSchedules}
+          employers={employers}
+        />
+      )}
+
       {activeSubTab === "import" && (
         <GoogleSheetsImport
           existingStubs={payStubs}
@@ -215,12 +295,31 @@ export function PayrollTracker({
         />
       )}
 
-      {activeSubTab === "settings" && (
+      {activeSubTab === "settings" && enhancedSettings && onUpdateEnhancedSettings ? (
         <PayrollSettingsPanel
-          settings={settings}
-          onUpdate={onUpdateSettings}
+          settings={enhancedSettings}
+          onUpdate={onUpdateEnhancedSettings}
         />
-      )}
+      ) : activeSubTab === "settings" ? (
+        <PayrollSettingsPanel
+          settings={enhancedSettings || {
+            ...settings,
+            tax_config: {
+              filing_status: "single",
+              federal_standard_deduction: 14600,
+              fica_rate: 0.062,
+              fica_wage_cap: 168600,
+              medicare_rate: 0.0145,
+              state: "VA",
+              custom_deductions: [],
+            },
+            employers: [],
+            income_goals: [],
+            auto_send_to_income: false,
+          }}
+          onUpdate={onUpdateEnhancedSettings || (() => {})}
+        />
+      ) : null}
 
       {/* Pay stub form modal */}
       <PayStubForm
@@ -229,6 +328,8 @@ export function PayrollTracker({
         onSubmit={handleFormSubmit}
         editStub={editingStub || prefillStub || undefined}
         defaultEmployer={settings.default_employer}
+        employers={employers}
+        taxConfig={enhancedSettings?.tax_config}
       />
     </div>
   );

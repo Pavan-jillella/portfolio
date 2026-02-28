@@ -343,7 +343,8 @@ export function calculateShiftHours(timeRange: string): { start: string; end: st
   const trimmed = timeRange.trim();
   if (!trimmed || trimmed === " ") return { start: "", end: "", hours: 0 };
 
-  const parts = trimmed.split("-").map((p) => p.trim());
+  // Support both "10-4" and "10 - 4" and "10AM - 4PM" formats
+  const parts = trimmed.split(/\s*-\s*/).map((p) => p.trim());
   if (parts.length !== 2) return { start: "", end: "", hours: 0 };
 
   const [startStr, endStr] = parts;
@@ -351,7 +352,7 @@ export function calculateShiftHours(timeRange: string): { start: string; end: st
   const endMinutes = parseTimeToMinutes(endStr);
   if (startMinutes < 0 || endMinutes < 0) return { start: startStr, end: endStr, hours: 0 };
 
-  // If end <= start, assume end is PM (add 12 hours)
+  // Handle overnight shifts or PM assumption
   let adjustedEnd = endMinutes;
   if (adjustedEnd <= startMinutes) {
     adjustedEnd += 12 * 60;
@@ -361,10 +362,43 @@ export function calculateShiftHours(timeRange: string): { start: string; end: st
   return { start: startStr, end: endStr, hours: Math.max(hours, 0) };
 }
 
-function parseTimeToMinutes(time: string): number {
-  const match = time.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return -1;
-  return parseInt(match[1]) * 60 + parseInt(match[2]);
+export function parseTimeToMinutes(time: string): number {
+  const trimmed = time.trim().toUpperCase();
+
+  // "10:00", "4:30"
+  const match24 = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    return parseInt(match24[1]) * 60 + parseInt(match24[2]);
+  }
+
+  // "10AM", "4PM", "10 AM", "4 PM"
+  const matchSimple = trimmed.match(/^(\d{1,2})\s*(AM|PM)$/);
+  if (matchSimple) {
+    let h = parseInt(matchSimple[1]);
+    const period = matchSimple[2];
+    if (period === "PM" && h !== 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return h * 60;
+  }
+
+  // "10:30AM", "4:30PM", "10:30 AM", "4:30 PM"
+  const matchFull = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+  if (matchFull) {
+    let h = parseInt(matchFull[1]);
+    const m = parseInt(matchFull[2]);
+    const period = matchFull[3];
+    if (period === "PM" && h !== 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return h * 60 + m;
+  }
+
+  // Plain number "10", "4"
+  const matchPlain = trimmed.match(/^(\d{1,2})$/);
+  if (matchPlain) {
+    return parseInt(matchPlain[1]) * 60;
+  }
+
+  return -1;
 }
 
 export function parseScheduleSheet(csvText: string, name: string): ScheduleShift[] {
