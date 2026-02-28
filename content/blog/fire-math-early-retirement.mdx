@@ -1,0 +1,87 @@
+---
+title: "FIRE Math: The Numbers Behind Early Retirement"
+date: "2024-11-10"
+description: "Breaking down the 4% rule, safe withdrawal rates, and why the journey matters as much as the destination."
+category: "Finance"
+readTime: "8 min"
+published: true
+tags: ["FIRE", "finance", "retirement", "investing"]
+---
+
+# FIRE Math: The Numbers Behind Early Retirement
+
+Financial Independence, Retire Early. The math is simpler than you think.
+
+## The Core Formula
+
+Your FIRE number = Annual Expenses × 25
+
+That's it. If you spend $40,000/year, you need $1,000,000 invested. This is based on the 4% rule — historically, withdrawing 4% of your portfolio annually has been sustainable for 30+ year periods.
+
+```typescript
+function calculateFIRENumber(annualExpenses: number): number {
+  return annualExpenses * 25;
+}
+
+function yearsToFIRE(
+  annualIncome: number,
+  annualExpenses: number,
+  currentSavings: number,
+  returnRate: number = 0.07
+): number {
+  const annualSavings = annualIncome - annualExpenses;
+  const target = calculateFIRENumber(annualExpenses);
+
+  let savings = currentSavings;
+  let years = 0;
+
+  while (savings < target) {
+    savings = savings * (1 + returnRate) + annualSavings;
+    years++;
+  }
+
+  return years;
+}
+```
+
+## Savings Rate is Everything
+
+Your savings rate matters more than your income or investment returns.
+
+| Savings Rate | Years to FIRE |
+|---|---|
+| 10% | 51 years |
+| 25% | 32 years |
+| 50% | 17 years |
+| 75% | 7 years |
+
+The relationship is logarithmic, not linear. Doubling your savings rate more than halves your time to FIRE.
+
+## The 4% Rule Under Scrutiny
+
+The Trinity Study showed that a 4% withdrawal rate survived 95% of all 30-year periods in history. But critics argue:
+
+- Future returns may be lower
+- Sequence of returns risk in early years
+- 30 years may not be enough for early retirees
+
+My approach: target a 3.5% withdrawal rate for extra safety margin.
+
+## Why the Journey Matters
+
+FIRE isn't really about retirement. It's about:
+
+1. **Freedom** — choosing how you spend your time
+2. **Security** — not being dependent on any single income source
+3. **Optionality** — the ability to take risks and pursue meaningful work
+4. **Skills** — the discipline of high savings rates builds valuable habits
+
+## My Progress
+
+I track three key metrics monthly:
+
+- **Savings rate** — targeting 50%+
+- **Net worth** — growing through savings and returns
+- **FIRE percentage** — current portfolio / FIRE number
+
+The dashboard keeps me accountable. The math keeps me motivated.

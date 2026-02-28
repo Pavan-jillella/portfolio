@@ -1,0 +1,53 @@
+---
+title: "Building Interfaces People Actually Want to Use"
+date: "2024-12-30"
+description: "Lessons from shipping products to 10k+ users. The gap between technically correct and genuinely useful."
+category: "Technology"
+readTime: "7 min"
+published: true
+tags: ["UI", "UX", "design", "product"]
+---
+
+# Building Interfaces People Actually Want to Use
+
+There's a gap between technically correct and genuinely useful. After shipping products to 10,000+ users, here's what I've learned.
+
+## The Fundamental Problem
+
+Most interfaces are built for the builder, not the user. We optimize for engineering elegance when we should optimize for user comprehension.
+
+## Principle 1: Reduce Decisions
+
+Every decision a user has to make is friction. The best interfaces make obvious choices for you.
+
+```tsx
+// Bad: Too many choices
+<Select options={["small", "medium", "large", "xl", "2xl", "custom"]} />
+
+// Good: Smart defaults with override
+<SizeSelector defaultSize="medium" allowCustom />
+```
+
+## Principle 2: Progressive Disclosure
+
+Show what's needed, hide what's not. Let complexity reveal itself naturally.
+
+## Principle 3: Feedback is Everything
+
+Every action should produce visible feedback. Loading states. Success confirmations. Error explanations.
+
+> Users don't read error messages. They read the color and position of the error.
+
+## Principle 4: Consistency Over Cleverness
+
+A consistent interface is learnable. A clever interface is memorable once, confusing forever.
+
+## What I Measure
+
+- **Time to first success** — how long before a new user accomplishes their goal
+- **Error recovery rate** — how often users get stuck vs. recover
+- **Return usage** — do people come back
+
+## The Meta-Lesson
+
+The best interface is the one nobody notices. When users talk about your product and never mention the UI, you've won.

@@ -1,0 +1,11 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+
+# Host
+Host: https://pavanjillella.com
+
+# Sitemaps
+Sitemap: https://pavanjillella.com/sitemap.xml
