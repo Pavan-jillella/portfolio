@@ -7,22 +7,40 @@ import {
   RecentActivity,
 } from "@/types";
 
+/** Format a Date as YYYY-MM-DD in local timezone (not UTC) */
+function toLocalDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Get Monday of the current week in local timezone */
+function getMondayOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const diff = day === 0 ? 6 : day - 1; // days since Monday
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 export function getStudyStreak(sessions: StudySession[]): number {
   if (sessions.length === 0) return 0;
   const dates = Array.from(new Set(sessions.map((s) => s.date))).sort().reverse();
   if (dates.length === 0) return 0;
 
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const today = toLocalDateStr(new Date());
+  const yesterday = toLocalDateStr(new Date(Date.now() - 86400000));
 
   // Streak must start from today or yesterday
   if (dates[0] !== today && dates[0] !== yesterday) return 0;
 
   let streak = 1;
   for (let i = 1; i < dates.length; i++) {
-    const prev = new Date(dates[i - 1]);
-    const curr = new Date(dates[i]);
-    const diff = (prev.getTime() - curr.getTime()) / 86400000;
+    const prev = new Date(dates[i - 1] + "T00:00:00");
+    const curr = new Date(dates[i] + "T00:00:00");
+    const diff = Math.round((prev.getTime() - curr.getTime()) / 86400000);
     if (diff === 1) {
       streak++;
     } else {
@@ -41,7 +59,7 @@ export function getDailyStudyData(
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = toLocalDateStr(d);
     const total = sessions
       .filter((s) => s.date === dateStr)
       .reduce((sum, s) => sum + s.duration_minutes, 0);
@@ -61,8 +79,8 @@ export function getWeeklyStudyData(
     weekEnd.setDate(weekEnd.getDate() - i * 7);
     const weekStart = new Date(weekEnd);
     weekStart.setDate(weekStart.getDate() - 6);
-    const startStr = weekStart.toISOString().slice(0, 10);
-    const endStr = weekEnd.toISOString().slice(0, 10);
+    const startStr = toLocalDateStr(weekStart);
+    const endStr = toLocalDateStr(weekEnd);
     const total = sessions
       .filter((s) => s.date >= startStr && s.date <= endStr)
       .reduce((sum, s) => sum + s.duration_minutes, 0);
@@ -90,10 +108,8 @@ export function getWeeklyGoalProgress(
   sessions: StudySession[],
   goals: StudyGoal[]
 ): { subject: string; currentHours: number; targetHours: number }[] {
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
-  const weekStartStr = weekStart.toISOString().slice(0, 10);
+  const monday = getMondayOfWeek(new Date());
+  const weekStartStr = toLocalDateStr(monday);
 
   return goals.map((goal) => {
     const weekSessions = sessions.filter(
@@ -160,11 +176,7 @@ export function formatDuration(minutes: number): string {
 }
 
 export function getWeekStart(date: Date): string {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  return d.toISOString().slice(0, 10);
+  return toLocalDateStr(getMondayOfWeek(date));
 }
 
 export function searchNotes(notes: Note[], query: string): Note[] {

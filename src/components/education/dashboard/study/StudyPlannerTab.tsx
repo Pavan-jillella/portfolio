@@ -8,6 +8,7 @@ import {
   getSubjectBreakdown,
   getWeeklyGoalProgress,
   formatDuration,
+  getWeekStart,
 } from "@/lib/education-utils";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { StudySessionForm } from "./StudySessionForm";
@@ -55,10 +56,7 @@ export function StudyPlannerTab({
 
   // This week's sessions
   const weekStats = useMemo(() => {
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
-    const weekStartStr = weekStart.toISOString().slice(0, 10);
+    const weekStartStr = getWeekStart(new Date());
     const thisWeekSessions = sessions.filter((s) => s.date >= weekStartStr);
     const totalMinutes = thisWeekSessions.reduce((sum, s) => sum + s.duration_minutes, 0);
     return {
