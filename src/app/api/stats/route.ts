@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const headers: HeadersInit = { Accept: "application/vnd.github.v3+json" };
@@ -22,27 +24,19 @@ export async function GET() {
 
     let leetcode = { solved: 0, easy: 0, medium: 0, hard: 0 };
     try {
-      const username = process.env.LEETCODE_USERNAME || "pavanjillella";
-      const lcRes = await fetch("https://leetcode.com/graphql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Referer: "https://leetcode.com" },
-        body: JSON.stringify({
-          query: `query getUserProfile($username: String!) { matchedUser(username: $username) { submitStatsGlobal { acSubmissionNum { difficulty count } } } }`,
-          variables: { username },
-        }),
-        next: { revalidate: 3600 },
-      });
+      const username = process.env.LEETCODE_USERNAME || "Punisher_17";
+      const lcRes = await fetch(
+        `https://alfa-leetcode-api.onrender.com/userProfile/${username}`,
+        { next: { revalidate: 3600 } }
+      );
       if (lcRes.ok) {
         const lcData = await lcRes.json();
-        const stats = lcData?.data?.matchedUser?.submitStatsGlobal?.acSubmissionNum;
-        if (stats) {
-          leetcode = {
-            solved: stats.find((s: any) => s.difficulty === "All")?.count || 0,
-            easy: stats.find((s: any) => s.difficulty === "Easy")?.count || 0,
-            medium: stats.find((s: any) => s.difficulty === "Medium")?.count || 0,
-            hard: stats.find((s: any) => s.difficulty === "Hard")?.count || 0,
-          };
-        }
+        leetcode = {
+          solved: lcData.totalSolved ?? 0,
+          easy: lcData.easySolved ?? 0,
+          medium: lcData.mediumSolved ?? 0,
+          hard: lcData.hardSolved ?? 0,
+        };
       }
     } catch {}
 
