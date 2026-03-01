@@ -1,9 +1,17 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Investment, InvestmentType } from "@/types";
-import { INVESTMENT_TYPES } from "@/lib/constants";
+import {
+  INVESTMENT_TYPES,
+  LIVE_PRICE_TYPES,
+  INVESTMENT_TYPE_COLORS,
+  TICKER_SUGGESTIONS,
+  DEFAULT_REFRESH_INTERVAL_MINUTES,
+} from "@/lib/constants";
 import { generateId, formatCurrency } from "@/lib/finance-utils";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { PriceSparkline } from "./Sparkline";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface InvestmentTrackerProps {
@@ -12,6 +20,14 @@ interface InvestmentTrackerProps {
   onUpdate: (id: string, updates: Partial<Investment>) => void;
   onDelete: (id: string) => void;
 }
+
+const TICKER_PLACEHOLDERS: Partial<Record<InvestmentType, string>> = {
+  stock: "AAPL, RELIANCE.NS, TCS.BO",
+  crypto: "BTC-USD, ETH-USD",
+  commodity: "GC=F, CL=F",
+  index: "^GSPC, SPY, ^NSEI",
+  forex: "EURUSD=X, USDINR=X",
+};
 
 export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: InvestmentTrackerProps) {
   const [name, setName] = useState("");
@@ -36,7 +52,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const totalGainPct = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
   const refreshPrices = useCallback(async () => {
-    const tickerInvestments = investments.filter((i) => i.ticker && (i.type === "stock" || i.type === "crypto"));
+    const tickerInvestments = investments.filter((i) => i.ticker && LIVE_PRICE_TYPES.includes(i.type));
     if (tickerInvestments.length === 0) return;
 
     setLoading(true);
@@ -67,10 +83,15 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     }
   }, [investments, onUpdate]);
 
-  useEffect(() => {
-    refreshPrices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const hasLivePrices = investments.some((i) => i.ticker && LIVE_PRICE_TYPES.includes(i.type));
+
+  const {
+    secondsRemaining,
+    isRefreshing,
+    refresh,
+    intervalMinutes,
+    setIntervalMinutes,
+  } = useAutoRefresh(refreshPrices, DEFAULT_REFRESH_INTERVAL_MINUTES, hasLivePrices);
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -121,14 +142,32 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
         ))}
       </div>
 
-      {/* Refresh button */}
-      <div className="flex justify-end">
-        <button
-          onClick={refreshPrices}
-          disabled={loading}
-          className="glass-card px-4 py-2 rounded-xl text-xs font-body text-white/40 hover:text-white transition-all disabled:opacity-30"
+      {/* Auto-refresh controls */}
+      <div className="flex items-center justify-end gap-3">
+        <select
+          value={intervalMinutes}
+          onChange={(e) => setIntervalMinutes(Number(e.target.value))}
+          className="bg-white/4 border border-white/8 rounded-lg px-2 py-1.5 font-mono text-[10px] text-white/40 focus:outline-none appearance-none"
         >
-          {loading ? "Refreshing..." : "Refresh Prices"}
+          {[1, 2, 5, 10, 15].map((m) => (
+            <option key={m} value={m} className="bg-[#0a0c12]">{m} min</option>
+          ))}
+        </select>
+        <button
+          onClick={refresh}
+          disabled={loading || isRefreshing}
+          className="glass-card px-4 py-2 rounded-xl text-xs font-body text-white/40 hover:text-white transition-all disabled:opacity-30 flex items-center gap-2"
+        >
+          {loading || isRefreshing ? (
+            "Refreshing..."
+          ) : (
+            <>
+              <span>Refresh</span>
+              <span className="font-mono text-[10px] text-white/20">
+                {Math.floor(secondsRemaining / 60)}:{String(secondsRemaining % 60).padStart(2, "0")}
+              </span>
+            </>
+          )}
         </button>
       </div>
 
@@ -195,11 +234,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2.5 h-2.5 rounded-full ${
-                          inv.type === "stock" ? "bg-blue-500" :
-                          inv.type === "crypto" ? "bg-amber-500" :
-                          inv.type === "real-estate" ? "bg-purple-500" : "bg-gray-500"
-                        }`} />
+                        <div className={`w-2.5 h-2.5 rounded-full ${INVESTMENT_TYPE_COLORS[inv.type] || "bg-gray-500"}`} />
                         <div>
                           <span className="font-body text-sm text-white">{inv.name}</span>
                           {inv.ticker && (
@@ -208,6 +243,9 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
+                        {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) && (
+                          <PriceSparkline symbol={inv.ticker} />
+                        )}
                         <div className="text-right">
                           <p className="font-mono text-sm text-white">{formatCurrency(inv.current_value)}</p>
                           <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
@@ -251,11 +289,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                     <div>
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <div className={`w-2.5 h-2.5 rounded-full ${
-                            inv.type === "stock" ? "bg-blue-500" :
-                            inv.type === "crypto" ? "bg-amber-500" :
-                            inv.type === "real-estate" ? "bg-purple-500" : "bg-gray-500"
-                          }`} />
+                          <div className={`w-2.5 h-2.5 rounded-full ${INVESTMENT_TYPE_COLORS[inv.type] || "bg-gray-500"}`} />
                           <span className="font-body text-sm text-white font-medium">{inv.name}</span>
                         </div>
                         <span className="font-body text-[10px] text-white/20 uppercase capitalize">{inv.type}</span>
@@ -276,6 +310,11 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                       <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                         {gain >= 0 ? "+" : ""}{formatCurrency(gain)} ({gainPct.toFixed(1)}%)
                       </p>
+                      {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) && (
+                        <div className="mt-2">
+                          <PriceSparkline symbol={inv.ticker} />
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center pt-3 border-t border-white/5 mt-3">
                       <button
@@ -305,6 +344,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                       <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Cost</th>
                       <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Value</th>
                       <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Gain/Loss</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider hidden lg:table-cell">Chart</th>
                       <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
@@ -336,6 +376,13 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                             <span className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                               {gain >= 0 ? "+" : ""}{formatCurrency(gain)} ({gainPct.toFixed(1)}%)
                             </span>
+                          </td>
+                          <td className="px-4 py-2.5 hidden lg:table-cell">
+                            {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) ? (
+                              <PriceSparkline symbol={inv.ticker} />
+                            ) : (
+                              <span className="font-mono text-xs text-white/10">--</span>
+                            )}
                           </td>
                           <td className="px-4 py-2.5 text-right">
                             <button
@@ -388,9 +435,26 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
               type="text"
               value={ticker}
               onChange={(e) => setTicker(e.target.value)}
-              placeholder="AAPL"
+              placeholder={TICKER_PLACEHOLDERS[type] || "Ticker symbol"}
               className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
             />
+            {TICKER_SUGGESTIONS[type] && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {TICKER_SUGGESTIONS[type]!.map((s) => (
+                  <button
+                    key={s.symbol}
+                    type="button"
+                    onClick={() => {
+                      setTicker(s.symbol);
+                      if (!name) setName(s.name);
+                    }}
+                    className="px-2 py-0.5 rounded-full bg-white/4 border border-white/6 text-[10px] font-mono text-white/30 hover:text-white/60 hover:border-white/15 transition-all"
+                  >
+                    {s.symbol}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Quantity</label>

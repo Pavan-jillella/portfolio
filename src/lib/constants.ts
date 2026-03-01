@@ -1,4 +1,4 @@
-import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
+import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, PriceHistoryRange, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
 
 export const DEFAULT_EXPENSE_CATEGORIES: string[] = [
   "Rent", "Groceries", "Dining", "Travel", "Subscriptions",
@@ -83,9 +83,65 @@ export const COURSE_STATUS_CONFIG: Record<CourseStatus, { label: string; color: 
 export const INVESTMENT_TYPES: { value: InvestmentType; label: string }[] = [
   { value: "stock", label: "Stock" },
   { value: "crypto", label: "Crypto" },
+  { value: "commodity", label: "Commodity" },
+  { value: "index", label: "Index" },
+  { value: "forex", label: "Forex" },
   { value: "real-estate", label: "Real Estate" },
   { value: "other", label: "Other" },
 ];
+
+/** Asset types that support live Yahoo Finance price fetching */
+export const LIVE_PRICE_TYPES: InvestmentType[] = [
+  "stock", "crypto", "commodity", "index", "forex",
+];
+
+export const DEFAULT_REFRESH_INTERVAL_MINUTES = 5;
+
+export const INVESTMENT_TYPE_COLORS: Record<InvestmentType, string> = {
+  stock: "bg-blue-500",
+  crypto: "bg-amber-500",
+  commodity: "bg-yellow-500",
+  index: "bg-cyan-500",
+  forex: "bg-green-500",
+  "real-estate": "bg-purple-500",
+  other: "bg-gray-500",
+};
+
+export const PRICE_HISTORY_CONFIG: Record<PriceHistoryRange, { range: string; interval: string }> = {
+  "1D": { range: "1d", interval: "5m" },
+  "1W": { range: "5d", interval: "15m" },
+  "1M": { range: "1mo", interval: "1d" },
+  "1Y": { range: "1y", interval: "1wk" },
+};
+
+export const TICKER_SUGGESTIONS: Partial<Record<InvestmentType, { symbol: string; name: string }[]>> = {
+  stock: [
+    { symbol: "AAPL", name: "Apple" },
+    { symbol: "RELIANCE.NS", name: "Reliance (NSE)" },
+    { symbol: "TCS.NS", name: "TCS (NSE)" },
+    { symbol: "INFY.NS", name: "Infosys (NSE)" },
+  ],
+  commodity: [
+    { symbol: "GC=F", name: "Gold" },
+    { symbol: "SI=F", name: "Silver" },
+    { symbol: "CL=F", name: "Crude Oil" },
+  ],
+  index: [
+    { symbol: "SPY", name: "S&P 500 ETF" },
+    { symbol: "^GSPC", name: "S&P 500" },
+    { symbol: "^NSEI", name: "Nifty 50" },
+    { symbol: "^BSESN", name: "Sensex" },
+  ],
+  forex: [
+    { symbol: "EURUSD=X", name: "EUR/USD" },
+    { symbol: "GBPUSD=X", name: "GBP/USD" },
+    { symbol: "USDINR=X", name: "USD/INR" },
+  ],
+  crypto: [
+    { symbol: "BTC-USD", name: "Bitcoin" },
+    { symbol: "ETH-USD", name: "Ethereum" },
+  ],
+};
 
 // ===== Net Worth Constants =====
 

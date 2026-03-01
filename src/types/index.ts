@@ -213,7 +213,14 @@ export interface CourseUpdate {
 
 // ===== Investment Tracker Types =====
 
-export type InvestmentType = "stock" | "crypto" | "real-estate" | "other";
+export type InvestmentType = "stock" | "crypto" | "commodity" | "index" | "forex" | "real-estate" | "other";
+
+export type PriceHistoryRange = "1D" | "1W" | "1M" | "1Y";
+
+export interface PriceHistoryPoint {
+  timestamp: number;
+  price: number;
+}
 
 export interface Investment {
   id: string;
