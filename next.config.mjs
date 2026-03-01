@@ -26,7 +26,7 @@ const nextConfig = {
               "img-src 'self' blob: data: https:",
               "font-src 'self' https://fonts.gstatic.com",
               "connect-src 'self' https://*.supabase.co https://api.openai.com https://api.github.com https://leetcode.com https://challenges.cloudflare.com https://*.posthog.com https://*.sentry.io https://api.exchangerate-api.com https://query1.finance.yahoo.com",
-              "frame-src https://challenges.cloudflare.com",
+              "frame-src https://challenges.cloudflare.com https://www.youtube.com https://youtube.com",
             ].join("; "),
           },
         ],
