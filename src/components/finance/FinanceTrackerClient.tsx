@@ -109,18 +109,14 @@ export function FinanceTrackerClient() {
     last_synced_at: null,
   });
   const [displayCurrency, setDisplayCurrency] = useLocalStorage<string>("pj-display-currency", "USD");
-  const [payrollSeeded, setPayrollSeeded] = useLocalStorage<boolean>("pj-payroll-seeded", false);
-
-  // Seed Stemtree payroll history once
+  // Seed Stemtree payroll history — dedup inside functional updater
+  // so prev reflects the real localStorage-loaded state
   useEffect(() => {
-    if (!payrollSeeded) {
-      const existingIds = new Set(payStubs.map((s) => s.id));
+    setPayStubs((prev) => {
+      const existingIds = new Set(prev.map((s) => s.id));
       const newStubs = STEMTREE_PAYROLL_HISTORY.filter((s) => !existingIds.has(s.id));
-      if (newStubs.length > 0) {
-        setPayStubs((prev) => [...newStubs, ...prev]);
-      }
-      setPayrollSeeded(true);
-    }
+      return newStubs.length > 0 ? [...newStubs, ...prev] : prev;
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
