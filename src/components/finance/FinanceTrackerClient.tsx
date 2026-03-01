@@ -81,9 +81,15 @@ export function FinanceTrackerClient() {
   const [investments, setInvestments, investConnected] = useSupabaseRealtimeSync<Investment>("pj-investments", "investments", []);
   const [netWorthEntries, setNetWorthEntries, nwConnected] = useSupabaseRealtimeSync<NetWorthEntry>("pj-net-worth", "net_worth_entries", []);
   const [subscriptions, setSubscriptions, subsConnected] = useSupabaseRealtimeSync<Subscription>("pj-subscriptions", "subscriptions", []);
-  const [payStubs, setPayStubs] = useLocalStorage<PayStub[]>("pj-pay-stubs", []);
-  const [partTimeJobs, setPartTimeJobs] = useLocalStorage<PartTimeJob[]>("pj-part-time-jobs", []);
-  const [partTimeHours, setPartTimeHours] = useLocalStorage<PartTimeHourEntry[]>("pj-part-time-hours", []);
+  // Realtime-synced payroll data
+  const [payStubs, setPayStubs, payStubsConnected] = useSupabaseRealtimeSync<PayStub>("pj-pay-stubs", "pay_stubs", []);
+  const [partTimeJobs, setPartTimeJobs, ptJobsConnected] = useSupabaseRealtimeSync<PartTimeJob>("pj-part-time-jobs", "part_time_jobs", []);
+  const [partTimeHours, setPartTimeHours] = useSupabaseRealtimeSync<PartTimeHourEntry>("pj-part-time-hours", "part_time_hours", []);
+  const [workSchedules, setWorkSchedules] = useSupabaseRealtimeSync<WorkSchedule>("pj-work-schedules", "work_schedules", []);
+  const [employers, setEmployers] = useSupabaseRealtimeSync<Employer>("pj-employers", "employers", DEFAULT_EMPLOYERS);
+  const [enhancedSchedules, setEnhancedSchedules] = useSupabaseRealtimeSync<EnhancedWorkSchedule>("pj-enhanced-schedules", "enhanced_work_schedules", []);
+
+  // Settings remain in localStorage (config, not data)
   const [payrollSettings, setPayrollSettings] = useLocalStorage<PayrollSettings>("pj-payroll-settings", {
     pay_frequency: "biweekly",
     google_sheets_url: "",
@@ -91,9 +97,6 @@ export function FinanceTrackerClient() {
     schedule_name: "Pavan",
     hourly_rate: 0,
   });
-  const [workSchedules, setWorkSchedules] = useLocalStorage<WorkSchedule[]>("pj-work-schedules", []);
-  const [employers, setEmployers] = useLocalStorage<Employer[]>("pj-employers", DEFAULT_EMPLOYERS);
-  const [enhancedSchedules, setEnhancedSchedules] = useLocalStorage<EnhancedWorkSchedule[]>("pj-enhanced-schedules", []);
   const [enhancedPayrollSettings, setEnhancedPayrollSettings] = useLocalStorage<EnhancedPayrollSettings>("pj-enhanced-payroll-settings", {
     pay_frequency: "biweekly",
     google_sheets_url: "",
@@ -135,7 +138,7 @@ export function FinanceTrackerClient() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddForm, setShowAddForm] = useState(false);
   const [filters, setFilters] = useState<FilterState>({ type: "all", category: "all", dateFrom: "", dateTo: "" });
-  const isRealtimeConnected = txConnected || budgetsConnected || savingsConnected || investConnected || nwConnected || subsConnected;
+  const isRealtimeConnected = txConnected || budgetsConnected || savingsConnected || investConnected || nwConnected || subsConnected || payStubsConnected || ptJobsConnected;
 
   const allCategories = useMemo(() => {
     return Array.from(new Set([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES, ...customCategories]));

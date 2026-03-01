@@ -12,6 +12,12 @@ const ALLOWED_TABLES = new Set([
   "edu_notes",
   "courses",
   "edu_projects",
+  "pay_stubs",
+  "part_time_jobs",
+  "part_time_hours",
+  "employers",
+  "work_schedules",
+  "enhanced_work_schedules",
 ]);
 
 function getAdminSupabase() {
