@@ -50,14 +50,14 @@ export function TipTapEditor({ content, onChange, placeholder = "Start writing..
   return (
     <div className="border border-white/[0.08] rounded-xl overflow-hidden">
       <style>{`
-        .ProseMirror { min-height: 200px; outline: none; padding: 1rem; color: rgba(255,255,255,0.8); font-size: 0.875rem; line-height: 1.6; }
-        .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: rgba(255,255,255,0.2); pointer-events: none; height: 0; }
-        .ProseMirror h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white; }
-        .ProseMirror h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: white; }
+        .ProseMirror { min-height: 200px; outline: none; padding: 1rem; color: var(--foreground); font-size: 0.875rem; line-height: 1.6; }
+        .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: rgb(var(--color-white) / 0.2); pointer-events: none; height: 0; }
+        .ProseMirror h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--prose-heading); }
+        .ProseMirror h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--prose-heading); }
         .ProseMirror ul, .ProseMirror ol { padding-left: 1.5rem; }
         .ProseMirror li { margin-bottom: 0.25rem; }
-        .ProseMirror code { background: rgba(255,255,255,0.06); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.8rem; }
-        .ProseMirror pre { background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
+        .ProseMirror code { background: var(--prose-code-bg); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-family: var(--font-mono); font-size: 0.8rem; }
+        .ProseMirror pre { background: var(--glass-bg); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; }
         .ProseMirror pre code { background: none; padding: 0; }
         .ProseMirror a { color: #60a5fa; text-decoration: underline; }
         .ProseMirror blockquote { border-left: 3px solid rgba(255,255,255,0.1); padding-left: 1rem; color: rgba(255,255,255,0.5); }

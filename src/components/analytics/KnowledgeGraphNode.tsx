@@ -51,7 +51,7 @@ export function KnowledgeGraphNode({
           <text
             y={-12}
             textAnchor="middle"
-            fill="white"
+            fill="currentColor"
             fontSize={10}
             fontFamily="JetBrains Mono, monospace"
             opacity={0.8}

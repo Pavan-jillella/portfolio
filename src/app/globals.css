@@ -5,13 +5,54 @@
 @tailwind utilities;
 
 @layer base {
+  /* ===== Dark Mode (default) ===== */
   :root {
+    /* Color channel triplets for Tailwind alpha support */
+    --color-white: 255 255 255;
+    --charcoal-950: 8 10 15;
+    --charcoal-900: 13 17 23;
+    --charcoal-800: 19 25 32;
+    --charcoal-700: 26 34 48;
+
+    /* Semantic colors */
     --background: #080a0f;
     --foreground: #e8eaf0;
     --neon-blue: #3b82f6;
     --neon-cyan: #06b6d4;
+
+    /* Glass */
     --glass-bg: rgba(255, 255, 255, 0.04);
     --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-hover: rgba(255, 255, 255, 0.07);
+    --glass-border-hover: rgba(255, 255, 255, 0.12);
+
+    /* Nav */
+    --nav-bg: rgba(8, 10, 15, 0.7);
+    --nav-border: rgba(255, 255, 255, 0.05);
+
+    /* Grain */
+    --grain-opacity: 0.025;
+
+    /* Cursor glow */
+    --cursor-glow: rgba(59, 130, 246, 0.08);
+
+    /* Scrollbar */
+    --scrollbar-thumb: rgba(59, 130, 246, 0.3);
+    --scrollbar-thumb-hover: rgba(59, 130, 246, 0.6);
+
+    /* Prose */
+    --prose-heading: #ffffff;
+    --prose-body: rgba(255, 255, 255, 0.7);
+    --prose-muted: rgba(255, 255, 255, 0.5);
+    --prose-border: rgba(255, 255, 255, 0.08);
+    --prose-border-light: rgba(255, 255, 255, 0.05);
+    --prose-code-bg: rgba(255, 255, 255, 0.06);
+    --prose-code-text: #93c5fd;
+
+    /* Section label */
+    --section-label-color: rgba(59, 130, 246, 0.7);
+
+    /* HSL tokens for shadcn compatibility */
     --card: 0 0% 4%;
     --card-foreground: 220 20% 92%;
     --popover: 215 30% 6%;
@@ -30,6 +71,43 @@
     --input: 0 0% 100% / 0.08;
     --ring: 217 91% 60%;
     --radius: 0.75rem;
+  }
+
+  /* ===== Light Mode ===== */
+  html.light {
+    --color-white: 26 32 48;
+    --charcoal-950: 248 249 252;
+    --charcoal-900: 241 243 248;
+    --charcoal-800: 233 236 243;
+    --charcoal-700: 224 228 237;
+
+    --background: #f8f9fc;
+    --foreground: #1a2030;
+
+    --glass-bg: rgba(0, 0, 0, 0.03);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-hover: rgba(0, 0, 0, 0.06);
+    --glass-border-hover: rgba(0, 0, 0, 0.12);
+
+    --nav-bg: rgba(248, 249, 252, 0.8);
+    --nav-border: rgba(0, 0, 0, 0.06);
+
+    --grain-opacity: 0.015;
+
+    --cursor-glow: rgba(59, 130, 246, 0.05);
+
+    --scrollbar-thumb: rgba(59, 130, 246, 0.2);
+    --scrollbar-thumb-hover: rgba(59, 130, 246, 0.4);
+
+    --prose-heading: #1a2030;
+    --prose-body: rgba(26, 32, 48, 0.7);
+    --prose-muted: rgba(26, 32, 48, 0.5);
+    --prose-border: rgba(0, 0, 0, 0.08);
+    --prose-border-light: rgba(0, 0, 0, 0.05);
+    --prose-code-bg: rgba(59, 130, 246, 0.06);
+    --prose-code-text: #2563eb;
+
+    --section-label-color: rgba(59, 130, 246, 0.8);
   }
 }
 
@@ -58,11 +136,11 @@ body {
   background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.3);
+  background: var(--scrollbar-thumb);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.6);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Grain overlay */
@@ -72,7 +150,7 @@ body {
   width: 200%;
   height: 200%;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.025;
+  opacity: var(--grain-opacity);
   pointer-events: none;
   z-index: 9999;
   animation: grain 0.5s steps(1) infinite;
@@ -100,14 +178,17 @@ body {
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--glass-hover);
+  border-color: var(--glass-border-hover);
 }
 
 /* Neon glow text */
 .neon-text {
   color: var(--neon-blue);
   text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+html.light .neon-text {
+  text-shadow: none;
 }
 
 /* Floating blob animations */
@@ -128,7 +209,7 @@ body {
   width: 400px;
   height: 400px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--cursor-glow) 0%, transparent 70%);
   pointer-events: none;
   z-index: 9998;
   transform: translate(-50%, -50%);
@@ -165,32 +246,32 @@ body {
   font-size: 0.7rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(59, 130, 246, 0.7);
+  color: var(--section-label-color);
 }
 
 /* Nav blur */
 .nav-glass {
-  background: rgba(8, 10, 15, 0.7);
+  background: var(--nav-bg);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--nav-border);
 }
 
 /* MDX prose styling */
-.prose-custom h1 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 2.25rem; color: white; margin-top: 3rem; margin-bottom: 1.5rem; }
-.prose-custom h2 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.5rem; color: white; margin-top: 2.5rem; margin-bottom: 1rem; }
-.prose-custom h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.25rem; color: white; margin-top: 2rem; margin-bottom: 0.75rem; }
-.prose-custom p { color: rgba(255, 255, 255, 0.7); line-height: 1.8; margin-bottom: 1.5rem; }
+.prose-custom h1 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 2.25rem; color: var(--prose-heading); margin-top: 3rem; margin-bottom: 1.5rem; }
+.prose-custom h2 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.5rem; color: var(--prose-heading); margin-top: 2.5rem; margin-bottom: 1rem; }
+.prose-custom h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 1.25rem; color: var(--prose-heading); margin-top: 2rem; margin-bottom: 0.75rem; }
+.prose-custom p { color: var(--prose-body); line-height: 1.8; margin-bottom: 1.5rem; }
 .prose-custom a { color: #3b82f6; text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s; }
 .prose-custom a:hover { color: #60a5fa; }
-.prose-custom blockquote { border-left: 2px solid rgba(59, 130, 246, 0.4); padding-left: 1.5rem; font-style: italic; color: rgba(255, 255, 255, 0.5); margin: 1.5rem 0; }
-.prose-custom ul, .prose-custom ol { color: rgba(255, 255, 255, 0.7); padding-left: 1.5rem; margin-bottom: 1.5rem; }
+.prose-custom blockquote { border-left: 2px solid rgba(59, 130, 246, 0.4); padding-left: 1.5rem; font-style: italic; color: var(--prose-muted); margin: 1.5rem 0; }
+.prose-custom ul, .prose-custom ol { color: var(--prose-body); padding-left: 1.5rem; margin-bottom: 1.5rem; }
 .prose-custom li { margin-bottom: 0.5rem; line-height: 1.7; }
-.prose-custom pre { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1rem; padding: 1.5rem; overflow-x: auto; margin-bottom: 1.5rem; }
+.prose-custom pre { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 1rem; padding: 1.5rem; overflow-x: auto; margin-bottom: 1.5rem; }
 .prose-custom code { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; }
-.prose-custom :not(pre) > code { background: rgba(255, 255, 255, 0.06); padding: 0.125rem 0.375rem; border-radius: 0.25rem; color: #93c5fd; }
+.prose-custom :not(pre) > code { background: var(--prose-code-bg); padding: 0.125rem 0.375rem; border-radius: 0.25rem; color: var(--prose-code-text); }
 .prose-custom img { border-radius: 1rem; margin: 2rem 0; width: 100%; }
-.prose-custom hr { border-color: rgba(255, 255, 255, 0.08); margin: 2rem 0; }
+.prose-custom hr { border-color: var(--prose-border); margin: 2rem 0; }
 .prose-custom table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
-.prose-custom th { text-align: left; padding: 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: white; font-weight: 600; }
-.prose-custom td { padding: 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.7); }
+.prose-custom th { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--prose-border); color: var(--prose-heading); font-weight: 600; }
+.prose-custom td { padding: 0.75rem; border-bottom: 1px solid var(--prose-border-light); color: var(--prose-body); }

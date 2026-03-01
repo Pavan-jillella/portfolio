@@ -13,7 +13,7 @@ function ProgressRing({ solved, total, color }: { solved: number; total: number;
 
   return (
     <svg width="100" height="100" viewBox="0 0 100 100" className="flex-shrink-0">
-      <circle cx="50" cy="50" r={radius} fill="none" stroke="white" strokeOpacity="0.05" strokeWidth="8" />
+      <circle cx="50" cy="50" r={radius} fill="none" stroke="currentColor" strokeOpacity="0.05" strokeWidth="8" />
       <motion.circle
         cx="50"
         cy="50"

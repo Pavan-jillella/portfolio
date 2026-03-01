@@ -10,6 +10,7 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { CommandPalette } from "@/components/search/CommandPalette";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -39,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -48,22 +49,24 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-charcoal-950 text-white font-body antialiased overflow-x-hidden">
-        <QueryProvider>
-          <PostHogProvider>
-            <SmoothScroll>
-              <GrainOverlay />
-              <CursorGlow />
-              <FloatingBackground />
-              <Navbar />
-              <main className="relative z-10 page-transition">{children}</main>
-              <PageViewTracker />
-              <ChatWidget />
-              <CommandPalette />
-              <Analytics />
-            </SmoothScroll>
-          </PostHogProvider>
-        </QueryProvider>
+      <body className="font-body antialiased overflow-x-hidden">
+        <ThemeProvider>
+          <QueryProvider>
+            <PostHogProvider>
+              <SmoothScroll>
+                <GrainOverlay />
+                <CursorGlow />
+                <FloatingBackground />
+                <Navbar />
+                <main className="relative z-10 page-transition">{children}</main>
+                <PageViewTracker />
+                <ChatWidget />
+                <CommandPalette />
+                <Analytics />
+              </SmoothScroll>
+            </PostHogProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

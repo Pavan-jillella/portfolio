@@ -60,7 +60,7 @@ export function StudyBarChart({ data }: StudyBarChartProps) {
                 y1={y}
                 x2={chartWidth - paddingRight}
                 y2={y}
-                stroke="white"
+                stroke="currentColor"
                 strokeOpacity="0.05"
                 strokeDasharray="4 4"
               />
@@ -69,7 +69,7 @@ export function StudyBarChart({ data }: StudyBarChartProps) {
                 y={y + 4}
                 textAnchor="end"
                 className="font-mono"
-                fill="white"
+                fill="currentColor"
                 fillOpacity="0.25"
                 fontSize="10"
               >
@@ -118,7 +118,7 @@ export function StudyBarChart({ data }: StudyBarChartProps) {
                     width={56}
                     height={18}
                     rx={4}
-                    fill="white"
+                    fill="currentColor"
                     fillOpacity="0.1"
                   />
                   <text
@@ -126,7 +126,7 @@ export function StudyBarChart({ data }: StudyBarChartProps) {
                     y={y - 10}
                     textAnchor="middle"
                     className="font-mono"
-                    fill="white"
+                    fill="currentColor"
                     fillOpacity="0.8"
                     fontSize="10"
                   >
@@ -141,7 +141,7 @@ export function StudyBarChart({ data }: StudyBarChartProps) {
                 y={chartHeight - 8}
                 textAnchor="middle"
                 className="font-mono"
-                fill="white"
+                fill="currentColor"
                 fillOpacity="0.25"
                 fontSize="10"
               >

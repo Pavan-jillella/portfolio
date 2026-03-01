@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useVisibility } from "@/hooks/useVisibility";
 import { SECTION_LABELS, SectionKey } from "@/lib/visibility";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -97,6 +98,8 @@ export function Navbar() {
             <span className="hidden lg:inline">Search</span>
             <kbd className="hidden lg:inline px-1 py-0.5 rounded text-[10px] bg-white/5 border border-white/10">⌘K</kbd>
           </button>
+
+          <ThemeToggle />
 
           {/* Visibility settings */}
           <div className="relative" ref={settingsRef}>
@@ -210,6 +213,14 @@ export function Navbar() {
               >
                 Contact
               </Link>
+
+              {/* Mobile theme toggle */}
+              <div className="pt-3 mt-1 border-t border-white/5">
+                <div className="flex items-center justify-between py-1">
+                  <span className="font-body text-xs text-white/50">Theme</span>
+                  <ThemeToggle />
+                </div>
+              </div>
 
               {/* Mobile visibility toggles */}
               <div className="pt-3 mt-1 border-t border-white/5 space-y-2">

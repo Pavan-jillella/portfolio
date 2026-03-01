@@ -92,7 +92,7 @@ export function PayrollPieChart({ data }: PayrollPieChartProps) {
             y={95}
             textAnchor="middle"
             className="font-mono"
-            fill="white"
+            fill="currentColor"
             fontSize="16"
             fontWeight="600"
           >
