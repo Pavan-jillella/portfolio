@@ -39,6 +39,7 @@ export function PartTimeJobsTracker({
   const [logEndTime, setLogEndTime] = useState("");
   const [logBreakMinutes, setLogBreakMinutes] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  const [logView, setLogView] = useState<"list" | "table" | "grid">("table");
 
   // Auto-calculate hours from start/end times
   const calculatedHours = useMemo(() => {
@@ -71,6 +72,18 @@ export function PartTimeJobsTracker({
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 20);
   }, [hours]);
+
+  // Group recent hours by job
+  const groupedByJob = useMemo(() => {
+    const groups = new Map<string, { job: PartTimeJob; entries: PartTimeHourEntry[] }>();
+    for (const entry of recentHours) {
+      const job = jobs.find((j) => j.id === entry.job_id);
+      if (!job) continue;
+      if (!groups.has(job.id)) groups.set(job.id, { job, entries: [] });
+      groups.get(job.id)!.entries.push(entry);
+    }
+    return Array.from(groups.values());
+  }, [recentHours, jobs]);
 
   function handleAddJob(e: React.FormEvent) {
     e.preventDefault();
@@ -199,53 +212,133 @@ export function PartTimeJobsTracker({
         </div>
       )}
 
-      {/* Recent hours log */}
+      {/* Recent hours log — grouped by job */}
       {recentHours.length > 0 && (
-        <div className="glass-card rounded-2xl p-5">
-          <h4 className="font-display font-semibold text-sm text-white mb-3">Recent Hours Log</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-white/[0.06]">
-                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest">Job</th>
-                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest">Date</th>
-                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">Start</th>
-                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">End</th>
-                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest text-right">Hours</th>
-                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest text-right">Earnings</th>
-                  <th className="pb-2 w-8"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentHours.map((entry) => {
-                  const job = getJobById(entry.job_id);
-                  return (
-                    <tr key={entry.id} className="border-b border-white/[0.03] last:border-0">
-                      <td className="py-2 pr-3">
-                        <div className="flex items-center gap-2">
-                          {job && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: job.color }} />}
-                          <span className="font-body text-xs text-white/60 truncate max-w-[120px]">{job?.name || "Unknown"}</span>
-                        </div>
-                      </td>
-                      <td className="py-2 pr-3 font-mono text-xs text-white/40">{entry.date}</td>
-                      <td className="py-2 pr-3 font-mono text-xs text-white/40 hidden sm:table-cell">{entry.start_time || "—"}</td>
-                      <td className="py-2 pr-3 font-mono text-xs text-white/40 hidden sm:table-cell">{entry.end_time || "—"}</td>
-                      <td className="py-2 pr-3 font-mono text-xs text-white/50 text-right">{entry.hours}h</td>
-                      <td className="py-2 pr-3 font-mono text-xs text-emerald-400/70 text-right">{job ? formatCurrency(entry.hours * job.hourly_rate) : "—"}</td>
-                      <td className="py-2">
-                        <button
-                          onClick={() => onDeleteHours(entry.id)}
-                          className="text-white/15 hover:text-red-400 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <div className="space-y-4">
+          {/* Header + view toggle */}
+          <div className="flex items-center justify-between">
+            <h4 className="font-display font-semibold text-sm text-white">Recent Hours Log</h4>
+            <div className="flex items-center gap-1 bg-white/[0.04] rounded-lg p-1">
+              {(["list", "table", "grid"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setLogView(v)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all ${
+                    logView === v ? "bg-white/10 text-blue-400" : "text-white/30 hover:text-white/60"
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Per-job sections */}
+          {groupedByJob.map(({ job, entries }) => {
+            const jobTotal = entries.reduce((s, e) => s + e.hours, 0);
+            const jobEarnings = jobTotal * job.hourly_rate;
+
+            return (
+              <div key={job.id} className="glass-card rounded-2xl p-5">
+                {/* Job header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: job.color }} />
+                    <span className="font-body text-sm font-medium text-white">{job.name}</span>
+                    <span className="font-mono text-[10px] text-white/20">${job.hourly_rate}/hr</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-white/40">{jobTotal}h</span>
+                    <span className="font-mono text-xs text-emerald-400">{formatCurrency(jobEarnings)}</span>
+                  </div>
+                </div>
+
+                {/* List view */}
+                {logView === "list" && (
+                  <div className="space-y-1">
+                    {entries.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between py-1.5 border-b border-white/[0.03] last:border-0">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-xs text-white/40">{entry.date}</span>
+                          {entry.start_time && entry.end_time && (
+                            <span className="font-mono text-[10px] text-white/25">{entry.start_time}–{entry.end_time}</span>
+                          )}
+                          {entry.notes && <span className="font-body text-xs text-white/20 truncate max-w-[150px]">— {entry.notes}</span>}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-xs text-white/50">{entry.hours}h</span>
+                          <span className="font-mono text-xs text-emerald-400/70">{formatCurrency(entry.hours * job.hourly_rate)}</span>
+                          <button onClick={() => onDeleteHours(entry.id)} className="text-white/15 hover:text-red-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Table view */}
+                {logView === "table" && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-white/[0.06]">
+                          <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest">Date</th>
+                          <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">Start</th>
+                          <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">End</th>
+                          <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest text-right">Hours</th>
+                          <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest text-right">Earnings</th>
+                          <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">Notes</th>
+                          <th className="pb-2 w-8"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {entries.map((entry) => (
+                          <tr key={entry.id} className="border-b border-white/[0.03] last:border-0">
+                            <td className="py-2 pr-3 font-mono text-xs text-white/40">{entry.date}</td>
+                            <td className="py-2 pr-3 font-mono text-xs text-white/40 hidden sm:table-cell">{entry.start_time || "—"}</td>
+                            <td className="py-2 pr-3 font-mono text-xs text-white/40 hidden sm:table-cell">{entry.end_time || "—"}</td>
+                            <td className="py-2 pr-3 font-mono text-xs text-white/50 text-right">{entry.hours}h</td>
+                            <td className="py-2 pr-3 font-mono text-xs text-emerald-400/70 text-right">{formatCurrency(entry.hours * job.hourly_rate)}</td>
+                            <td className="py-2 pr-3 font-body text-xs text-white/20 truncate max-w-[120px] hidden sm:table-cell">{entry.notes || "—"}</td>
+                            <td className="py-2">
+                              <button onClick={() => onDeleteHours(entry.id)} className="text-white/15 hover:text-red-400 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Grid view */}
+                {logView === "grid" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {entries.map((entry) => (
+                      <div key={entry.id} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-3 group">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-mono text-xs text-white/50">{entry.date}</span>
+                          <button onClick={() => onDeleteHours(entry.id)} className="text-white/10 group-hover:text-white/30 hover:!text-red-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                          </button>
+                        </div>
+                        {entry.start_time && entry.end_time && (
+                          <p className="font-mono text-[10px] text-white/25 mb-1">{entry.start_time} – {entry.end_time}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-sm font-bold text-white">{entry.hours}h</span>
+                          <span className="font-mono text-sm text-emerald-400">{formatCurrency(entry.hours * job.hourly_rate)}</span>
+                        </div>
+                        {entry.notes && <p className="font-body text-[10px] text-white/20 mt-1 truncate">{entry.notes}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
