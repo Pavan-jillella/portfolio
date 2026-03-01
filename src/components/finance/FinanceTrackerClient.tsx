@@ -148,7 +148,7 @@ export function FinanceTrackerClient() {
   const categoryBreakdown = useMemo(() => getCategoryBreakdown(monthlyTx), [monthlyTx]);
   const trend = useMemo(() => getMonthlyTrend(transactions), [transactions]);
   const savingsTrend = useMemo(() => getSavingsTrend(transactions), [transactions]);
-  const recommendations = useMemo(() => getRecommendations(transactions, budgets), [transactions, budgets]);
+  const recommendations = useMemo(() => getRecommendations(transactions, budgets, selectedMonth), [transactions, budgets, selectedMonth]);
   const { netWorth } = useMemo(() => calculateNetWorth(netWorthEntries), [netWorthEntries]);
   const subscriptionAlerts = useMemo(() => getSubscriptionAlerts(subscriptions), [subscriptions]);
   const monthlySubTotal = useMemo(() => getMonthlySubscriptionTotal(subscriptions), [subscriptions]);
@@ -405,7 +405,7 @@ export function FinanceTrackerClient() {
       {activeTab === "overview" && (
         <ErrorBoundary module="Overview">
           <div className="space-y-8">
-            <MonthlySummaryCards income={income} expenses={expenses} />
+            <MonthlySummaryCards income={income} expenses={expenses} budgets={budgets} spending={categoryBreakdown} selectedMonth={selectedMonth} />
 
           {/* Quick stats row */}
           <FadeIn delay={0.05}>
@@ -442,6 +442,44 @@ export function FinanceTrackerClient() {
           <FadeIn delay={0.2}>
             <SavingsTrendChart data={savingsTrend} />
           </FadeIn>
+
+          {/* Budget snapshot on overview */}
+          {(() => {
+            const monthBudgets = budgets.filter((b) => b.month === selectedMonth);
+            if (monthBudgets.length === 0) return null;
+            return (
+              <FadeIn delay={0.22}>
+                <div className="glass-card rounded-2xl p-5">
+                  <h3 className="font-display font-semibold text-sm text-white mb-4">Budget Status</h3>
+                  <div className="space-y-3">
+                    {monthBudgets.map((budget) => {
+                      const spent = categoryBreakdown.find((s) => s.category === budget.category)?.total || 0;
+                      const pct = Math.min((spent / budget.monthly_limit) * 100, 100);
+                      const overBudget = spent > budget.monthly_limit;
+                      return (
+                        <div key={budget.id}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-body text-xs text-white/60">{budget.category}</span>
+                            <span className={`font-mono text-xs ${overBudget ? "text-red-400" : "text-white/40"}`}>
+                              {formatCurrency(spent)} / {formatCurrency(budget.monthly_limit)}
+                            </span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                overBudget ? "bg-red-500" : pct >= 80 ? "bg-yellow-500" : "bg-blue-500"
+                              }`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </FadeIn>
+            );
+          })()}
 
           {/* Subscription alerts on overview */}
           {subscriptionAlerts.length > 0 && (

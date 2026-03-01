@@ -69,15 +69,15 @@ export function getMonthlyTrend(transactions: Transaction[], months: number = 6)
 
 export function getRecommendations(
   transactions: Transaction[],
-  budgets: Budget[]
+  budgets: Budget[],
+  selectedMonth?: string
 ): SpendingRecommendation[] {
   const recommendations: SpendingRecommendation[] = [];
-  const currentMonth = getCurrentMonth();
-  const lastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
-    .toISOString()
-    .slice(0, 7);
+  const month = selectedMonth || getCurrentMonth();
+  const [y, m] = month.split("-").map(Number);
+  const lastMonth = new Date(y, m - 2, 1).toISOString().slice(0, 7);
 
-  const currentSpending = getCategoryBreakdown(getMonthlyTransactions(transactions, currentMonth));
+  const currentSpending = getCategoryBreakdown(getMonthlyTransactions(transactions, month));
   const lastSpending = getCategoryBreakdown(getMonthlyTransactions(transactions, lastMonth));
 
   currentSpending.forEach((current) => {
@@ -87,7 +87,7 @@ export function getRecommendations(
       if (percentChange > 20) {
         recommendations.push({
           category: current.category,
-          message: `You spent ${Math.round(percentChange)}% more on ${current.category} this month compared to last month.`,
+          message: `You spent ${Math.round(percentChange)}% more on ${current.category} compared to the previous month.`,
           severity: percentChange > 50 ? "danger" : "warning",
         });
       }
@@ -95,7 +95,7 @@ export function getRecommendations(
   });
 
   budgets.forEach((budget) => {
-    if (budget.month !== currentMonth) return;
+    if (budget.month !== month) return;
     const spent = currentSpending.find((s) => s.category === budget.category);
     if (spent) {
       const pct = (spent.total / budget.monthly_limit) * 100;

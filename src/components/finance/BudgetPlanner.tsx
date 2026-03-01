@@ -55,7 +55,7 @@ export function BudgetPlanner({ transactions, budgets, selectedMonth }: BudgetPl
   const wantsPct = target > 0 ? (wantsSpent / target) * 100 : 0;
   const savingsPct = target > 0 ? (savingsActual / target) * 100 : 0;
 
-  const monthBudgets = budgets.filter((b) => b.month === selectedMonth);
+  const monthBudgets = useMemo(() => budgets.filter((b) => b.month === selectedMonth), [budgets, selectedMonth]);
 
   return (
     <div className="space-y-6">
