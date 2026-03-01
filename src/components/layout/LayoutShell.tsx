@@ -6,13 +6,13 @@ import { CommandPalette } from "@/components/search/CommandPalette";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const isMinimalPage = pathname === "/login" || pathname === "/blog/write";
 
   return (
     <>
-      {!isLoginPage && <Navbar />}
+      {!isMinimalPage && <Navbar />}
       <main className="relative z-10 page-transition">{children}</main>
-      {!isLoginPage && (
+      {!isMinimalPage && (
         <>
           <ChatWidget />
           <CommandPalette />
