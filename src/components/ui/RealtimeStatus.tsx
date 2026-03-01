@@ -5,22 +5,34 @@ type SyncState = "idle" | "syncing" | "success" | "error";
 
 interface RealtimeStatusProps {
   isConnected: boolean;
-  onSync?: () => Promise<void>;
+  onSync?: () => Promise<{ synced: number; failed: string[] }>;
 }
 
 export function RealtimeStatus({ isConnected, onSync }: RealtimeStatusProps) {
   const [syncState, setSyncState] = useState<SyncState>("idle");
+  const [syncMessage, setSyncMessage] = useState("");
 
   async function handleSync() {
     if (!onSync || syncState === "syncing") return;
     setSyncState("syncing");
+    setSyncMessage("");
     try {
-      await onSync();
-      setSyncState("success");
-      setTimeout(() => setSyncState("idle"), 2500);
-    } catch {
+      const result = await onSync();
+      if (result.failed.length > 0) {
+        setSyncState("error");
+        setSyncMessage(`${result.failed.join(", ")}`);
+        console.error("[Sync] Failed tables:", result.failed);
+        setTimeout(() => { setSyncState("idle"); setSyncMessage(""); }, 5000);
+      } else {
+        setSyncState("success");
+        setSyncMessage(`${result.synced} table${result.synced !== 1 ? "s" : ""}`);
+        setTimeout(() => { setSyncState("idle"); setSyncMessage(""); }, 2500);
+      }
+    } catch (err) {
       setSyncState("error");
-      setTimeout(() => setSyncState("idle"), 3000);
+      setSyncMessage(err instanceof Error ? err.message : "Unknown error");
+      console.error("[Sync] Error:", err);
+      setTimeout(() => { setSyncState("idle"); setSyncMessage(""); }, 5000);
     }
   }
 
@@ -40,6 +52,7 @@ export function RealtimeStatus({ isConnected, onSync }: RealtimeStatusProps) {
         <button
           onClick={handleSync}
           disabled={syncState === "syncing"}
+          title={syncMessage || undefined}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-[10px] transition-all ${
             syncState === "syncing"
               ? "border-blue-500/20 bg-blue-500/10 text-blue-400 cursor-wait"
@@ -71,7 +84,13 @@ export function RealtimeStatus({ isConnected, onSync }: RealtimeStatusProps) {
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.3" />
             </svg>
           )}
-          {syncState === "syncing" ? "Syncing..." : syncState === "success" ? "Synced" : syncState === "error" ? "Failed" : "Sync Now"}
+          {syncState === "syncing"
+            ? "Syncing..."
+            : syncState === "success"
+              ? `Synced ${syncMessage}`
+              : syncState === "error"
+                ? `Failed: ${syncMessage}`
+                : "Sync Now"}
         </button>
       )}
     </div>

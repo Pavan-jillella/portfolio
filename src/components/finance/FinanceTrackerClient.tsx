@@ -339,7 +339,7 @@ export function FinanceTrackerClient() {
   }
 
   // Manual sync: push all current data to Supabase
-  const handleManualSync = useCallback(async () => {
+  const handleManualSync = useCallback(async (): Promise<{ synced: number; failed: string[] }> => {
     const tables: { table: string; data: { id: string }[] }[] = [
       { table: "transactions", data: transactions },
       { table: "budgets", data: budgets },
@@ -355,22 +355,30 @@ export function FinanceTrackerClient() {
       { table: "enhanced_work_schedules", data: enhancedSchedules },
     ];
 
+    const toSync = tables.filter((t) => t.data.length > 0);
+    const failed: string[] = [];
+
     const results = await Promise.allSettled(
-      tables
-        .filter((t) => t.data.length > 0)
-        .map((t) =>
-          fetch("/api/sync", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ table: t.table, upsert: t.data }),
-          }).then((r) => {
-            if (!r.ok) throw new Error(`${t.table}: ${r.status}`);
-          })
-        )
+      toSync.map(async (t) => {
+        const res = await fetch("/api/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ table: t.table, upsert: t.data }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: res.statusText }));
+          const msg = `${t.table}: ${body.error || res.status}`;
+          console.error("[Sync]", msg);
+          throw new Error(msg);
+        }
+      })
     );
 
-    const failed = results.filter((r) => r.status === "rejected");
-    if (failed.length > 0) throw new Error(`${failed.length} table(s) failed to sync`);
+    results.forEach((r, i) => {
+      if (r.status === "rejected") failed.push(toSync[i].table);
+    });
+
+    return { synced: toSync.length - failed.length, failed };
   }, [transactions, budgets, savingsGoals, investments, netWorthEntries, subscriptions, payStubs, partTimeJobs, partTimeHours, employers, workSchedules, enhancedSchedules]);
 
   // Budget integration: when adding pay stub with auto_send_to_income
