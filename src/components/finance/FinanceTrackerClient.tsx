@@ -338,6 +338,41 @@ export function FinanceTrackerClient() {
     setEnhancedPayrollSettings((prev) => ({ ...prev, ...updates }));
   }
 
+  // Manual sync: push all current data to Supabase
+  const handleManualSync = useCallback(async () => {
+    const tables: { table: string; data: { id: string }[] }[] = [
+      { table: "transactions", data: transactions },
+      { table: "budgets", data: budgets },
+      { table: "savings_goals", data: savingsGoals },
+      { table: "investments", data: investments },
+      { table: "net_worth_entries", data: netWorthEntries },
+      { table: "subscriptions", data: subscriptions },
+      { table: "pay_stubs", data: payStubs },
+      { table: "part_time_jobs", data: partTimeJobs },
+      { table: "part_time_hours", data: partTimeHours },
+      { table: "employers", data: employers },
+      { table: "work_schedules", data: workSchedules },
+      { table: "enhanced_work_schedules", data: enhancedSchedules },
+    ];
+
+    const results = await Promise.allSettled(
+      tables
+        .filter((t) => t.data.length > 0)
+        .map((t) =>
+          fetch("/api/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ table: t.table, upsert: t.data }),
+          }).then((r) => {
+            if (!r.ok) throw new Error(`${t.table}: ${r.status}`);
+          })
+        )
+    );
+
+    const failed = results.filter((r) => r.status === "rejected");
+    if (failed.length > 0) throw new Error(`${failed.length} table(s) failed to sync`);
+  }, [transactions, budgets, savingsGoals, investments, netWorthEntries, subscriptions, payStubs, partTimeJobs, partTimeHours, employers, workSchedules, enhancedSchedules]);
+
   // Budget integration: when adding pay stub with auto_send_to_income
   function addPayStubWithIntegration(stub: PayStub) {
     setPayStubs((prev) => [stub, ...prev]);
@@ -397,7 +432,7 @@ export function FinanceTrackerClient() {
               </button>
             ))}
           </div>
-          <RealtimeStatus isConnected={isRealtimeConnected} />
+          <RealtimeStatus isConnected={isRealtimeConnected} onSync={handleManualSync} />
         </div>
       </FadeIn>
 
