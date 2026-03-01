@@ -1,6 +1,7 @@
 import { PROJECTS } from "@/lib/data";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { ProjectFilters } from "@/components/projects/ProjectFilters";
 
 export const metadata = {
   title: "Projects | Pavan Jillella",
@@ -58,48 +59,7 @@ export default async function ProjectsPage() {
             </FadeIn>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {projects.map((project: any, i: number) => (
-              <FadeIn key={project.id} delay={i * 0.05}>
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block glass-card rounded-2xl p-6 hover:bg-white/[0.02] hover:border-white/15 transition-all duration-300 group h-full"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-display font-semibold text-white group-hover:text-blue-300 transition-colors">
-                      {project.name}
-                    </h3>
-                    <span className="font-mono text-xs text-white/20 shrink-0 ml-3">{project.language}</span>
-                  </div>
-                  <p className="font-body text-sm text-white/40 mb-4 line-clamp-2">
-                    {project.description}
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono text-xs text-white/30">
-                      ★ {project.stars}
-                    </span>
-                    <span className="font-mono text-xs text-white/30">
-                      ⑂ {project.forks}
-                    </span>
-                  </div>
-                  {project.topics && project.topics.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {project.topics.slice(0, 4).map((topic: string) => (
-                        <span
-                          key={topic}
-                          className="px-2 py-0.5 rounded-full border border-white/5 bg-white/[0.02] font-mono text-xs text-white/20"
-                        >
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </a>
-              </FadeIn>
-            ))}
-          </div>
+          <ProjectFilters projects={projects} />
         </div>
       </section>
     </>

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PartTimeJob, PartTimeHourEntry } from "@/types";
 import { generateId, getCurrentMonth, formatCurrency } from "@/lib/finance-utils";
 import { getPartTimeJobEarnings } from "@/lib/finance-utils";
@@ -34,7 +34,28 @@ export function PartTimeJobsTracker({
   const [logDate, setLogDate] = useState(new Date().toISOString().slice(0, 10));
   const [logHours, setLogHours] = useState(0);
   const [logNotes, setLogNotes] = useState("");
+  const [logMode, setLogMode] = useState<"manual" | "time">("time");
+  const [logStartTime, setLogStartTime] = useState("");
+  const [logEndTime, setLogEndTime] = useState("");
+  const [logBreakMinutes, setLogBreakMinutes] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+
+  // Auto-calculate hours from start/end times
+  const calculatedHours = useMemo(() => {
+    if (!logStartTime || !logEndTime) return 0;
+    const [sh, sm] = logStartTime.split(":").map(Number);
+    const [eh, em] = logEndTime.split(":").map(Number);
+    let totalMinutes = (eh * 60 + em) - (sh * 60 + sm);
+    if (totalMinutes < 0) totalMinutes += 24 * 60; // overnight shift
+    totalMinutes -= logBreakMinutes;
+    return Math.max(0, parseFloat((totalMinutes / 60).toFixed(2)));
+  }, [logStartTime, logEndTime, logBreakMinutes]);
+
+  useEffect(() => {
+    if (logMode === "time" && calculatedHours > 0) {
+      setLogHours(calculatedHours);
+    }
+  }, [calculatedHours, logMode]);
 
   const monthEarnings = useMemo(
     () => getPartTimeJobEarnings(jobs, hours, selectedMonth),
@@ -81,6 +102,9 @@ export function PartTimeJobsTracker({
     });
     setLogHours(0);
     setLogNotes("");
+    setLogStartTime("");
+    setLogEndTime("");
+    setLogBreakMinutes(0);
     setShowLogHours(false);
   }
 
@@ -265,10 +289,71 @@ export function PartTimeJobsTracker({
                   <label className={labelCls}>Date</label>
                   <input type="date" value={logDate} onChange={(e) => setLogDate(e.target.value)} className={inputCls} required />
                 </div>
-                <div>
-                  <label className={labelCls}>Hours</label>
-                  <input type="number" step="0.25" min="0.25" value={logHours || ""} onChange={(e) => setLogHours(parseFloat(e.target.value) || 0)} className={inputCls} required />
+
+                {/* Mode toggle */}
+                <div className="flex items-center gap-1 bg-white/[0.04] rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => setLogMode("time")}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-xs font-mono transition-all ${
+                      logMode === "time" ? "bg-white/10 text-blue-400" : "text-white/30 hover:text-white/60"
+                    }`}
+                  >
+                    Start / End
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLogMode("manual")}
+                    className={`flex-1 px-3 py-1.5 rounded-md text-xs font-mono transition-all ${
+                      logMode === "manual" ? "bg-white/10 text-blue-400" : "text-white/30 hover:text-white/60"
+                    }`}
+                  >
+                    Manual
+                  </button>
                 </div>
+
+                {logMode === "time" ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Start Time</label>
+                        <input type="time" value={logStartTime} onChange={(e) => setLogStartTime(e.target.value)} className={inputCls} required />
+                      </div>
+                      <div>
+                        <label className={labelCls}>End Time</label>
+                        <input type="time" value={logEndTime} onChange={(e) => setLogEndTime(e.target.value)} className={inputCls} required />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Break (minutes)</label>
+                      <input type="number" step="5" min="0" value={logBreakMinutes || ""} onChange={(e) => setLogBreakMinutes(parseInt(e.target.value) || 0)} className={inputCls} placeholder="0" />
+                    </div>
+                    {calculatedHours > 0 && (
+                      <div className="flex items-center justify-between bg-white/[0.03] rounded-xl px-4 py-3">
+                        <span className="font-body text-sm text-white/40">Calculated Hours</span>
+                        <span className="font-mono text-lg font-bold text-white">{calculatedHours}h</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <label className={labelCls}>Hours</label>
+                    <input type="number" step="0.25" min="0.25" value={logHours || ""} onChange={(e) => setLogHours(parseFloat(e.target.value) || 0)} className={inputCls} required />
+                  </div>
+                )}
+
+                {/* Estimated earnings preview */}
+                {logHours > 0 && logJobId && (() => {
+                  const selectedJob = jobs.find((j) => j.id === logJobId);
+                  if (!selectedJob) return null;
+                  return (
+                    <div className="flex items-center justify-between bg-white/[0.03] rounded-xl px-4 py-3">
+                      <span className="font-body text-sm text-white/40">Est. Earnings</span>
+                      <span className="font-mono text-lg font-bold text-emerald-400">{formatCurrency(logHours * selectedJob.hourly_rate)}</span>
+                    </div>
+                  );
+                })()}
+
                 <div>
                   <label className={labelCls}>Notes (optional)</label>
                   <input type="text" value={logNotes} onChange={(e) => setLogNotes(e.target.value)} className={inputCls} placeholder="e.g. Evening shift" />

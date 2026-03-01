@@ -22,6 +22,13 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const [currentValue, setCurrentValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filterType, setFilterType] = useState("all");
+
+  const investmentTypes = Array.from(new Set(investments.map((i) => i.type))).sort();
+
+  const filteredInvestments = filterType === "all"
+    ? investments
+    : investments.filter((i) => i.type === filterType);
 
   const totalValue = investments.reduce((s, i) => s + i.current_value, 0);
   const totalCost = investments.reduce((s, i) => s + i.purchase_price, 0);
@@ -137,15 +144,44 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
           <div className="flex items-center justify-between">
             <h3 className="font-display font-semibold text-lg text-white">
               Holdings
-              <span className="ml-2 font-mono text-xs text-white/30">({investments.length})</span>
+              <span className="ml-2 font-mono text-xs text-white/30">({filteredInvestments.length})</span>
             </h3>
             <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           </div>
 
+          {/* Type filters */}
+          {investmentTypes.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setFilterType("all")}
+                className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+                  filterType === "all"
+                    ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                    : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                }`}
+              >
+                All
+              </button>
+              {investmentTypes.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setFilterType(t)}
+                  className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all capitalize ${
+                    filterType === t
+                      ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                      : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* List View */}
           {viewMode === "list" && (
             <AnimatePresence>
-              {investments.map((inv, i) => {
+              {filteredInvestments.map((inv, i) => {
                 const gain = inv.current_value - inv.purchase_price;
                 const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
                 return (
@@ -201,7 +237,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
           {/* Grid View */}
           {viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {investments.map((inv, i) => {
+              {filteredInvestments.map((inv, i) => {
                 const gain = inv.current_value - inv.purchase_price;
                 const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
                 return (
@@ -273,7 +309,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                     </tr>
                   </thead>
                   <tbody>
-                    {investments.map((inv) => {
+                    {filteredInvestments.map((inv) => {
                       const gain = inv.current_value - inv.purchase_price;
                       const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
                       return (

@@ -21,9 +21,20 @@ export function SubscriptionTracker({ subscriptions, onAdd, onToggle, onDelete }
   const [nextDate, setNextDate] = useState("");
   const [reminderDays, setReminderDays] = useState("3");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
+  const [filterFrequency, setFilterFrequency] = useState("all");
 
   const monthlyTotal = getMonthlySubscriptionTotal(subscriptions);
   const yearlyTotal = monthlyTotal * 12;
+
+  const frequencyOptions = Array.from(new Set(subscriptions.map((s) => s.frequency))).sort();
+
+  const filteredSubs = subscriptions.filter((s) => {
+    if (filterStatus === "active" && !s.active) return false;
+    if (filterStatus === "inactive" && s.active) return false;
+    if (filterFrequency !== "all" && s.frequency !== filterFrequency) return false;
+    return true;
+  });
 
   const now = new Date();
   const upcoming = subscriptions
@@ -146,15 +157,60 @@ export function SubscriptionTracker({ subscriptions, onAdd, onToggle, onDelete }
           <div className="flex items-center justify-between">
             <h3 className="font-display font-semibold text-lg text-white">
               Subscriptions
-              <span className="ml-2 font-mono text-xs text-white/30">({subscriptions.length})</span>
+              <span className="ml-2 font-mono text-xs text-white/30">({filteredSubs.length})</span>
             </h3>
             <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            {(["all", "active", "inactive"] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all capitalize ${
+                  filterStatus === status
+                    ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                    : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+            {frequencyOptions.length > 1 && (
+              <>
+                <span className="text-white/10">|</span>
+                <button
+                  onClick={() => setFilterFrequency("all")}
+                  className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+                    filterFrequency === "all"
+                      ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                      : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                  }`}
+                >
+                  All freq
+                </button>
+                {frequencyOptions.map((freq) => (
+                  <button
+                    key={freq}
+                    onClick={() => setFilterFrequency(freq)}
+                    className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all capitalize ${
+                      filterFrequency === freq
+                        ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                        : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                    }`}
+                  >
+                    {freq}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
 
           {/* List View */}
           {viewMode === "list" && (
             <AnimatePresence>
-              {subscriptions.map((sub, i) => (
+              {filteredSubs.map((sub, i) => (
                 <motion.div
                   key={sub.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -204,7 +260,7 @@ export function SubscriptionTracker({ subscriptions, onAdd, onToggle, onDelete }
           {/* Grid View */}
           {viewMode === "grid" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {subscriptions.map((sub, i) => (
+              {filteredSubs.map((sub, i) => (
                 <motion.div
                   key={sub.id}
                   className={`glass-card rounded-2xl p-5 flex flex-col justify-between group ${!sub.active ? "opacity-50" : ""}`}
@@ -266,7 +322,7 @@ export function SubscriptionTracker({ subscriptions, onAdd, onToggle, onDelete }
                     </tr>
                   </thead>
                   <tbody>
-                    {subscriptions.map((sub) => (
+                    {filteredSubs.map((sub) => (
                       <tr key={sub.id} className={`border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors ${!sub.active ? "opacity-50" : ""}`}>
                         <td className="px-4 py-2.5">
                           <button

@@ -18,10 +18,17 @@ function formatDate(dateStr: string): string {
 }
 
 export function StudySessionList({ sessions, onEdit, onDelete }: StudySessionListProps) {
-  const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filterSubject, setFilterSubject] = useState("all");
 
-  if (sorted.length === 0) {
+  const subjects = Array.from(new Set(sessions.map((s) => s.subject))).sort();
+
+  const filtered = filterSubject === "all"
+    ? sessions
+    : sessions.filter((s) => s.subject === filterSubject);
+  const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
+
+  if (sessions.length === 0) {
     return (
       <div className="glass-card rounded-2xl p-6">
         <h3 className="font-display font-semibold text-lg text-white mb-4">Study Sessions</h3>
@@ -42,6 +49,39 @@ export function StudySessionList({ sessions, onEdit, onDelete }: StudySessionLis
         </h3>
         <ViewToggle viewMode={viewMode} onChange={setViewMode} />
       </div>
+
+      {/* Subject filter */}
+      {subjects.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <button
+            onClick={() => setFilterSubject("all")}
+            className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+              filterSubject === "all"
+                ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+            }`}
+          >
+            All
+          </button>
+          {subjects.map((subject) => (
+            <button
+              key={subject}
+              onClick={() => setFilterSubject(subject)}
+              className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all flex items-center gap-1.5 ${
+                filterSubject === subject
+                  ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                  : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+              }`}
+            >
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: SUBJECT_COLORS[subject] || "#6b7280" }}
+              />
+              {subject}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* List View */}
       {viewMode === "list" && (

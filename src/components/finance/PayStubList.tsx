@@ -52,10 +52,16 @@ export function PayStubList({ stubs, onEdit, onDelete, employers }: PayStubListP
   const employerMap = new Map((employers || []).map((e) => [e.id, e]));
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filterEmployer, setFilterEmployer] = useState("all");
 
-  const sorted = [...stubs].sort((a, b) => b.pay_date.localeCompare(a.pay_date));
+  const employerNames = Array.from(new Set(stubs.map((s) => s.employer_name))).sort();
 
-  if (sorted.length === 0) {
+  const filtered = filterEmployer === "all"
+    ? stubs
+    : stubs.filter((s) => s.employer_name === filterEmployer);
+  const sorted = [...filtered].sort((a, b) => b.pay_date.localeCompare(a.pay_date));
+
+  if (stubs.length === 0) {
     return (
       <div className="glass-card rounded-2xl p-8 text-center">
         <p className="font-body text-white/30">No pay stubs yet. Add one manually or import from Google Sheets.</p>
@@ -88,6 +94,35 @@ export function PayStubList({ stubs, onEdit, onDelete, employers }: PayStubListP
           ))}
         </div>
       </div>
+
+      {/* Employer filter */}
+      {employerNames.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setFilterEmployer("all")}
+            className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+              filterEmployer === "all"
+                ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+            }`}
+          >
+            All
+          </button>
+          {employerNames.map((name) => (
+            <button
+              key={name}
+              onClick={() => setFilterEmployer(name)}
+              className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+                filterEmployer === name
+                  ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                  : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+              }`}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* List View */}
       {viewMode === "list" && sorted.map((stub) => {

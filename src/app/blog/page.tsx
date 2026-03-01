@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { getAllPosts } from "@/lib/mdx";
 import { BLOG_POSTS } from "@/lib/data";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { FadeIn } from "@/components/ui/FadeIn";
+import { BlogFilters } from "@/components/blog/BlogFilters";
 
 export const metadata = {
   title: "Blog | Pavan Jillella",
@@ -23,8 +22,6 @@ export default function BlogPage() {
       }))
     : BLOG_POSTS;
 
-  const categories = ["All", ...Array.from(new Set(posts.map((p) => p.category)))];
-
   return (
     <>
       <PageHeader
@@ -35,60 +32,7 @@ export default function BlogPage() {
 
       <section className="px-6 pb-20">
         <div className="max-w-5xl mx-auto">
-          {/* Category tags + Write button */}
-          <FadeIn>
-            <div className="flex flex-wrap items-center gap-2 mb-10">
-              {categories.map((cat) => (
-                <span
-                  key={cat}
-                  className="px-4 py-2 rounded-full border border-white/8 bg-white/4 font-body text-xs text-white/50 cursor-default"
-                >
-                  {cat}
-                </span>
-              ))}
-              <Link
-                href="/blog/write"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-blue-500/20 bg-blue-500/[0.08] font-body text-xs text-blue-400 hover:bg-blue-500/[0.14] hover:border-blue-500/30 transition-all duration-300"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Write
-              </Link>
-            </div>
-          </FadeIn>
-
-          {/* Posts */}
-          <div className="space-y-4">
-            {posts.map((post, i) => (
-              <FadeIn key={post.slug} delay={i * 0.03}>
-                <Link href={`/blog/${post.slug}`} className="block group">
-                  <div className="glass-card rounded-2xl p-6 transition-all duration-300 hover:bg-white/[0.02] hover:border-white/15">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <h2 className="font-display font-semibold text-lg text-white group-hover:text-blue-300 transition-colors mb-2">
-                          {post.title}
-                        </h2>
-                        <p className="font-body text-sm text-white/40 line-clamp-2 mb-3">
-                          {post.description}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs text-white/25">{post.date}</span>
-                          <span className="tag-badge px-2 py-0.5 rounded-full border border-white/8 bg-white/4 text-white/30 text-xs">
-                            {post.category}
-                          </span>
-                          <span className="font-mono text-xs text-white/20">{post.readTime}</span>
-                        </div>
-                      </div>
-                      <span className="font-body text-sm text-white/20 group-hover:text-blue-400 transition-colors shrink-0 mt-1">
-                        →
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </FadeIn>
-            ))}
-          </div>
+          <BlogFilters posts={posts} />
         </div>
       </section>
     </>
