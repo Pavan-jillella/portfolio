@@ -6,6 +6,7 @@ import { COURSE_STATUS_CONFIG } from "@/lib/constants";
 import { CourseModuleList } from "./CourseModuleList";
 import { CourseNotesEditor } from "./CourseNotesEditor";
 import { CourseFileUpload } from "./CourseFileUpload";
+import { CourseForm } from "@/components/education/CourseForm";
 import { motion } from "framer-motion";
 
 interface CourseTrackerTabProps {
@@ -13,6 +14,7 @@ interface CourseTrackerTabProps {
   modules: CourseModule[];
   courseNotes: CourseNote[];
   courseFiles: CourseFile[];
+  onAddCourse: (course: Omit<Course, "id" | "created_at">) => void;
   onAddModule: (module: Omit<CourseModule, "id" | "created_at">) => void;
   onToggleModule: (id: string) => void;
   onDeleteModule: (id: string) => void;
@@ -26,6 +28,7 @@ export function CourseTrackerTab({
   modules,
   courseNotes,
   courseFiles,
+  onAddCourse,
   onAddModule,
   onToggleModule,
   onDeleteModule,
@@ -34,6 +37,7 @@ export function CourseTrackerTab({
   onDeleteCourseFile,
 }: CourseTrackerTabProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const stats = useMemo(() => {
     const completed = courses.filter((c) => c.status === "completed").length;
@@ -65,7 +69,17 @@ export function CourseTrackerTab({
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="font-display font-semibold text-xl text-white">Course Tracker</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display font-semibold text-xl text-white">Course Tracker</h2>
+        <button
+          onClick={() => setShowForm(true)}
+          className="glass-card px-5 py-2 rounded-2xl text-sm font-body text-white/60 hover:text-white hover:border-blue-500/30 transition-all duration-300"
+        >
+          + Add Course
+        </button>
+      </div>
+
+      <CourseForm open={showForm} onClose={() => setShowForm(false)} onSubmit={onAddCourse} />
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">

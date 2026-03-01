@@ -76,6 +76,11 @@ export function EducationDashboardClient() {
     setStudyGoals((prev) => prev.filter((g) => g.id !== id));
   }
 
+  // ===== Course Handlers =====
+  function addCourse(data: Omit<Course, "id" | "created_at">) {
+    setCourses((prev) => [...prev, { ...data, id: generateId(), created_at: new Date().toISOString() }]);
+  }
+
   // ===== Course Module Handlers =====
   function addCourseModule(module: Omit<CourseModule, "id" | "created_at">) {
     setCourseModules((prev) => [...prev, { ...module, id: generateId(), created_at: new Date().toISOString() }]);
@@ -254,6 +259,7 @@ export function EducationDashboardClient() {
               modules={courseModules}
               courseNotes={courseNotes}
               courseFiles={courseFiles}
+              onAddCourse={addCourse}
               onAddModule={addCourseModule}
               onToggleModule={toggleCourseModule}
               onDeleteModule={deleteCourseModule}

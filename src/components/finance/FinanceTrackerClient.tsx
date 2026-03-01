@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
@@ -35,6 +35,7 @@ import { MonthlyReportEmail } from "./MonthlyReportEmail";
 import { CurrencySettings } from "./CurrencySettings";
 import { SubscriptionTracker } from "./SubscriptionTracker";
 import { PayrollTracker } from "./PayrollTracker";
+import { STEMTREE_PAYROLL_HISTORY } from "@/lib/stemtree-payroll";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { RealtimeStatus } from "@/components/ui/RealtimeStatus";
@@ -103,11 +104,25 @@ export function FinanceTrackerClient() {
     employers: DEFAULT_EMPLOYERS,
     income_goals: [],
     auto_send_to_income: false,
-    auto_sync_enabled: true,
-    auto_sync_interval_minutes: 30,
+    auto_sync_enabled: false,
+    auto_sync_interval_minutes: 0,
     last_synced_at: null,
   });
   const [displayCurrency, setDisplayCurrency] = useLocalStorage<string>("pj-display-currency", "USD");
+  const [payrollSeeded, setPayrollSeeded] = useLocalStorage<boolean>("pj-payroll-seeded", false);
+
+  // Seed Stemtree payroll history once
+  useEffect(() => {
+    if (!payrollSeeded) {
+      const existingIds = new Set(payStubs.map((s) => s.id));
+      const newStubs = STEMTREE_PAYROLL_HISTORY.filter((s) => !existingIds.has(s.id));
+      if (newStubs.length > 0) {
+        setPayStubs((prev) => [...newStubs, ...prev]);
+      }
+      setPayrollSeeded(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [activeTab, setActiveTab] = useState("overview");
