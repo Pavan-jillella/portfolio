@@ -10,18 +10,6 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
-function isTokenValid(token: string): boolean {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return false;
-    const payload = JSON.parse(atob(parts[1]));
-    if (!payload.exp) return false;
-    return payload.exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
-}
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -29,23 +17,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    if (process.env.NODE_ENV === "development") {
-      return NextResponse.next();
-    }
+  const token = request.cookies.get("auth-token")?.value;
+  if (token !== "authenticated") {
     return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  const token = request.cookies.get("sb-access-token")?.value;
-  if (!token || !isTokenValid(token)) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    if (token) {
-      response.cookies.delete("sb-access-token");
-    }
-    return response;
   }
 
   return NextResponse.next();

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import { useVisibility } from "@/hooks/useVisibility";
 import { SECTION_LABELS, SectionKey } from "@/lib/visibility";
 import { ThemeToggle } from "./ThemeToggle";
@@ -29,14 +28,8 @@ export function Navbar() {
   const router = useRouter();
   const { visibility, toggleSection } = useVisibility();
 
-  async function handleSignOut() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      await supabase.auth.signOut();
-    }
-    document.cookie = "sb-access-token=; path=/; max-age=0";
+  function handleSignOut() {
+    document.cookie = "auth-token=; path=/; max-age=0";
     router.push("/login");
   }
 
