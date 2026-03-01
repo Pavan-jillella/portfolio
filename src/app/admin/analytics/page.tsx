@@ -59,7 +59,7 @@ export default function AnalyticsPage() {
         <h2 className="font-display font-semibold text-lg text-white mb-4">Top Pages</h2>
         {loading ? (
           <div className="glass-card rounded-2xl p-6 animate-pulse">
-            <div className="h-4 w-full bg-glass-white rounded" />
+            <div className="h-4 w-full bg-white/10 rounded" />
           </div>
         ) : topPaths.length === 0 ? (
           <div className="glass-card rounded-2xl p-6">

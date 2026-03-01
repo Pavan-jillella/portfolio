@@ -15,10 +15,14 @@ export function CommentSection({ slug }: CommentSectionProps) {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   useEffect(() => {
     fetch(`/api/comments?slug=${slug}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) setComments(data);
         else setError(true);
@@ -31,6 +35,7 @@ export function CommentSection({ slug }: CommentSectionProps) {
     e.preventDefault();
     if (!name.trim() || !content.trim()) return;
     setSubmitting(true);
+    setSubmitError(false);
 
     try {
       const res = await fetch("/api/comments", {
@@ -45,8 +50,12 @@ export function CommentSection({ slug }: CommentSectionProps) {
         setContent("");
         setSubmitted(true);
         setTimeout(() => setSubmitted(false), 3000);
+      } else {
+        setSubmitError(true);
       }
-    } catch {}
+    } catch {
+      setSubmitError(true);
+    }
     setSubmitting(false);
   }
 
@@ -67,8 +76,8 @@ export function CommentSection({ slug }: CommentSectionProps) {
         <div className="space-y-4">
           {[1, 2].map((i) => (
             <div key={i} className="glass-card rounded-2xl p-5 animate-pulse">
-              <div className="h-4 w-24 bg-glass-white rounded mb-2" />
-              <div className="h-4 w-full bg-glass-white rounded" />
+              <div className="h-4 w-24 bg-white/10 rounded mb-2" />
+              <div className="h-4 w-full bg-white/10 rounded" />
             </div>
           ))}
         </div>
@@ -120,6 +129,9 @@ export function CommentSection({ slug }: CommentSectionProps) {
         <div className="flex items-center justify-between">
           {submitted && (
             <span className="font-body text-sm text-emerald-400">Comment posted!</span>
+          )}
+          {submitError && (
+            <span className="font-body text-sm text-red-400">Failed to post comment. Please try again.</span>
           )}
           <button
             type="submit"
