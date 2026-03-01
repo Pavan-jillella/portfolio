@@ -154,9 +154,9 @@ export function FinanceTrackerClient() {
   const expenses = monthlyTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const portfolioValue = investments.reduce((s, i) => s + i.current_value, 0);
 
-  // Apply filters to monthly transactions
+  // Apply filters to ALL transactions (not just monthly) for Transactions tab
   const filteredTx = useMemo(() => {
-    let result = monthlyTx;
+    let result = [...transactions];
     if (filters.type !== "all") {
       result = result.filter((t) => t.type === filters.type);
     }
@@ -170,7 +170,7 @@ export function FinanceTrackerClient() {
       result = result.filter((t) => t.date <= filters.dateTo);
     }
     return result;
-  }, [monthlyTx, filters]);
+  }, [transactions, filters]);
 
   // Transaction handlers
   function addTransaction(tx: Transaction) {

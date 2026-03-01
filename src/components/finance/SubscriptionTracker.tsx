@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Subscription, SubscriptionFrequency } from "@/types";
 import { SUBSCRIPTION_FREQUENCIES, DEFAULT_EXPENSE_CATEGORIES } from "@/lib/constants";
 import { generateId, formatCurrency, getMonthlySubscriptionTotal } from "@/lib/finance-utils";
+import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SubscriptionTrackerProps {
@@ -19,6 +20,7 @@ export function SubscriptionTracker({ subscriptions, onAdd, onToggle, onDelete }
   const [category, setCategory] = useState(DEFAULT_EXPENSE_CATEGORIES[4]); // Subscriptions
   const [nextDate, setNextDate] = useState("");
   const [reminderDays, setReminderDays] = useState("3");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   const monthlyTotal = getMonthlySubscriptionTotal(subscriptions);
   const yearlyTotal = monthlyTotal * 12;
@@ -140,52 +142,176 @@ export function SubscriptionTracker({ subscriptions, onAdd, onToggle, onDelete }
         </div>
       ) : (
         <div className="space-y-3">
-          <AnimatePresence>
-            {subscriptions.map((sub, i) => (
-              <motion.div
-                key={sub.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ delay: i * 0.03 }}
-                className={`glass-card rounded-2xl p-4 group ${!sub.active ? "opacity-50" : ""}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => onToggle(sub.id)}
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        sub.active ? "border-emerald-500 bg-emerald-500/20" : "border-white/20"
-                      }`}
-                    >
-                      {sub.active && (
-                        <svg className="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          {/* Header with view toggle */}
+          <div className="flex items-center justify-between">
+            <h3 className="font-display font-semibold text-lg text-white">
+              Subscriptions
+              <span className="ml-2 font-mono text-xs text-white/30">({subscriptions.length})</span>
+            </h3>
+            <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          </div>
+
+          {/* List View */}
+          {viewMode === "list" && (
+            <AnimatePresence>
+              {subscriptions.map((sub, i) => (
+                <motion.div
+                  key={sub.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: i * 0.03 }}
+                  className={`glass-card rounded-2xl p-4 group ${!sub.active ? "opacity-50" : ""}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => onToggle(sub.id)}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          sub.active ? "border-emerald-500 bg-emerald-500/20" : "border-white/20"
+                        }`}
+                      >
+                        {sub.active && (
+                          <svg className="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                      <div>
+                        <p className="font-body text-sm text-white">{sub.name}</p>
+                        <p className="font-body text-xs text-white/30">
+                          {sub.category} • {sub.frequency} • Next: {sub.next_billing_date}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm text-white">{formatCurrency(sub.amount)}</span>
+                      <button
+                        onClick={() => onDelete(sub.id)}
+                        className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                      )}
-                    </button>
-                    <div>
-                      <p className="font-body text-sm text-white">{sub.name}</p>
-                      <p className="font-body text-xs text-white/30">
-                        {sub.category} • {sub.frequency} • Next: {sub.next_billing_date}
-                      </p>
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm text-white">{formatCurrency(sub.amount)}</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+
+          {/* Grid View */}
+          {viewMode === "grid" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {subscriptions.map((sub, i) => (
+                <motion.div
+                  key={sub.id}
+                  className={`glass-card rounded-2xl p-5 flex flex-col justify-between group ${!sub.active ? "opacity-50" : ""}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.3 }}
+                >
+                  <div>
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="font-body text-sm text-white font-medium">{sub.name}</span>
+                      <button
+                        onClick={() => onToggle(sub.id)}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                          sub.active ? "border-emerald-500 bg-emerald-500/20" : "border-white/20"
+                        }`}
+                      >
+                        {sub.active && (
+                          <svg className="w-3 h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    <p className="font-mono text-xl text-white mb-2">{formatCurrency(sub.amount)}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-body text-xs text-white/30 capitalize">{sub.frequency}</span>
+                      <span className="text-white/10">|</span>
+                      <span className="font-body text-xs text-white/30">{sub.category}</span>
+                    </div>
+                    <p className="font-mono text-[10px] text-white/20 mt-2">Next: {sub.next_billing_date}</p>
+                  </div>
+                  <div className="flex items-center pt-3 border-t border-white/5 mt-3">
                     <button
                       onClick={() => onDelete(sub.id)}
-                      className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all"
+                      className="px-2 py-1 rounded-lg text-[10px] font-body text-white/30 hover:text-red-400 hover:bg-white/5 transition-all ml-auto opacity-0 group-hover:opacity-100"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      Delete
                     </button>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {/* Table View */}
+          {viewMode === "table" && (
+            <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-white/5">
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Amount</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Frequency</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Category</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Next Billing</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subscriptions.map((sub) => (
+                      <tr key={sub.id} className={`border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors ${!sub.active ? "opacity-50" : ""}`}>
+                        <td className="px-4 py-2.5">
+                          <button
+                            onClick={() => onToggle(sub.id)}
+                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                              sub.active ? "border-emerald-500 bg-emerald-500/20" : "border-white/20"
+                            }`}
+                          >
+                            {sub.active && (
+                              <svg className="w-2.5 h-2.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-body text-xs text-white/70">{sub.name}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <span className="font-mono text-xs text-white">{formatCurrency(sub.amount)}</span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-body text-xs text-white/40 capitalize">{sub.frequency}</span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-body text-xs text-white/40">{sub.category}</span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-mono text-xs text-white/40">{sub.next_billing_date}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <button
+                            onClick={() => onDelete(sub.id)}
+                            className="px-1.5 py-0.5 rounded text-[10px] font-mono text-white/25 hover:text-red-400 transition-colors"
+                          >
+                            Del
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
