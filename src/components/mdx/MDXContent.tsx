@@ -39,8 +39,8 @@ export function MDXContent({ source }: MDXContentProps) {
         components={components}
         options={{
           mdxOptions: {
-            remarkPlugins: [remarkGfm],
-            rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
+            remarkPlugins: [remarkGfm as any],
+            rehypePlugins: [rehypeSlug as any, [rehypeAutolinkHeadings as any, { behavior: "wrap" }]],
           },
         }}
       />
