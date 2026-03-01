@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AppsScriptData } from "@/types";
+import { AppsScriptData, AppsScriptWeek } from "@/types";
+import { detectCSVType, parseScheduleHistoryCSV } from "@/lib/payroll-utils";
 
 interface AutoSyncConfig {
   enabled: boolean;
@@ -11,6 +12,7 @@ interface AutoSyncConfig {
 
 interface AutoSyncCallbacks {
   onScheduleData: (data: AppsScriptData) => void;
+  onScheduleHistory: (history: AppsScriptWeek[]) => void;
   onPayStubData: (csv: string) => void;
   onSyncComplete: (timestamp: string) => void;
 }
@@ -75,7 +77,15 @@ export function useAutoSync(
       if (result.type === "apps-script" && result.data) {
         callbacksRef.current.onScheduleData(result.data as AppsScriptData);
       } else if (result.type === "csv" && result.csv) {
-        callbacksRef.current.onPayStubData(result.csv);
+        const csvType = detectCSVType(result.csv);
+        if (csvType === "schedule-history") {
+          const history = parseScheduleHistoryCSV(result.csv);
+          if (history.length > 0) {
+            callbacksRef.current.onScheduleHistory(history);
+          }
+        } else {
+          callbacksRef.current.onPayStubData(result.csv);
+        }
       }
 
       setLastSyncedAt(timestamp);

@@ -9,6 +9,7 @@ import {
   WeeklyTrendEntry,
   MonthlyTrendEntry,
   AppsScriptShift,
+  AppsScriptWeek,
   ScheduleShift,
 } from "@/types";
 import { parseTimeToMinutes } from "@/lib/finance-utils";
@@ -285,4 +286,58 @@ export function formatRelativeTime(isoString: string): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
+}
+
+/**
+ * Detect whether a CSV is schedule history or pay stubs based on headers.
+ * Returns "schedule-history" if headers match the schedule format,
+ * "pay-stubs" otherwise.
+ */
+export function detectCSVType(csv: string): "schedule-history" | "pay-stubs" {
+  const firstLine = csv.trim().split("\n")[0]?.toLowerCase() || "";
+  if (
+    firstLine.includes("week label") ||
+    firstLine.includes("total hours") ||
+    firstLine.includes("pretty label")
+  ) {
+    return "schedule-history";
+  }
+  return "pay-stubs";
+}
+
+/**
+ * Parse schedule history CSV (from Google Sheets) into AppsScriptWeek[].
+ * Expected columns: Week Label, Total Hours, Change, Trend, Status, Total Pay, Pretty Label
+ */
+export function parseScheduleHistoryCSV(csv: string): AppsScriptWeek[] {
+  const lines = csv.trim().split("\n");
+  if (lines.length < 2) return [];
+
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"));
+  const results: AppsScriptWeek[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(",").map((v) => v.trim());
+    if (values.length < 2) continue;
+
+    const row: Record<string, string> = {};
+    headers.forEach((h, idx) => {
+      row[h] = (values[idx] || "").trim();
+    });
+
+    const totalHours = parseFloat(row["total_hours"]) || 0;
+    if (totalHours === 0 && !row["week_label"]) continue; // skip empty rows
+
+    results.push({
+      weekLabel: row["week_label"] || "",
+      totalHours,
+      change: parseFloat(row["change"]) || 0,
+      trend: row["trend"] || "",
+      status: row["status"] || "",
+      totalPay: parseFloat(row["total_pay"]) || 0,
+      prettyLabel: row["pretty_label"] || row["week_label"] || "",
+    });
+  }
+
+  return results;
 }

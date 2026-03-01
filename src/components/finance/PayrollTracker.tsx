@@ -10,6 +10,7 @@ import {
   EnhancedWorkSchedule,
   EnhancedPayrollSettings,
   AppsScriptData,
+  AppsScriptWeek,
 } from "@/types";
 import { getPayrollSummary, generateId, parseGoogleSheetsCSV } from "@/lib/finance-utils";
 import { PayStubList } from "./PayStubList";
@@ -154,6 +155,25 @@ export function PayrollTracker({
     }
   }, [workSchedules, settings.hourly_rate, onAddSchedule]);
 
+  const handleAutoSyncHistory = useCallback((history: AppsScriptWeek[]) => {
+    const existingLabels = new Set(workSchedules.map((s) => s.period_label));
+    for (const week of history) {
+      const wLabel = week.prettyLabel || week.weekLabel;
+      if (existingLabels.has(wLabel)) continue;
+      onAddSchedule({
+        id: generateId(),
+        period_label: wLabel,
+        period_start: "",
+        period_end: "",
+        shifts: [],
+        total_hours: week.totalHours,
+        hourly_rate: settings.hourly_rate,
+        created_at: new Date().toISOString(),
+      });
+      existingLabels.add(wLabel);
+    }
+  }, [workSchedules, settings.hourly_rate, onAddSchedule]);
+
   const handleAutoSyncPayStubs = useCallback((csv: string) => {
     const parsed = parseGoogleSheetsCSV(csv);
     const existingKeys = new Set(
@@ -197,6 +217,7 @@ export function PayrollTracker({
     },
     {
       onScheduleData: handleAutoSyncSchedule,
+      onScheduleHistory: handleAutoSyncHistory,
       onPayStubData: handleAutoSyncPayStubs,
       onSyncComplete: handleSyncComplete,
     }
