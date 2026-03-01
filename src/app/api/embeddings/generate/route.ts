@@ -4,12 +4,31 @@ import { createClient } from "@supabase/supabase-js";
 import { rateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
 
+// Daily embedding cap to prevent OpenAI cost spikes
+const DAILY_EMBEDDING_LIMIT = 100;
+let dailyCount = 0;
+let dailyResetAt = Date.now() + 86400000; // 24 hours from now
+
+function checkDailyLimit(): boolean {
+  if (Date.now() > dailyResetAt) {
+    dailyCount = 0;
+    dailyResetAt = Date.now() + 86400000;
+  }
+  if (dailyCount >= DAILY_EMBEDDING_LIMIT) return false;
+  dailyCount++;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const { allowed } = rateLimit(ip, 10, 60000);
     if (!allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
+    if (!checkDailyLimit()) {
+      return NextResponse.json({ error: "Daily embedding limit reached (100/day)" }, { status: 429 });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;

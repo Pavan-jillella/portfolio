@@ -5,6 +5,10 @@ const TYPE_ICONS: Record<string, string> = {
   note: "N",
   course: "C",
   project: "P",
+  transaction: "$",
+  session: "S",
+  subscription: "R",
+  paystub: "W",
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -12,6 +16,10 @@ const TYPE_COLORS: Record<string, string> = {
   note: "text-pink-400 bg-pink-400/10",
   course: "text-cyan-400 bg-cyan-400/10",
   project: "text-amber-400 bg-amber-400/10",
+  transaction: "text-emerald-400 bg-emerald-400/10",
+  session: "text-blue-400 bg-blue-400/10",
+  subscription: "text-orange-400 bg-orange-400/10",
+  paystub: "text-teal-400 bg-teal-400/10",
 };
 
 interface SearchResultProps {

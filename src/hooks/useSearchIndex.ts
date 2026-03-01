@@ -2,11 +2,16 @@
 import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { createSearchIndex, SearchItem } from "@/lib/search-index";
+import { formatCurrency } from "@/lib/finance-utils";
 
 export function useSearchIndex() {
   const [notes] = useLocalStorage<any[]>("pj-edu-notes", []);
   const [courses] = useLocalStorage<any[]>("pj-courses", []);
   const [projects] = useLocalStorage<any[]>("pj-edu-projects", []);
+  const [transactions] = useLocalStorage<any[]>("pj-transactions", []);
+  const [studySessions] = useLocalStorage<any[]>("pj-study-sessions", []);
+  const [subscriptions] = useLocalStorage<any[]>("pj-subscriptions", []);
+  const [payStubs] = useLocalStorage<any[]>("pj-pay-stubs", []);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -63,8 +68,52 @@ export function useSearchIndex() {
       });
     });
 
+    transactions.forEach((t: any) => {
+      all.push({
+        id: `tx-${t.id}`,
+        type: "transaction",
+        title: t.description || t.category || "Transaction",
+        description: `${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)} · ${t.category} · ${t.date}`,
+        tags: [t.category, t.type].filter(Boolean),
+        url: "/finance/tracker",
+      });
+    });
+
+    studySessions.forEach((s: any) => {
+      all.push({
+        id: `session-${s.id}`,
+        type: "session",
+        title: s.subject || "Study Session",
+        description: `${s.duration_minutes}min · ${s.date}${s.notes ? " · " + s.notes.slice(0, 100) : ""}`,
+        tags: [s.subject].filter(Boolean),
+        url: "/education/dashboard",
+      });
+    });
+
+    subscriptions.forEach((sub: any) => {
+      all.push({
+        id: `sub-${sub.id}`,
+        type: "subscription",
+        title: sub.name || "Subscription",
+        description: `${formatCurrency(sub.amount)}/${sub.frequency} · ${sub.category || ""}`,
+        tags: [sub.category].filter(Boolean),
+        url: "/finance/tracker",
+      });
+    });
+
+    payStubs.forEach((ps: any) => {
+      all.push({
+        id: `paystub-${ps.id}`,
+        type: "paystub",
+        title: `${ps.employer_name || "Pay Stub"} — ${ps.pay_date}`,
+        description: `Gross ${formatCurrency(ps.gross_pay)} · Net ${formatCurrency(ps.net_pay)}`,
+        tags: [ps.employer_name].filter(Boolean),
+        url: "/finance/tracker",
+      });
+    });
+
     return all;
-  }, [notes, courses, projects, blogPosts]);
+  }, [notes, courses, projects, blogPosts, transactions, studySessions, subscriptions, payStubs]);
 
   const index = useMemo(() => createSearchIndex(items), [items]);
 

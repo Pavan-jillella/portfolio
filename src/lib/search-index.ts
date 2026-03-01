@@ -2,7 +2,7 @@ import Fuse from "fuse.js";
 
 export interface SearchItem {
   id: string;
-  type: "blog" | "note" | "course" | "project";
+  type: "blog" | "note" | "course" | "project" | "transaction" | "session" | "subscription" | "paystub";
   title: string;
   description: string;
   content?: string;

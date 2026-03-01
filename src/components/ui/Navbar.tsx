@@ -15,6 +15,7 @@ const navLinks = [
   { label: "Projects", href: "/projects" },
   { label: "Education", href: "/education" },
   { label: "Finance", href: "/finance" },
+  { label: "Life Index", href: "/dashboard/life-index" },
 ];
 
 const sectionKeys = Object.keys(SECTION_LABELS) as SectionKey[];

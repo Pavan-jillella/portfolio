@@ -77,10 +77,10 @@ export function FinanceTrackerClient() {
   const [savingsGoals, setSavingsGoals, savingsConnected] = useSupabaseRealtimeSync<SavingsGoal>("pj-savings-goals", "savings_goals", []);
   const [customCategories, setCustomCategories] = useLocalStorage<string[]>("pj-custom-categories", []);
 
-  // New state
-  const [investments, setInvestments] = useLocalStorage<Investment[]>("pj-investments", []);
-  const [netWorthEntries, setNetWorthEntries] = useLocalStorage<NetWorthEntry[]>("pj-net-worth", []);
-  const [subscriptions, setSubscriptions] = useLocalStorage<Subscription[]>("pj-subscriptions", []);
+  // Realtime-synced finance state
+  const [investments, setInvestments, investConnected] = useSupabaseRealtimeSync<Investment>("pj-investments", "investments", []);
+  const [netWorthEntries, setNetWorthEntries, nwConnected] = useSupabaseRealtimeSync<NetWorthEntry>("pj-net-worth", "net_worth_entries", []);
+  const [subscriptions, setSubscriptions, subsConnected] = useSupabaseRealtimeSync<Subscription>("pj-subscriptions", "subscriptions", []);
   const [payStubs, setPayStubs] = useLocalStorage<PayStub[]>("pj-pay-stubs", []);
   const [partTimeJobs, setPartTimeJobs] = useLocalStorage<PartTimeJob[]>("pj-part-time-jobs", []);
   const [partTimeHours, setPartTimeHours] = useLocalStorage<PartTimeHourEntry[]>("pj-part-time-hours", []);
@@ -135,7 +135,7 @@ export function FinanceTrackerClient() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddForm, setShowAddForm] = useState(false);
   const [filters, setFilters] = useState<FilterState>({ type: "all", category: "all", dateFrom: "", dateTo: "" });
-  const isRealtimeConnected = txConnected || budgetsConnected || savingsConnected;
+  const isRealtimeConnected = txConnected || budgetsConnected || savingsConnected || investConnected || nwConnected || subsConnected;
 
   const allCategories = useMemo(() => {
     return Array.from(new Set([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES, ...customCategories]));

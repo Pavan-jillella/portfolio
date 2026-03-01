@@ -117,7 +117,7 @@ export function CommandPalette() {
                   setSelectedIndex(0);
                 }}
                 onKeyDown={onInputKeyDown}
-                placeholder="Search notes, courses, projects, blog..."
+                placeholder="Search everything..."
                 className="flex-1 bg-transparent text-white text-sm font-body placeholder-white/25 focus:outline-none"
               />
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono text-white/20 bg-white/5 border border-white/10">
