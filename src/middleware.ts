@@ -2,8 +2,20 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const PUBLIC_PATHS = ["/login", "/api", "/_next", "/favicon.ico"];
+const PUBLIC_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".woff", ".woff2", ".ttf", ".css", ".js"];
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
+  if (PUBLIC_EXTENSIONS.some((ext) => pathname.endsWith(ext))) return true;
+  return false;
+}
+
 export async function middleware(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith("/admin")) {
+  const { pathname } = request.nextUrl;
+
+  // Allow public paths through
+  if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
@@ -11,7 +23,6 @@ export async function middleware(request: NextRequest) {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    // If Supabase isn't configured, allow access in development
     if (process.env.NODE_ENV === "development") {
       return NextResponse.next();
     }
@@ -39,5 +50,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/ui/Navbar";
 import { GrainOverlay } from "@/components/ui/GrainOverlay";
 import { CursorGlow } from "@/components/ui/CursorGlow";
 import { FloatingBackground } from "@/components/ui/FloatingBackground";
 import { SmoothScroll } from "@/components/ui/SmoothScroll";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
-import { ChatWidget } from "@/components/chat/ChatWidget";
-import { CommandPalette } from "@/components/search/CommandPalette";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -57,11 +55,8 @@ export default function RootLayout({
                 <GrainOverlay />
                 <CursorGlow />
                 <FloatingBackground />
-                <Navbar />
-                <main className="relative z-10 page-transition">{children}</main>
+                <LayoutShell>{children}</LayoutShell>
                 <PageViewTracker />
-                <ChatWidget />
-                <CommandPalette />
                 <Analytics />
               </SmoothScroll>
             </PostHogProvider>

@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 import { useVisibility } from "@/hooks/useVisibility";
 import { SECTION_LABELS, SectionKey } from "@/lib/visibility";
 import { ThemeToggle } from "./ThemeToggle";
@@ -25,7 +26,19 @@ export function Navbar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const { visibility, toggleSection } = useVisibility();
+
+  async function handleSignOut() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseKey) {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      await supabase.auth.signOut();
+    }
+    document.cookie = "sb-access-token=; path=/; max-age=0";
+    router.push("/login");
+  }
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
@@ -167,6 +180,17 @@ export function Navbar() {
           >
             Say hello →
           </Link>
+
+          <button
+            onClick={handleSignOut}
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-white/40 hover:text-red-400 bg-white/4 border border-white/5 hover:border-red-500/20 transition-all"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
         </div>
 
         {/* Mobile menu button */}
@@ -249,6 +273,19 @@ export function Navbar() {
                     </div>
                   </button>
                 ))}
+              </div>
+
+              {/* Mobile sign out */}
+              <div className="pt-3 mt-1 border-t border-white/5">
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 font-body text-sm text-white/40 hover:text-red-400 transition-colors py-1"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign out
+                </button>
               </div>
             </div>
           </motion.div>
