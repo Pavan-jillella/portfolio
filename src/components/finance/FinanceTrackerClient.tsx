@@ -14,6 +14,7 @@ import {
   calculateNetWorth,
   getSubscriptionAlerts,
   getMonthlySubscriptionTotal,
+  getPartTimeJobEarnings,
   formatCurrency,
 } from "@/lib/finance-utils";
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TAX_CONFIG, DEFAULT_EMPLOYERS } from "@/lib/constants";
@@ -153,9 +154,42 @@ export function FinanceTrackerClient() {
   const subscriptionAlerts = useMemo(() => getSubscriptionAlerts(subscriptions), [subscriptions]);
   const monthlySubTotal = useMemo(() => getMonthlySubscriptionTotal(subscriptions), [subscriptions]);
 
-  const income = monthlyTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const expenses = monthlyTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const txIncome = monthlyTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const txExpenses = monthlyTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const portfolioValue = investments.reduce((s, i) => s + i.current_value, 0);
+
+  // Payroll income for selected month (net pay from pay stubs)
+  const monthlyPayrollIncome = useMemo(() =>
+    payStubs
+      .filter((s) => s.pay_date.startsWith(selectedMonth))
+      .reduce((sum, s) => sum + s.net_pay, 0),
+    [payStubs, selectedMonth]
+  );
+
+  // Part-time earnings for selected month
+  const monthlyPartTimeIncome = useMemo(() =>
+    getPartTimeJobEarnings(partTimeJobs, partTimeHours, selectedMonth)
+      .reduce((sum, e) => sum + e.earnings, 0),
+    [partTimeJobs, partTimeHours, selectedMonth]
+  );
+
+  // Combined totals across all sources
+  const income = txIncome + monthlyPayrollIncome + monthlyPartTimeIncome;
+  const expenses = txExpenses + monthlySubTotal;
+
+  // Enhanced trend: add payroll + part-time income and subscription expenses to each month
+  const enhancedTrend = useMemo(() => {
+    return trend.map((t) => {
+      const payroll = payStubs
+        .filter((s) => s.pay_date.startsWith(t.month))
+        .reduce((sum, s) => sum + s.net_pay, 0);
+      const partTime = getPartTimeJobEarnings(partTimeJobs, partTimeHours, t.month)
+        .reduce((sum, e) => sum + e.earnings, 0);
+      const totalInc = t.income + payroll + partTime;
+      const totalExp = t.expenses + monthlySubTotal;
+      return { month: t.month, income: totalInc, expenses: totalExp, net: totalInc - totalExp };
+    });
+  }, [trend, payStubs, partTimeJobs, partTimeHours, monthlySubTotal]);
 
   // Apply filters to ALL transactions (not just monthly) for Transactions tab
   const filteredTx = useMemo(() => {
@@ -464,12 +498,12 @@ export function FinanceTrackerClient() {
                 <p className="font-mono text-sm text-blue-400">{formatCurrency(portfolioValue)}</p>
               </div>
               <div className="glass-card rounded-xl p-3 text-center">
-                <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">Subscriptions/mo</p>
-                <p className="font-mono text-sm text-white/60">{formatCurrency(monthlySubTotal)}</p>
+                <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">Payroll</p>
+                <p className="font-mono text-sm text-emerald-400">{formatCurrency(monthlyPayrollIncome)}</p>
               </div>
               <div className="glass-card rounded-xl p-3 text-center">
-                <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">Currency</p>
-                <p className="font-mono text-sm text-white/60">{displayCurrency}</p>
+                <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">Part-Time</p>
+                <p className="font-mono text-sm text-emerald-400">{formatCurrency(monthlyPartTimeIncome)}</p>
               </div>
             </div>
           </FadeIn>
@@ -479,7 +513,7 @@ export function FinanceTrackerClient() {
               <PieChart data={categoryBreakdown} />
             </FadeIn>
             <FadeIn delay={0.15}>
-              <MonthlyTrend trend={trend} />
+              <MonthlyTrend trend={enhancedTrend} />
             </FadeIn>
           </div>
           <FadeIn delay={0.2}>
