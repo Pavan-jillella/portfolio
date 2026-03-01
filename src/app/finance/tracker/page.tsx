@@ -1,6 +1,8 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FinanceTrackerClient } from "@/components/finance/FinanceTrackerClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Budget Tracker | Pavan Jillella",
   description: "Personal budgeting tool with expense tracking, savings goals, and smart recommendations.",

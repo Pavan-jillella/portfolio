@@ -1,6 +1,8 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EducationDashboardClient } from "@/components/education/dashboard/EducationDashboardClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Education Dashboard | Pavan Jillella",
   description: "Track study sessions, courses, projects, notes, and more.",

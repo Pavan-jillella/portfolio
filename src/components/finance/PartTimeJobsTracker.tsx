@@ -98,6 +98,9 @@ export function PartTimeJobsTracker({
       date: logDate,
       hours: logHours,
       notes: logNotes,
+      ...(logMode === "time" && logStartTime && logEndTime
+        ? { start_time: logStartTime, end_time: logEndTime }
+        : {}),
       created_at: new Date().toISOString(),
     });
     setLogHours(0);
@@ -200,30 +203,48 @@ export function PartTimeJobsTracker({
       {recentHours.length > 0 && (
         <div className="glass-card rounded-2xl p-5">
           <h4 className="font-display font-semibold text-sm text-white mb-3">Recent Hours Log</h4>
-          <div className="space-y-2">
-            {recentHours.map((entry) => {
-              const job = getJobById(entry.job_id);
-              return (
-                <div key={entry.id} className="flex items-center justify-between py-1.5 border-b border-white/[0.03] last:border-0">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {job && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: job.color }} />}
-                    <span className="font-body text-xs text-white/60 truncate">{job?.name || "Unknown"}</span>
-                    <span className="font-mono text-xs text-white/20">{entry.date}</span>
-                    {entry.notes && <span className="font-body text-xs text-white/20 truncate hidden sm:inline">— {entry.notes}</span>}
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="font-mono text-xs text-white/50">{entry.hours}h</span>
-                    {job && <span className="font-mono text-xs text-emerald-400/70">{formatCurrency(entry.hours * job.hourly_rate)}</span>}
-                    <button
-                      onClick={() => onDeleteHours(entry.id)}
-                      className="text-white/15 hover:text-red-400 transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest">Job</th>
+                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest">Date</th>
+                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">Start</th>
+                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest hidden sm:table-cell">End</th>
+                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest text-right">Hours</th>
+                  <th className="pb-2 font-mono text-[10px] text-white/30 uppercase tracking-widest text-right">Earnings</th>
+                  <th className="pb-2 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentHours.map((entry) => {
+                  const job = getJobById(entry.job_id);
+                  return (
+                    <tr key={entry.id} className="border-b border-white/[0.03] last:border-0">
+                      <td className="py-2 pr-3">
+                        <div className="flex items-center gap-2">
+                          {job && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: job.color }} />}
+                          <span className="font-body text-xs text-white/60 truncate max-w-[120px]">{job?.name || "Unknown"}</span>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-3 font-mono text-xs text-white/40">{entry.date}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-white/40 hidden sm:table-cell">{entry.start_time || "—"}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-white/40 hidden sm:table-cell">{entry.end_time || "—"}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-white/50 text-right">{entry.hours}h</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-emerald-400/70 text-right">{job ? formatCurrency(entry.hours * job.hourly_rate) : "—"}</td>
+                      <td className="py-2">
+                        <button
+                          onClick={() => onDeleteHours(entry.id)}
+                          className="text-white/15 hover:text-red-400 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

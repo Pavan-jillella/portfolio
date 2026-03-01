@@ -504,6 +504,8 @@ export interface PartTimeHourEntry {
   date: string;
   hours: number;
   notes: string;
+  start_time?: string;
+  end_time?: string;
   created_at: string;
 }
 
