@@ -28,15 +28,16 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) {
         setError(authError.message);
-      } else {
-        router.push("/");
+      } else if (data.session) {
+        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        window.location.href = "/";
       }
     } catch {
       setError("Login failed. Please try again.");

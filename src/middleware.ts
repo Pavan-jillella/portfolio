@@ -1,4 +1,3 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -11,10 +10,21 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
-export async function middleware(request: NextRequest) {
+function isTokenValid(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (!payload.exp) return false;
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths through
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
@@ -29,24 +39,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Check for auth token in cookies
   const token = request.cookies.get("sb-access-token")?.value;
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const { data: { user } } = await supabase.auth.getUser(token);
-
-    if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
+  if (!token || !isTokenValid(token)) {
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    if (token) {
+      response.cookies.delete("sb-access-token");
     }
-
-    return NextResponse.next();
-  } catch {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return response;
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
