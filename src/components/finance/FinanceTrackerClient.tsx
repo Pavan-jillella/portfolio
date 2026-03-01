@@ -112,10 +112,21 @@ export function FinanceTrackerClient() {
   // Seed Stemtree payroll history — dedup inside functional updater
   // so prev reflects the real localStorage-loaded state
   useEffect(() => {
+    // Clean up stale flag from old seeding logic
+    try { window.localStorage.removeItem("pj-payroll-seeded"); } catch {}
     setPayStubs((prev) => {
-      const existingIds = new Set(prev.map((s) => s.id));
+      // Deduplicate any existing entries first (cleanup from old bug)
+      const seen = new Set<string>();
+      const deduped = prev.filter((s) => {
+        if (seen.has(s.id)) return false;
+        seen.add(s.id);
+        return true;
+      });
+      // Add any missing Stemtree stubs
+      const existingIds = new Set(deduped.map((s) => s.id));
       const newStubs = STEMTREE_PAYROLL_HISTORY.filter((s) => !existingIds.has(s.id));
-      return newStubs.length > 0 ? [...newStubs, ...prev] : prev;
+      if (newStubs.length === 0 && deduped.length === prev.length) return prev;
+      return [...newStubs, ...deduped];
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
