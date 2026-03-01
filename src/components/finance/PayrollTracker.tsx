@@ -100,8 +100,16 @@ export function PayrollTracker({
   const [showForm, setShowForm] = useState(false);
   const [editingStub, setEditingStub] = useState<PayStub | null>(null);
   const [prefillHours, setPrefillHours] = useState(0);
+  const [summaryYear, setSummaryYear] = useState<number | "all">("all");
 
-  const summary = useMemo(() => getPayrollSummary(payStubs), [payStubs]);
+  // Get unique years from pay stubs for the year selector
+  const availableYears = useMemo(() => {
+    const years = new Set(payStubs.map((s) => parseInt(s.pay_date.slice(0, 4))).filter((y) => !isNaN(y)));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [payStubs]);
+
+  const summary = useMemo(() => getPayrollSummary(payStubs, summaryYear), [payStubs, summaryYear]);
+  const summaryLabel = summaryYear === "all" ? "All Time" : `${summaryYear}`;
 
   const conflicts = useMemo(
     () => detectShiftConflicts(enhancedSchedules, employers),
@@ -161,22 +169,43 @@ export function PayrollTracker({
 
   return (
     <div className="space-y-6">
-      {/* YTD Summary Cards */}
+      {/* Year selector + Summary Cards */}
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <button
+          onClick={() => setSummaryYear("all")}
+          className={`px-3 py-1 rounded-full text-xs font-mono transition-all ${
+            summaryYear === "all" ? "glass-card text-blue-400" : "text-white/40 hover:text-white"
+          }`}
+        >
+          All Time
+        </button>
+        {availableYears.map((y) => (
+          <button
+            key={y}
+            onClick={() => setSummaryYear(y)}
+            className={`px-3 py-1 rounded-full text-xs font-mono transition-all ${
+              summaryYear === y ? "glass-card text-blue-400" : "text-white/40 hover:text-white"
+            }`}
+          >
+            {y}
+          </button>
+        ))}
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <motion.div className="glass-card rounded-2xl p-5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
-          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">YTD Gross</p>
+          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">{summaryLabel} Gross</p>
           <p className="font-display font-bold text-xl text-white">
             $<AnimatedCounter target={summary.totalGross} duration={1200} />
           </p>
         </motion.div>
         <motion.div className="glass-card rounded-2xl p-5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">YTD Net (In-Hand)</p>
+          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">{summaryLabel} Net (In-Hand)</p>
           <p className="font-display font-bold text-xl text-emerald-400">
             $<AnimatedCounter target={summary.totalNet} duration={1200} />
           </p>
         </motion.div>
         <motion.div className="glass-card rounded-2xl p-5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">YTD Taxes</p>
+          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">{summaryLabel} Taxes</p>
           <p className="font-display font-bold text-xl text-red-400">
             $<AnimatedCounter target={summary.totalTax} duration={1200} />
           </p>

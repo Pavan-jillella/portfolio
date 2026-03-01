@@ -169,9 +169,10 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
   const activeEmployers = employers?.filter((e) => e.active) || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="glass-card rounded-3xl p-8 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="glass-card rounded-3xl p-8 w-full max-w-lg relative my-8">
         <button onClick={onClose} className="absolute top-6 right-6 text-white/30 hover:text-white transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
         </button>
@@ -337,6 +338,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
             {editStub ? "Update Pay Stub" : "Add Pay Stub"} →
           </button>
         </form>
+      </div>
       </div>
     </div>
   );

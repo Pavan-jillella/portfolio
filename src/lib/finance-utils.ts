@@ -217,10 +217,11 @@ export function getMonthlySubscriptionTotal(subscriptions: Subscription[]): numb
 
 // ===== Payroll Utils =====
 
-export function getPayrollSummary(payStubs: PayStub[]) {
-  const now = new Date();
-  const yearStart = `${now.getFullYear()}-01-01`;
-  const ytdStubs = payStubs.filter((s) => s.pay_date >= yearStart);
+export function getPayrollSummary(payStubs: PayStub[], year?: number | "all") {
+  const filterYear = year ?? new Date().getFullYear();
+  const ytdStubs = filterYear === "all"
+    ? payStubs
+    : payStubs.filter((s) => s.pay_date >= `${filterYear}-01-01` && s.pay_date <= `${filterYear}-12-31`);
 
   const totalGross = ytdStubs.reduce((s, p) => s + p.gross_pay, 0);
   const totalNet = ytdStubs.reduce((s, p) => s + p.net_pay, 0);

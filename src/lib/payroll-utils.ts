@@ -165,14 +165,15 @@ export function getPayrollDashboardStats(
   }
   const income_by_employer = Array.from(incomeMap.values());
 
-  // Weekly trend (last 8 weeks)
+  // Weekly trend (last 8 weeks relative to selected month end)
   const weekly_trend: WeeklyTrendEntry[] = [];
-  const now = new Date();
+  const [selYear, selMon] = month.split("-").map(Number);
+  const monthEnd = new Date(selYear, selMon, 0); // last day of selected month
   for (let i = 7; i >= 0; i--) {
-    const weekStart = new Date(now);
-    weekStart.setDate(weekStart.getDate() - i * 7);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
+    const weekEnd = new Date(monthEnd);
+    weekEnd.setDate(weekEnd.getDate() - i * 7);
+    const weekStart = new Date(weekEnd);
+    weekStart.setDate(weekStart.getDate() - 6);
     const weekLabel = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
     const ws = weekStart.toISOString().slice(0, 10);
     const we = weekEnd.toISOString().slice(0, 10);
@@ -192,10 +193,10 @@ export function getPayrollDashboardStats(
     });
   }
 
-  // Monthly trend (last 6 months)
+  // Monthly trend (6 months ending at selected month)
   const monthly_trend: MonthlyTrendEntry[] = [];
   for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const d = new Date(selYear, selMon - 1 - i, 1);
     const m = d.toISOString().slice(0, 7);
     const mStubs = paystubs.filter(
       (s) => s.pay_date.startsWith(m) || s.pay_period_start.startsWith(m)

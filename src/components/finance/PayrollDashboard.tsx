@@ -38,7 +38,15 @@ export function PayrollDashboard({
   enhancedSchedules,
   incomeGoals,
 }: PayrollDashboardProps) {
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth);
+  // Default to latest month with data, or current month if no data
+  const latestMonth = useMemo(() => {
+    if (payStubs.length === 0) return getCurrentMonth();
+    const dates = payStubs.map((s) => s.pay_date).filter(Boolean).sort();
+    const latest = dates[dates.length - 1];
+    return latest ? latest.slice(0, 7) : getCurrentMonth();
+  }, [payStubs]);
+
+  const [selectedMonth, setSelectedMonth] = useState(latestMonth);
 
   const stats = useMemo(
     () => getPayrollDashboardStats(enhancedSchedules, payStubs, employers, selectedMonth),
