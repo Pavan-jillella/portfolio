@@ -1,16 +1,18 @@
 "use client";
 import { useState } from "react";
-import { EnhancedWorkSchedule, Employer } from "@/types";
+import { EnhancedWorkSchedule, Employer, PartTimeJob, PartTimeHourEntry } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ShiftCalendarProps {
   schedules: EnhancedWorkSchedule[];
   employers: Employer[];
+  partTimeJobs?: PartTimeJob[];
+  partTimeHours?: PartTimeHourEntry[];
 }
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export function ShiftCalendar({ schedules, employers }: ShiftCalendarProps) {
+export function ShiftCalendar({ schedules, employers, partTimeJobs = [], partTimeHours = [] }: ShiftCalendarProps) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -55,7 +57,7 @@ export function ShiftCalendar({ schedules, employers }: ShiftCalendarProps) {
   while (cells.length % 7 !== 0) cells.push(null);
 
   // Map shifts by date string
-  const shiftsByDate = new Map<string, { employer: Employer; hours: number; start: string; end: string }[]>();
+  const shiftsByDate = new Map<string, { name: string; color: string; hours: number; start: string; end: string }[]>();
   for (const schedule of schedules) {
     const emp = employerMap.get(schedule.employer_id);
     if (!emp) continue;
@@ -64,13 +66,37 @@ export function ShiftCalendar({ schedules, employers }: ShiftCalendarProps) {
       const key = shift.date;
       if (!shiftsByDate.has(key)) shiftsByDate.set(key, []);
       shiftsByDate.get(key)!.push({
-        employer: emp,
+        name: emp.name,
+        color: emp.color,
         hours: shift.hours,
         start: shift.start_time,
         end: shift.end_time,
       });
     }
   }
+
+  // Merge part-time hours into the calendar
+  const jobMap = new Map(partTimeJobs.map((j) => [j.id, j]));
+  for (const entry of partTimeHours) {
+    if (entry.hours <= 0 || !entry.date) continue;
+    const job = jobMap.get(entry.job_id);
+    if (!job) continue;
+    const key = entry.date;
+    if (!shiftsByDate.has(key)) shiftsByDate.set(key, []);
+    shiftsByDate.get(key)!.push({
+      name: job.name,
+      color: job.color,
+      hours: entry.hours,
+      start: entry.start_time || "",
+      end: entry.end_time || "",
+    });
+  }
+
+  // Build legend from both employers and part-time jobs
+  const legendItems: { id: string; name: string; color: string }[] = [
+    ...employers.filter((e) => e.active).map((e) => ({ id: e.id, name: e.name, color: e.color })),
+    ...partTimeJobs.filter((j) => j.active).map((j) => ({ id: j.id, name: j.name, color: j.color })),
+  ];
 
   const selectedShifts = selectedDate ? shiftsByDate.get(selectedDate) || [] : [];
 
@@ -148,11 +174,11 @@ export function ShiftCalendar({ schedules, employers }: ShiftCalendarProps) {
                       <div
                         key={si}
                         className="rounded px-1 py-0.5"
-                        style={{ backgroundColor: shift.employer.color + "20" }}
+                        style={{ backgroundColor: shift.color + "20" }}
                       >
                         <span
                           className="font-mono text-[8px]"
-                          style={{ color: shift.employer.color }}
+                          style={{ color: shift.color }}
                         >
                           {shift.hours}h
                         </span>
@@ -187,14 +213,16 @@ export function ShiftCalendar({ schedules, employers }: ShiftCalendarProps) {
                 <div className="flex items-center gap-2">
                   <div
                     className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: shift.employer.color }}
+                    style={{ backgroundColor: shift.color }}
                   />
-                  <span className="font-body text-sm text-white">{shift.employer.name}</span>
+                  <span className="font-body text-sm text-white">{shift.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-white/40">
-                    {shift.start} – {shift.end}
-                  </span>
+                  {shift.start && shift.end && (
+                    <span className="font-mono text-xs text-white/40">
+                      {shift.start} – {shift.end}
+                    </span>
+                  )}
                   <span className="font-mono text-sm text-white">{shift.hours}h</span>
                 </div>
               </div>
@@ -214,17 +242,15 @@ export function ShiftCalendar({ schedules, employers }: ShiftCalendarProps) {
       </AnimatePresence>
 
       {/* Legend */}
-      {employers.filter((e) => e.active).length > 0 && (
+      {legendItems.length > 0 && (
         <div className="flex flex-wrap gap-3">
-          {employers
-            .filter((e) => e.active)
-            .map((emp) => (
-              <div key={emp.id} className="flex items-center gap-1.5">
+          {legendItems.map((item) => (
+              <div key={item.id} className="flex items-center gap-1.5">
                 <div
                   className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: emp.color }}
+                  style={{ backgroundColor: item.color }}
                 />
-                <span className="font-mono text-[10px] text-white/30">{emp.name}</span>
+                <span className="font-mono text-[10px] text-white/30">{item.name}</span>
               </div>
             ))}
         </div>

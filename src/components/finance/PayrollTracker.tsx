@@ -313,6 +313,8 @@ export function PayrollTracker({
         <ShiftCalendar
           schedules={enhancedSchedules}
           employers={employers}
+          partTimeJobs={partTimeJobs}
+          partTimeHours={partTimeHours}
         />
       )}
 
