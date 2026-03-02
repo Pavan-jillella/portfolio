@@ -326,6 +326,158 @@ export async function generatePayStubPDF(
 
   y += 20;
 
+  // ─── Charts Section ──────────────────────────────────────
+  y = sectionHeader("PAY BREAKDOWN", y);
+  y += 4;
+
+  // ── Donut Chart: Deductions Breakdown (left side) ──
+  const chartColors: readonly [number, number, number][] = [
+    [59, 130, 246],   // blue - Federal Tax
+    [168, 85, 247],   // purple - State Tax
+    [245, 158, 11],   // amber - Social Security
+    [20, 184, 166],   // teal - Medicare
+    [244, 63, 94],    // rose - Other
+  ];
+
+  const activeDeductions = deductions.filter((d) => d.amount > 0);
+  const donutCx = m + 30;
+  const donutCy = y + 24;
+  const donutR = 18;
+  const donutInner = 10;
+
+  if (activeDeductions.length > 0 && totalDeductions > 0) {
+    let startAngle = -Math.PI / 2;
+    for (let i = 0; i < activeDeductions.length; i++) {
+      const slice = (activeDeductions[i].amount / totalDeductions) * Math.PI * 2;
+      const endAngle = startAngle + slice;
+      const color = chartColors[i % chartColors.length];
+
+      // Draw arc segment using small line segments
+      doc.setFillColor(...color);
+      const steps = Math.max(Math.ceil(slice * 30), 4);
+      const points: [number, number][] = [];
+
+      // Outer arc
+      for (let s = 0; s <= steps; s++) {
+        const a = startAngle + (slice * s) / steps;
+        points.push([donutCx + Math.cos(a) * donutR, donutCy + Math.sin(a) * donutR]);
+      }
+      // Inner arc (reverse)
+      for (let s = steps; s >= 0; s--) {
+        const a = startAngle + (slice * s) / steps;
+        points.push([donutCx + Math.cos(a) * donutInner, donutCy + Math.sin(a) * donutInner]);
+      }
+
+      // Draw filled polygon using triangle fan
+      if (points.length >= 3) {
+        doc.setLineWidth(0);
+        for (let t = 1; t < points.length - 1; t++) {
+          doc.triangle(
+            points[0][0], points[0][1],
+            points[t][0], points[t][1],
+            points[t + 1][0], points[t + 1][1],
+            "F"
+          );
+        }
+      }
+
+      startAngle = endAngle;
+    }
+
+    // White center circle for donut effect
+    doc.setFillColor(...white);
+    doc.circle(donutCx, donutCy, donutInner, "F");
+
+    // Center text
+    doc.setTextColor(...navy);
+    doc.setFontSize(6);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL", donutCx, donutCy - 1, { align: "center" });
+    doc.setFontSize(7);
+    doc.text(formatCurrency(totalDeductions), donutCx, donutCy + 3, { align: "center" });
+
+    // Legend (right of donut)
+    const legendX = m + 58;
+    let legendY = y + 8;
+    doc.setFontSize(7);
+    for (let i = 0; i < activeDeductions.length; i++) {
+      const color = chartColors[i % chartColors.length];
+      doc.setFillColor(...color);
+      doc.rect(legendX, legendY - 2, 3, 3, "F");
+      doc.setTextColor(...darkGray);
+      doc.setFont("helvetica", "normal");
+      doc.text(activeDeductions[i].label, legendX + 5, legendY + 0.5);
+      doc.setTextColor(...medGray);
+      const pct = ((activeDeductions[i].amount / totalDeductions) * 100).toFixed(1);
+      doc.text(`${formatCurrency(activeDeductions[i].amount)} (${pct}%)`, legendX + 5, legendY + 4);
+      legendY += 8;
+    }
+  }
+
+  // ── Horizontal Bar Chart: Gross vs Net (right side) ──
+  const barX = pw / 2 + 8;
+  const barW = pw - m - barX;
+  const barH = 8;
+  let barY = y + 6;
+
+  const barItems: { label: string; value: number; color: readonly [number, number, number] }[] = [
+    { label: "Gross Pay", value: stub.gross_pay, color: navy },
+    { label: "Deductions", value: totalDeductions, color: [180, 40, 40] },
+    { label: "Net Pay", value: stub.net_pay, color: emerald },
+  ];
+
+  const maxBar = Math.max(...barItems.map((b) => b.value));
+
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...navy);
+  doc.text("EARNINGS vs DEDUCTIONS", barX, barY);
+  barY += 5;
+
+  for (const item of barItems) {
+    // Label
+    doc.setTextColor(...darkGray);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text(item.label, barX, barY + 3);
+
+    // Bar background
+    const bx = barX + 28;
+    const bw = barW - 28;
+    doc.setFillColor(...headerBg);
+    doc.roundedRect(bx, barY, bw, barH, 1.5, 1.5, "F");
+
+    // Bar fill
+    const fillW = maxBar > 0 ? (item.value / maxBar) * bw : 0;
+    if (fillW > 0) {
+      doc.setFillColor(...item.color);
+      doc.roundedRect(bx, barY, Math.max(fillW, 3), barH, 1.5, 1.5, "F");
+    }
+
+    // Value on bar
+    doc.setTextColor(...white);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    if (fillW > 20) {
+      doc.text(formatCurrency(item.value), bx + fillW - 2, barY + 5.2, { align: "right" });
+    } else {
+      doc.setTextColor(...darkGray);
+      doc.text(formatCurrency(item.value), bx + fillW + 2, barY + 5.2);
+    }
+
+    barY += barH + 3;
+  }
+
+  // Take-home percentage
+  const takeHomePct = stub.gross_pay > 0 ? ((stub.net_pay / stub.gross_pay) * 100).toFixed(1) : "0";
+  barY += 2;
+  doc.setTextColor(...emerald);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Take-Home: ${takeHomePct}%`, barX + (barW) / 2, barY + 1, { align: "center" });
+
+  y += 54;
+
   // ─── Footer ────────────────────────────────────────────────
   doc.setTextColor(...lightGray);
   doc.setFontSize(6.5);
