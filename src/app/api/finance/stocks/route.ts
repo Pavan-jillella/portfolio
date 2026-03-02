@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import yahooFinance from "yahoo-finance2";
+import YahooFinance from "yahoo-finance2";
 
 export const dynamic = "force-dynamic";
+
+const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,20 +19,20 @@ export async function GET(request: Request) {
     const results = await Promise.all(
       symbolList.map(async (sym) => {
         try {
-          const quote = await yahooFinance.quote(sym) as Record<string, unknown>;
-          const price = quote.regularMarketPrice as number | undefined;
+          const quote = await yf.quote(sym);
+          const price = quote.regularMarketPrice;
           if (!price) return null;
-          const prevClose = (quote.regularMarketPreviousClose as number) || price;
+          const prevClose = quote.regularMarketPreviousClose || price;
           const change = price - prevClose;
           const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
           return {
-            symbol: (quote.symbol as string) || sym,
+            symbol: quote.symbol,
             price: Math.round(price * 100) / 100,
             change: Math.round(change * 100) / 100,
             changePercent: Math.round(changePercent * 100) / 100,
-            exchange: (quote.fullExchangeName as string) || (quote.exchange as string) || "",
-            name: (quote.longName as string) || (quote.shortName as string) || "",
-            currency: (quote.currency as string) || "USD",
+            exchange: quote.fullExchangeName || quote.exchange || "",
+            name: quote.longName || quote.shortName || "",
+            currency: quote.currency || "USD",
           };
         } catch {
           return null;

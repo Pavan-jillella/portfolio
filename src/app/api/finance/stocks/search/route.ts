@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import yahooFinance from "yahoo-finance2";
+import YahooFinance from "yahoo-finance2";
+
+const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
 interface SearchResult {
   symbol: string;
@@ -17,8 +19,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await yahooFinance.search(query, { quotesCount: 8, newsCount: 0 }) as Record<string, unknown>;
-    const quotes = (data?.quotes || []) as Record<string, unknown>[];
+    const data = await yf.search(query, { quotesCount: 8, newsCount: 0 });
+    const quotes = data?.quotes || [];
 
     const ALLOWED_TYPES = new Set([
       "EQUITY", "ETF", "INDEX", "CURRENCY", "COMMODITY", "CRYPTOCURRENCY",
@@ -26,12 +28,12 @@ export async function GET(request: Request) {
     ]);
 
     const results: SearchResult[] = quotes
-      .filter((q) => q.quoteType && ALLOWED_TYPES.has(q.quoteType as string))
+      .filter((q) => q.quoteType && ALLOWED_TYPES.has(String(q.quoteType)))
       .map((q) => ({
-        symbol: (q.symbol as string) || "",
-        name: (q.shortname as string) || (q.longname as string) || (q.symbol as string) || "",
-        type: ((q.quoteType as string) || "").toLowerCase(),
-        exchange: (q.exchDisp as string) || (q.exchange as string) || "",
+        symbol: String(q.symbol || ""),
+        name: String(q.shortname || q.longname || q.symbol || ""),
+        type: String(q.quoteType || "").toLowerCase(),
+        exchange: String(q.exchDisp || q.exchange || ""),
       }));
 
     return NextResponse.json(
