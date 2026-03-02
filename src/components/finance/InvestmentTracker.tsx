@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Investment, InvestmentType } from "@/types";
 import {
   INVESTMENT_TYPES,
@@ -8,9 +8,10 @@ import {
   TICKER_SUGGESTIONS,
   DEFAULT_REFRESH_INTERVAL_MINUTES,
 } from "@/lib/constants";
-import { generateId, formatCurrency } from "@/lib/finance-utils";
+import { generateId, formatCurrencyWithCode, convertCurrency } from "@/lib/finance-utils";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { useCurrencyRates } from "@/hooks/queries/useCurrencyRates";
 import { PriceSparkline } from "./Sparkline";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,6 +37,16 @@ const TICKER_PLACEHOLDERS: Partial<Record<InvestmentType, string>> = {
   forex: "EURUSD=X, USDINR=X",
 };
 
+function detectCurrency(symbol: string): string {
+  const upper = symbol.toUpperCase();
+  if (upper.endsWith(".NS") || upper.endsWith(".BO")) return "INR";
+  if (upper.endsWith(".L")) return "GBP";
+  if (upper.endsWith(".TO") || upper.endsWith(".V")) return "CAD";
+  if (upper.endsWith(".AX")) return "AUD";
+  if (upper.endsWith(".SS") || upper.endsWith(".SZ")) return "CNY";
+  return "USD";
+}
+
 export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: InvestmentTrackerProps) {
   const [name, setName] = useState("");
   const [type, setType] = useState<InvestmentType>("stock");
@@ -46,6 +57,11 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterType, setFilterType] = useState("all");
+  const [currency, setCurrency] = useState("USD");
+
+  // Exchange rates for currency conversion
+  const { data: ratesData } = useCurrencyRates();
+  const rates = ratesData?.rates || {};
 
   // Ticker search state
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -125,6 +141,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const selectTicker = useCallback((result: SearchResult) => {
     setTicker(result.symbol);
     if (!name) setName(result.name);
+    setCurrency(detectCurrency(result.symbol));
     setShowDropdown(false);
     setSearchResults([]);
     fetchLivePrice(result.symbol);
@@ -134,6 +151,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const selectSuggestion = useCallback((symbol: string, suggestionName: string) => {
     setTicker(symbol);
     if (!name) setName(suggestionName);
+    setCurrency(detectCurrency(symbol));
     fetchLivePrice(symbol);
   }, [name, fetchLivePrice]);
 
@@ -160,10 +178,32 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     ? investments
     : investments.filter((i) => i.type === filterType);
 
-  const totalValue = investments.reduce((s, i) => s + i.current_value, 0);
-  const totalCost = investments.reduce((s, i) => s + i.purchase_price, 0);
-  const totalGain = totalValue - totalCost;
-  const totalGainPct = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+  // Convert all values to USD for unified portfolio totals
+  const totalValueUSD = useMemo(() =>
+    investments.reduce((s, i) => s + convertCurrency(i.current_value, i.currency, "USD", rates), 0),
+    [investments, rates]
+  );
+  const totalCostUSD = useMemo(() =>
+    investments.reduce((s, i) => s + convertCurrency(i.purchase_price, i.currency, "USD", rates), 0),
+    [investments, rates]
+  );
+  const totalGainUSD = totalValueUSD - totalCostUSD;
+  const totalGainPct = totalCostUSD > 0 ? (totalGainUSD / totalCostUSD) * 100 : 0;
+
+  // Also show INR equivalent if there are any non-USD holdings
+  const hasMultiCurrency = investments.some((i) => i.currency !== "USD");
+  const totalValueINR = useMemo(() =>
+    hasMultiCurrency ? convertCurrency(totalValueUSD, "USD", "INR", rates) : 0,
+    [totalValueUSD, hasMultiCurrency, rates]
+  );
+
+  // Helper: format converted amount in alternate currency
+  const fmtAlt = useCallback((amount: number, curr: string) => {
+    if (!rates || Object.keys(rates).length === 0) return "";
+    const altCurr = curr === "USD" ? "INR" : "USD";
+    const converted = convertCurrency(amount, curr, altCurr, rates);
+    return formatCurrencyWithCode(Math.round(converted * 100) / 100, altCurr);
+  }, [rates]);
 
   const refreshPrices = useCallback(async () => {
     const tickerInvestments = investments.filter((i) => i.ticker && LIVE_PRICE_TYPES.includes(i.type));
@@ -220,7 +260,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
       quantity: quantity ? parseFloat(quantity) : undefined,
       purchase_price: parseFloat(purchasePrice),
       current_value: cv,
-      currency: "USD",
+      currency,
       last_updated: new Date().toISOString(),
       created_at: new Date().toISOString(),
     });
@@ -229,6 +269,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     setQuantity("");
     setPurchasePrice("");
     setCurrentValue("");
+    setCurrency("USD");
     setSearchResults([]);
     setShowDropdown(false);
   }
@@ -237,25 +278,33 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     <div className="space-y-6">
       {/* Portfolio Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Portfolio Value", value: formatCurrency(totalValue), color: "text-white" },
-          { label: "Total Cost", value: formatCurrency(totalCost), color: "text-white/60" },
-          {
-            label: "Total Gain/Loss",
-            value: `${totalGain >= 0 ? "+" : ""}${formatCurrency(totalGain)}`,
-            color: totalGain >= 0 ? "text-emerald-400" : "text-red-400",
-          },
-          {
-            label: "Return",
-            value: `${totalGainPct >= 0 ? "+" : ""}${totalGainPct.toFixed(1)}%`,
-            color: totalGainPct >= 0 ? "text-emerald-400" : "text-red-400",
-          },
-        ].map((card) => (
-          <div key={card.label} className="glass-card rounded-2xl p-4 text-center">
-            <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-1">{card.label}</p>
-            <p className={`font-mono text-xl font-semibold ${card.color}`}>{card.value}</p>
-          </div>
-        ))}
+        <div className="glass-card rounded-2xl p-4 text-center">
+          <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Portfolio Value</p>
+          <p className="font-mono text-xl font-semibold text-white">{formatCurrencyWithCode(totalValueUSD, "USD")}</p>
+          {hasMultiCurrency && <p className="font-mono text-xs text-white/30 mt-0.5">{formatCurrencyWithCode(totalValueINR, "INR")}</p>}
+        </div>
+        <div className="glass-card rounded-2xl p-4 text-center">
+          <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Total Cost</p>
+          <p className="font-mono text-xl font-semibold text-white/60">{formatCurrencyWithCode(totalCostUSD, "USD")}</p>
+          {hasMultiCurrency && <p className="font-mono text-xs text-white/20 mt-0.5">{formatCurrencyWithCode(convertCurrency(totalCostUSD, "USD", "INR", rates), "INR")}</p>}
+        </div>
+        <div className="glass-card rounded-2xl p-4 text-center">
+          <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Total Gain/Loss</p>
+          <p className={`font-mono text-xl font-semibold ${totalGainUSD >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {totalGainUSD >= 0 ? "+" : ""}{formatCurrencyWithCode(totalGainUSD, "USD")}
+          </p>
+          {hasMultiCurrency && (
+            <p className={`font-mono text-xs mt-0.5 ${totalGainUSD >= 0 ? "text-emerald-400/50" : "text-red-400/50"}`}>
+              {totalGainUSD >= 0 ? "+" : ""}{formatCurrencyWithCode(convertCurrency(totalGainUSD, "USD", "INR", rates), "INR")}
+            </p>
+          )}
+        </div>
+        <div className="glass-card rounded-2xl p-4 text-center">
+          <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Return</p>
+          <p className={`font-mono text-xl font-semibold ${totalGainPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {totalGainPct >= 0 ? "+" : ""}{totalGainPct.toFixed(1)}%
+          </p>
+        </div>
       </div>
 
       {/* Auto-refresh controls */}
@@ -339,6 +388,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
               {filteredInvestments.map((inv, i) => {
                 const gain = inv.current_value - inv.purchase_price;
                 const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
+                const c = inv.currency || "USD";
                 return (
                   <motion.div
                     key={inv.id}
@@ -356,6 +406,9 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                           {inv.ticker && (
                             <span className="ml-2 font-mono text-xs text-white/30">{inv.ticker}</span>
                           )}
+                          {c !== "USD" && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 font-mono text-[9px] text-amber-400/70">{c}</span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -363,10 +416,16 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                           <PriceSparkline symbol={inv.ticker} />
                         )}
                         <div className="text-right">
-                          <p className="font-mono text-sm text-white">{formatCurrency(inv.current_value)}</p>
+                          <p className="font-mono text-sm text-white">{formatCurrencyWithCode(inv.current_value, c)}</p>
+                          {c !== "USD" && <p className="font-mono text-[10px] text-white/25">{fmtAlt(inv.current_value, c)}</p>}
                           <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                            {gain >= 0 ? "+" : ""}{formatCurrency(gain)} ({gainPct.toFixed(1)}%)
+                            {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)} ({gainPct.toFixed(1)}%)
                           </p>
+                          {c !== "USD" && (
+                            <p className={`font-mono text-[10px] ${gain >= 0 ? "text-emerald-400/40" : "text-red-400/40"}`}>
+                              {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
+                            </p>
+                          )}
                         </div>
                         <span className="font-body text-xs text-white/20 capitalize">{inv.type}</span>
                         {inv.quantity && (
@@ -394,6 +453,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
               {filteredInvestments.map((inv, i) => {
                 const gain = inv.current_value - inv.purchase_price;
                 const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
+                const c = inv.currency || "USD";
                 return (
                   <motion.div
                     key={inv.id}
@@ -408,7 +468,12 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                           <div className={`w-2.5 h-2.5 rounded-full ${INVESTMENT_TYPE_COLORS[inv.type] || "bg-gray-500"}`} />
                           <span className="font-body text-sm text-white font-medium">{inv.name}</span>
                         </div>
-                        <span className="font-body text-[10px] text-white/20 uppercase capitalize">{inv.type}</span>
+                        <div className="flex items-center gap-1.5">
+                          {c !== "USD" && (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 font-mono text-[9px] text-amber-400/70">{c}</span>
+                          )}
+                          <span className="font-body text-[10px] text-white/20 uppercase capitalize">{inv.type}</span>
+                        </div>
                       </div>
                       {inv.ticker && (
                         <p className="font-mono text-xs text-white/30 mb-2">{inv.ticker}{inv.quantity ? ` · ${inv.quantity} units` : ""}</p>
@@ -416,16 +481,23 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                       <div className="grid grid-cols-2 gap-3 mb-2">
                         <div>
                           <p className="font-mono text-[10px] text-white/25 uppercase">Value</p>
-                          <p className="font-mono text-lg text-white">{formatCurrency(inv.current_value)}</p>
+                          <p className="font-mono text-lg text-white">{formatCurrencyWithCode(inv.current_value, c)}</p>
+                          {c !== "USD" && <p className="font-mono text-[10px] text-white/20">{fmtAlt(inv.current_value, c)}</p>}
                         </div>
                         <div>
                           <p className="font-mono text-[10px] text-white/25 uppercase">Cost</p>
-                          <p className="font-mono text-lg text-white/50">{formatCurrency(inv.purchase_price)}</p>
+                          <p className="font-mono text-lg text-white/50">{formatCurrencyWithCode(inv.purchase_price, c)}</p>
+                          {c !== "USD" && <p className="font-mono text-[10px] text-white/15">{fmtAlt(inv.purchase_price, c)}</p>}
                         </div>
                       </div>
                       <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {gain >= 0 ? "+" : ""}{formatCurrency(gain)} ({gainPct.toFixed(1)}%)
+                        {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)} ({gainPct.toFixed(1)}%)
                       </p>
+                      {c !== "USD" && (
+                        <p className={`font-mono text-[10px] ${gain >= 0 ? "text-emerald-400/40" : "text-red-400/40"}`}>
+                          {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
+                        </p>
+                      )}
                       {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) && (
                         <div className="mt-2">
                           <PriceSparkline symbol={inv.ticker} />
@@ -468,10 +540,16 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                     {filteredInvestments.map((inv) => {
                       const gain = inv.current_value - inv.purchase_price;
                       const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
+                      const c = inv.currency || "USD";
                       return (
                         <tr key={inv.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
                           <td className="px-4 py-2.5">
-                            <span className="font-body text-xs text-white/70">{inv.name}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-body text-xs text-white/70">{inv.name}</span>
+                              {c !== "USD" && (
+                                <span className="px-1 py-0.5 rounded bg-amber-500/10 font-mono text-[8px] text-amber-400/70">{c}</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-2.5">
                             <span className="font-body text-xs text-white/40 capitalize">{inv.type}</span>
@@ -483,15 +561,22 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                             <span className="font-mono text-xs text-white/40">{inv.quantity || "—"}</span>
                           </td>
                           <td className="px-4 py-2.5 text-right">
-                            <span className="font-mono text-xs text-white/50">{formatCurrency(inv.purchase_price)}</span>
+                            <span className="font-mono text-xs text-white/50">{formatCurrencyWithCode(inv.purchase_price, c)}</span>
+                            {c !== "USD" && <p className="font-mono text-[9px] text-white/20">{fmtAlt(inv.purchase_price, c)}</p>}
                           </td>
                           <td className="px-4 py-2.5 text-right">
-                            <span className="font-mono text-xs text-white">{formatCurrency(inv.current_value)}</span>
+                            <span className="font-mono text-xs text-white">{formatCurrencyWithCode(inv.current_value, c)}</span>
+                            {c !== "USD" && <p className="font-mono text-[9px] text-white/20">{fmtAlt(inv.current_value, c)}</p>}
                           </td>
                           <td className="px-4 py-2.5 text-right">
                             <span className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                              {gain >= 0 ? "+" : ""}{formatCurrency(gain)} ({gainPct.toFixed(1)}%)
+                              {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)} ({gainPct.toFixed(1)}%)
                             </span>
+                            {c !== "USD" && (
+                              <p className={`font-mono text-[9px] ${gain >= 0 ? "text-emerald-400/40" : "text-red-400/40"}`}>
+                                {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
+                              </p>
+                            )}
                           </td>
                           <td className="px-4 py-2.5 hidden lg:table-cell">
                             {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) ? (
@@ -619,7 +704,10 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
             />
           </div>
           <div>
-            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Purchase Price</label>
+            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">
+              Purchase Price
+              {currency !== "USD" && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-400/70 normal-case">{currency}</span>}
+            </label>
             <div className="relative">
               <input
                 type="number"
@@ -636,9 +724,15 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                 </div>
               )}
             </div>
+            {currency !== "USD" && purchasePrice && (
+              <p className="font-mono text-[10px] text-white/20 mt-0.5">{fmtAlt(parseFloat(purchasePrice), currency)}</p>
+            )}
           </div>
           <div>
-            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Current Value</label>
+            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">
+              Current Value
+              {currency !== "USD" && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-400/70 normal-case">{currency}</span>}
+            </label>
             <div className="relative">
               <input
                 type="number"
@@ -655,6 +749,9 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                 </div>
               )}
             </div>
+            {currency !== "USD" && currentValue && (
+              <p className="font-mono text-[10px] text-white/20 mt-0.5">{fmtAlt(parseFloat(currentValue), currency)}</p>
+            )}
           </div>
         </div>
         <button
