@@ -69,6 +69,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [priceFetching, setPriceFetching] = useState(false);
+  const [priceError, setPriceError] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const tickerInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -113,17 +114,23 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   // Fetch live price for a ticker (always per-unit)
   const fetchLivePrice = useCallback(async (symbol: string) => {
     setPriceFetching(true);
+    setPriceError("");
     try {
       const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbol)}&_t=${Date.now()}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        setPriceError("Failed to fetch price");
+        return;
+      }
       const data = await res.json();
       const quote = (data.quotes || [])[0];
       if (quote && quote.price > 0) {
         setPurchasePrice(String(quote.price));
         setCurrentValue(String(quote.price));
+      } else {
+        setPriceError("Price unavailable — enter manually");
       }
     } catch {
-      // Leave fields for manual entry
+      setPriceError("Network error — enter price manually");
     } finally {
       setPriceFetching(false);
     }
@@ -264,6 +271,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     setPurchasePrice("");
     setCurrentValue("");
     setCurrency("USD");
+    setPriceError("");
     setSearchResults([]);
     setShowDropdown(false);
   }
@@ -683,6 +691,9 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                   </button>
                 ))}
               </div>
+            )}
+            {priceError && (
+              <p className="font-mono text-[10px] text-amber-400/80 mt-1">{priceError}</p>
             )}
           </div>
           <div>
