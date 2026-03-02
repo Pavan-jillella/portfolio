@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const revalidate = 900; // 15-minute cache
+export const revalidate = 60; // 1-minute cache
 
 interface StockQuote {
   symbol: string;
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
           `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`,
           {
             headers: { "User-Agent": "Mozilla/5.0" },
-            next: { revalidate: 900 },
+            next: { revalidate: 60 },
           }
         );
 
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ quotes }, {
-      headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800" },
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
     });
   } catch {
     return NextResponse.json({ error: "Failed to fetch stock data" }, { status: 500 });

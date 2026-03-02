@@ -110,32 +110,24 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     }, 300);
   }, []);
 
-  // Fetch live price for a ticker
+  // Fetch live price for a ticker (always per-unit)
   const fetchLivePrice = useCallback(async (symbol: string) => {
     setPriceFetching(true);
     try {
-      const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbol)}`);
+      const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbol)}&_t=${Date.now()}`);
       if (!res.ok) return;
       const data = await res.json();
       const quote = (data.quotes || [])[0];
       if (quote && quote.price > 0) {
-        const qty = quantity ? parseFloat(quantity) : 0;
-        const price = quote.price;
-        if (qty > 0) {
-          const total = Math.round(qty * price * 100) / 100;
-          setPurchasePrice(String(total));
-          setCurrentValue(String(total));
-        } else {
-          setPurchasePrice(String(price));
-          setCurrentValue(String(price));
-        }
+        setPurchasePrice(String(quote.price));
+        setCurrentValue(String(quote.price));
       }
     } catch {
       // Leave fields for manual entry
     } finally {
       setPriceFetching(false);
     }
-  }, [quantity]);
+  }, []);
 
   // Select a ticker from search results
   const selectTicker = useCallback((result: SearchResult) => {
@@ -212,7 +204,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     setLoading(true);
     try {
       const symbols = tickerInvestments.map((i) => i.ticker).join(",");
-      const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbols)}`);
+      const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbols)}&_t=${Date.now()}`);
       if (!res.ok) return;
 
       const data = await res.json();
@@ -251,15 +243,17 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     e.preventDefault();
     if (!name.trim() || !purchasePrice) return;
 
-    const cv = currentValue ? parseFloat(currentValue) : parseFloat(purchasePrice);
+    const qty = quantity ? parseFloat(quantity) : 1;
+    const unitPrice = parseFloat(purchasePrice);
+    const unitCurrent = currentValue ? parseFloat(currentValue) : unitPrice;
     onAdd({
       id: generateId(),
       name: name.trim(),
       type,
       ticker: ticker.trim() || undefined,
       quantity: quantity ? parseFloat(quantity) : undefined,
-      purchase_price: parseFloat(purchasePrice),
-      current_value: cv,
+      purchase_price: Math.round(qty * unitPrice * 100) / 100,
+      current_value: Math.round(qty * unitCurrent * 100) / 100,
       currency,
       last_updated: new Date().toISOString(),
       created_at: new Date().toISOString(),
@@ -705,7 +699,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
           </div>
           <div>
             <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">
-              Purchase Price
+              Price / Unit
               {currency !== "USD" && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-400/70 normal-case">{currency}</span>}
             </label>
             <div className="relative">
@@ -730,7 +724,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
           </div>
           <div>
             <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">
-              Current Value
+              Current Price
               {currency !== "USD" && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-400/70 normal-case">{currency}</span>}
             </label>
             <div className="relative">
@@ -754,6 +748,17 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
             )}
           </div>
         </div>
+        {/* Total preview when quantity and price are set */}
+        {quantity && purchasePrice && (
+          <div className="flex items-center gap-4 px-1">
+            <p className="font-mono text-xs text-white/30">
+              Total: <span className="text-white/50">{formatCurrencyWithCode(Math.round(parseFloat(quantity) * parseFloat(purchasePrice) * 100) / 100, currency)}</span>
+              {currency !== "USD" && (
+                <span className="text-white/20 ml-1.5">({fmtAlt(parseFloat(quantity) * parseFloat(purchasePrice), currency)})</span>
+              )}
+            </p>
+          </div>
+        )}
         <button
           type="submit"
           disabled={!name.trim() || !purchasePrice}
