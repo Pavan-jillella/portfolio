@@ -213,7 +213,9 @@ export interface CourseUpdate {
 
 // ===== Investment Tracker Types =====
 
-export type InvestmentType = "stock" | "crypto" | "commodity" | "index" | "forex" | "real-estate" | "other";
+export type InvestmentType = "stock" | "crypto" | "commodity" | "index" | "forex" | "sip" | "real-estate" | "other";
+
+export type MarketRegion = "indian" | "us" | "crypto" | "commodity" | "other";
 
 export type PriceHistoryRange = "1D" | "1W" | "1M" | "1Y";
 
@@ -227,6 +229,8 @@ export interface Investment {
   name: string;
   type: InvestmentType;
   ticker?: string;
+  exchange?: string;
+  market?: MarketRegion;
   quantity?: number;
   purchase_price: number;
   current_value: number;

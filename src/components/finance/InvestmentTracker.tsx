@@ -1,18 +1,17 @@
 "use client";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
-import { Investment, InvestmentType } from "@/types";
+import { Investment, InvestmentType, MarketRegion } from "@/types";
 import {
   INVESTMENT_TYPES,
   LIVE_PRICE_TYPES,
   INVESTMENT_TYPE_COLORS,
   TICKER_SUGGESTIONS,
   DEFAULT_REFRESH_INTERVAL_MINUTES,
+  MARKET_GROUPS,
 } from "@/lib/constants";
 import { generateId, formatCurrencyWithCode, convertCurrency } from "@/lib/finance-utils";
-import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { useCurrencyRates } from "@/hooks/queries/useCurrencyRates";
-import { PriceSparkline } from "./Sparkline";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SearchResult {
@@ -30,11 +29,12 @@ interface InvestmentTrackerProps {
 }
 
 const TICKER_PLACEHOLDERS: Partial<Record<InvestmentType, string>> = {
-  stock: "AAPL, RELIANCE.NS, TCS.BO",
+  stock: "Search company... e.g. Reliance, Apple",
   crypto: "BTC-USD, ETH-USD",
-  commodity: "GC=F, CL=F",
-  index: "^GSPC, SPY, ^NSEI",
-  forex: "EURUSD=X, USDINR=X",
+  commodity: "GC=F (Gold), SI=F (Silver)",
+  index: "^NSEI, SPY, ^BSESN",
+  sip: "Search mutual fund...",
+  forex: "USDINR=X, EURUSD=X",
 };
 
 function detectCurrency(symbol: string): string {
@@ -47,6 +47,32 @@ function detectCurrency(symbol: string): string {
   return "USD";
 }
 
+function detectMarket(exchange: string, type: InvestmentType): MarketRegion {
+  const ex = exchange.toUpperCase();
+  const indian = ["NSE", "BSE", "NSI", "BOM"];
+  if (indian.some((e) => ex.includes(e))) return "indian";
+  if (type === "crypto") return "crypto";
+  if (type === "commodity") return "commodity";
+  const us = ["NASDAQ", "NYSE", "AMEX", "NMS", "NYQ", "PCX"];
+  if (us.some((e) => ex.includes(e))) return "us";
+  return "other";
+}
+
+function detectType(quoteType: string, investmentType: InvestmentType): InvestmentType {
+  const qt = quoteType.toLowerCase();
+  if (qt === "cryptocurrency") return "crypto";
+  if (qt === "index") return "index";
+  if (qt === "commodity" || qt === "future") return "commodity";
+  if (qt === "currency") return "forex";
+  if (qt === "mutualfund") return "sip";
+  return investmentType;
+}
+
+// Strip ticker suffix for display: SBIN.NS → SBIN, RELIANCE.BO → RELIANCE
+function tickerCode(ticker: string): string {
+  return ticker.replace(/\.(NS|BO|L|TO|V|AX|SS|SZ)$/i, "").replace(/[-=].*$/, "");
+}
+
 export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: InvestmentTrackerProps) {
   const [name, setName] = useState("");
   const [type, setType] = useState<InvestmentType>("stock");
@@ -55,9 +81,14 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const [purchasePrice, setPurchasePrice] = useState("");
   const [currentValue, setCurrentValue] = useState("");
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [filterType, setFilterType] = useState("all");
   const [currency, setCurrency] = useState("USD");
+  const [exchange, setExchange] = useState("");
+  const [market, setMarket] = useState<MarketRegion>("other");
+
+  // Edit state
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editQty, setEditQty] = useState("");
+  const [editPrice, setEditPrice] = useState("");
 
   // Exchange rates for currency conversion
   const { data: ratesData } = useCurrencyRates();
@@ -71,8 +102,11 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
   const [priceFetching, setPriceFetching] = useState(false);
   const [priceError, setPriceError] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const tickerInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Filter state
+  const [filterMarket, setFilterMarket] = useState<MarketRegion | "all">("all");
+  const [filterType, setFilterType] = useState<InvestmentType | "all">("all");
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -116,7 +150,13 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     setPriceFetching(true);
     setPriceError("");
     try {
-      const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbol)}&_t=${Date.now()}`);
+      // Check if crypto — use crypto API
+      const isCrypto = symbol.includes("-USD") && !symbol.includes(".");
+      const apiUrl = isCrypto
+        ? `/api/finance/crypto?symbols=${encodeURIComponent(symbol)}&_t=${Date.now()}`
+        : `/api/finance/stocks?symbols=${encodeURIComponent(symbol)}&_t=${Date.now()}`;
+
+      const res = await fetch(apiUrl);
       if (!res.ok) {
         setPriceError("Failed to fetch price");
         return;
@@ -126,6 +166,14 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
       if (quote && quote.price > 0) {
         setPurchasePrice(String(quote.price));
         setCurrentValue(String(quote.price));
+        // Auto-detect exchange and market from API response
+        if (quote.exchange) {
+          setExchange(quote.exchange);
+          setMarket(detectMarket(quote.exchange, type));
+        }
+        if (quote.name && !name) {
+          setName(quote.name);
+        }
       } else {
         setPriceError("Price unavailable — enter manually");
       }
@@ -134,17 +182,20 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     } finally {
       setPriceFetching(false);
     }
-  }, []);
+  }, [type, name]);
 
   // Select a ticker from search results
   const selectTicker = useCallback((result: SearchResult) => {
     setTicker(result.symbol);
     if (!name) setName(result.name);
     setCurrency(detectCurrency(result.symbol));
+    setExchange(result.exchange);
+    setMarket(detectMarket(result.exchange, type));
+    setType(detectType(result.type, type));
     setShowDropdown(false);
     setSearchResults([]);
     fetchLivePrice(result.symbol);
-  }, [name, fetchLivePrice]);
+  }, [name, type, fetchLivePrice]);
 
   // Select a ticker from suggestion chips
   const selectSuggestion = useCallback((symbol: string, suggestionName: string) => {
@@ -171,11 +222,27 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     }
   };
 
-  const investmentTypes = Array.from(new Set(investments.map((i) => i.type))).sort();
+  // Group investments by market
+  const grouped = useMemo(() => {
+    const groups: Record<string, Investment[]> = {};
+    for (const inv of investments) {
+      const m = inv.market || "other";
+      if (!groups[m]) groups[m] = [];
+      groups[m].push(inv);
+    }
+    return groups;
+  }, [investments]);
 
-  const filteredInvestments = filterType === "all"
-    ? investments
-    : investments.filter((i) => i.type === filterType);
+  // Filtered investments
+  const filteredInvestments = useMemo(() => {
+    let list = investments;
+    if (filterMarket !== "all") list = list.filter((i) => (i.market || "other") === filterMarket);
+    if (filterType !== "all") list = list.filter((i) => i.type === filterType);
+    return list;
+  }, [investments, filterMarket, filterType]);
+
+  // Get unique types present
+  const presentTypes = useMemo(() => Array.from(new Set(investments.map((i) => i.type))).sort(), [investments]);
 
   // Convert all values to USD for unified portfolio totals
   const totalValueUSD = useMemo(() =>
@@ -210,25 +277,55 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
 
     setLoading(true);
     try {
-      const symbols = tickerInvestments.map((i) => i.ticker).join(",");
-      const res = await fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbols)}&_t=${Date.now()}`);
-      if (!res.ok) return;
+      // Split crypto and non-crypto
+      const cryptoInvs = tickerInvestments.filter((i) => i.type === "crypto");
+      const otherInvs = tickerInvestments.filter((i) => i.type !== "crypto");
 
-      const data = await res.json();
-      const quotes: { symbol: string; price: number }[] = data.quotes || [];
+      const fetches: Promise<void>[] = [];
 
-      quotes.forEach((q) => {
-        const inv = tickerInvestments.find(
-          (i) => i.ticker?.toUpperCase() === q.symbol.toUpperCase()
+      if (otherInvs.length > 0) {
+        const symbols = otherInvs.map((i) => i.ticker).join(",");
+        fetches.push(
+          fetch(`/api/finance/stocks?symbols=${encodeURIComponent(symbols)}&_t=${Date.now()}`)
+            .then((res) => res.ok ? res.json() : { quotes: [] })
+            .then((data) => {
+              const quotes: { symbol: string; price: number }[] = data.quotes || [];
+              quotes.forEach((q) => {
+                const inv = otherInvs.find((i) => i.ticker?.toUpperCase() === q.symbol.toUpperCase());
+                if (inv && q.price > 0) {
+                  const newValue = (inv.quantity || 1) * q.price;
+                  onUpdate(inv.id, {
+                    current_value: Math.round(newValue * 100) / 100,
+                    last_updated: new Date().toISOString(),
+                  });
+                }
+              });
+            })
         );
-        if (inv && q.price > 0) {
-          const newValue = (inv.quantity || 1) * q.price;
-          onUpdate(inv.id, {
-            current_value: Math.round(newValue * 100) / 100,
-            last_updated: new Date().toISOString(),
-          });
-        }
-      });
+      }
+
+      if (cryptoInvs.length > 0) {
+        const symbols = cryptoInvs.map((i) => i.ticker).join(",");
+        fetches.push(
+          fetch(`/api/finance/crypto?symbols=${encodeURIComponent(symbols)}&_t=${Date.now()}`)
+            .then((res) => res.ok ? res.json() : { quotes: [] })
+            .then((data) => {
+              const quotes: { symbol: string; price: number }[] = data.quotes || [];
+              quotes.forEach((q) => {
+                const inv = cryptoInvs.find((i) => i.ticker?.toUpperCase() === q.symbol.toUpperCase());
+                if (inv && q.price > 0) {
+                  const newValue = (inv.quantity || 1) * q.price;
+                  onUpdate(inv.id, {
+                    current_value: Math.round(newValue * 100) / 100,
+                    last_updated: new Date().toISOString(),
+                  });
+                }
+              });
+            })
+        );
+      }
+
+      await Promise.all(fetches);
     } catch {
       // Silently fail
     } finally {
@@ -258,6 +355,8 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
       name: name.trim(),
       type,
       ticker: ticker.trim() || undefined,
+      exchange: exchange || undefined,
+      market: market || detectMarket(exchange, type),
       quantity: quantity ? parseFloat(quantity) : undefined,
       purchase_price: Math.round(qty * unitPrice * 100) / 100,
       current_value: Math.round(qty * unitCurrent * 100) / 100,
@@ -271,9 +370,168 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
     setPurchasePrice("");
     setCurrentValue("");
     setCurrency("USD");
+    setExchange("");
+    setMarket("other");
     setPriceError("");
     setSearchResults([]);
     setShowDropdown(false);
+  }
+
+  function startEdit(inv: Investment) {
+    setEditId(inv.id);
+    setEditQty(inv.quantity ? String(inv.quantity) : "");
+    setEditPrice(inv.quantity && inv.quantity > 0 ? String(Math.round((inv.purchase_price / inv.quantity) * 100) / 100) : String(inv.purchase_price));
+  }
+
+  function saveEdit(inv: Investment) {
+    if (!editId) return;
+    const qty = editQty ? parseFloat(editQty) : (inv.quantity || 1);
+    const unitPrice = editPrice ? parseFloat(editPrice) : inv.purchase_price;
+    const unitCurrent = inv.quantity && inv.quantity > 0 ? inv.current_value / inv.quantity : inv.current_value;
+    onUpdate(editId, {
+      quantity: qty,
+      purchase_price: Math.round(qty * unitPrice * 100) / 100,
+      current_value: Math.round(qty * unitCurrent * 100) / 100,
+    });
+    setEditId(null);
+  }
+
+  function cancelEdit() {
+    setEditId(null);
+  }
+
+  // Render a single investment row
+  function renderInvestmentRow(inv: Investment) {
+    const c = inv.currency || "USD";
+    const qty = inv.quantity || 1;
+    const unitCost = qty > 0 ? inv.purchase_price / qty : inv.purchase_price;
+    const unitCurrent = qty > 0 ? inv.current_value / qty : inv.current_value;
+    const gain = inv.current_value - inv.purchase_price;
+    const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
+    const isEditing = editId === inv.id;
+    const code = inv.ticker ? tickerCode(inv.ticker) : "";
+
+    return (
+      <motion.div
+        key={inv.id}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="glass-card rounded-xl p-4 group"
+      >
+        {isEditing ? (
+          /* Edit mode */
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="font-body text-sm text-white">{inv.name}</span>
+              {code && <span className="font-mono text-xs text-white/30">({code})</span>}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-mono text-[10px] text-white/30 uppercase mb-1">Quantity</label>
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={editQty}
+                  onChange={(e) => setEditQty(e.target.value)}
+                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-blue-500/40"
+                />
+              </div>
+              <div>
+                <label className="block font-mono text-[10px] text-white/30 uppercase mb-1">Bought Price / Unit</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-blue-500/40"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => saveEdit(inv)} className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-mono hover:bg-emerald-500/30 transition-colors">Save</button>
+              <button onClick={cancelEdit} className="px-3 py-1.5 rounded-lg bg-white/5 text-white/40 text-xs font-mono hover:bg-white/10 transition-colors">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          /* Display mode */
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className={`w-2 h-2 rounded-full shrink-0 ${INVESTMENT_TYPE_COLORS[inv.type] || "bg-gray-500"}`} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-body text-sm text-white truncate">{inv.name}</span>
+                  {code && <span className="font-mono text-xs text-white/30">({code})</span>}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {inv.exchange && (
+                    <span className="px-1.5 py-0.5 rounded bg-white/5 font-mono text-[9px] text-white/30">{inv.exchange}</span>
+                  )}
+                  <span className="font-mono text-[9px] text-white/20 capitalize">{inv.type}</span>
+                  {c !== "USD" && (
+                    <span className="px-1 py-0.5 rounded bg-amber-500/10 font-mono text-[9px] text-amber-400/60">{c}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Data columns */}
+            <div className="flex items-center gap-4 text-right shrink-0">
+              <div className="hidden sm:block">
+                <p className="font-mono text-[9px] text-white/25 uppercase">Qty</p>
+                <p className="font-mono text-xs text-white/50">{qty}</p>
+              </div>
+              <div className="hidden md:block">
+                <p className="font-mono text-[9px] text-white/25 uppercase">Bought</p>
+                <p className="font-mono text-xs text-white/40">{formatCurrencyWithCode(unitCost, c)}</p>
+              </div>
+              <div>
+                <p className="font-mono text-[9px] text-white/25 uppercase">Current</p>
+                <p className="font-mono text-xs text-white">{formatCurrencyWithCode(unitCurrent, c)}</p>
+              </div>
+              <div>
+                <p className="font-mono text-[9px] text-white/25 uppercase">P/L</p>
+                <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)}
+                </p>
+                <p className={`font-mono text-[9px] ${gain >= 0 ? "text-emerald-400/60" : "text-red-400/60"}`}>
+                  {gainPct >= 0 ? "+" : ""}{gainPct.toFixed(1)}%
+                </p>
+                {c !== "USD" && (
+                  <p className={`font-mono text-[9px] ${gain >= 0 ? "text-emerald-400/30" : "text-red-400/30"}`}>
+                    {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => startEdit(inv)}
+                  className="p-1.5 rounded-lg text-white/20 hover:text-blue-400 hover:bg-white/5 transition-all"
+                  title="Edit"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onDelete(inv.id)}
+                  className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/5 transition-all"
+                  title="Delete"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
   }
 
   return (
@@ -310,333 +568,143 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
       </div>
 
       {/* Auto-refresh controls */}
-      <div className="flex items-center justify-end gap-3">
-        <select
-          value={intervalMinutes}
-          onChange={(e) => setIntervalMinutes(Number(e.target.value))}
-          className="bg-white/4 border border-white/8 rounded-lg px-2 py-1.5 font-mono text-[10px] text-white/40 focus:outline-none appearance-none"
-        >
-          {[1, 2, 5, 10, 15].map((m) => (
-            <option key={m} value={m} className="bg-[#0a0c12]">{m} min</option>
+      <div className="flex items-center justify-between gap-3">
+        {/* Market + Type filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => { setFilterMarket("all"); setFilterType("all"); }}
+            className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+              filterMarket === "all" && filterType === "all"
+                ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+            }`}
+          >
+            All
+          </button>
+          {MARKET_GROUPS.filter((g) => grouped[g.key]?.length).map((g) => (
+            <button
+              key={g.key}
+              onClick={() => { setFilterMarket(g.key); setFilterType("all"); }}
+              className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+                filterMarket === g.key
+                  ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                  : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+              }`}
+            >
+              {g.label}
+            </button>
           ))}
-        </select>
-        <button
-          onClick={refresh}
-          disabled={loading || isRefreshing}
-          className="glass-card px-4 py-2 rounded-xl text-xs font-body text-white/40 hover:text-white transition-all disabled:opacity-30 flex items-center gap-2"
-        >
-          {loading || isRefreshing ? (
-            "Refreshing..."
-          ) : (
+          {presentTypes.length > 1 && (
             <>
-              <span>Refresh</span>
-              <span className="font-mono text-[10px] text-white/20">
-                {Math.floor(secondsRemaining / 60)}:{String(secondsRemaining % 60).padStart(2, "0")}
-              </span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Investment List */}
-      {investments.length === 0 ? (
-        <div className="glass-card rounded-2xl p-8 text-center">
-          <p className="font-body text-sm text-white/30">No investments tracked yet</p>
-          <p className="font-body text-xs text-white/15 mt-1">Add your first investment below</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {/* Header with view toggle */}
-          <div className="flex items-center justify-between">
-            <h3 className="font-display font-semibold text-lg text-white">
-              Holdings
-              <span className="ml-2 font-mono text-xs text-white/30">({filteredInvestments.length})</span>
-            </h3>
-            <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-          </div>
-
-          {/* Type filters */}
-          {investmentTypes.length > 1 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setFilterType("all")}
-                className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
-                  filterType === "all"
-                    ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
-                    : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
-                }`}
-              >
-                All
-              </button>
-              {investmentTypes.map((t) => (
+              <span className="w-px h-4 bg-white/10" />
+              {presentTypes.map((t) => (
                 <button
                   key={t}
                   onClick={() => setFilterType(t)}
-                  className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all capitalize ${
+                  className={`px-2.5 py-1 rounded-full border font-mono text-[10px] transition-all capitalize ${
                     filterType === t
                       ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
-                      : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                      : "border-white/8 bg-white/4 text-white/30 hover:border-white/15"
                   }`}
                 >
                   {t}
                 </button>
               ))}
-            </div>
+            </>
           )}
+        </div>
 
-          {/* List View */}
-          {viewMode === "list" && (
-            <AnimatePresence>
-              {filteredInvestments.map((inv, i) => {
-                const gain = inv.current_value - inv.purchase_price;
-                const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
-                const c = inv.currency || "USD";
-                return (
-                  <motion.div
-                    key={inv.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="glass-card rounded-2xl p-4 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2.5 h-2.5 rounded-full ${INVESTMENT_TYPE_COLORS[inv.type] || "bg-gray-500"}`} />
-                        <div>
-                          <span className="font-body text-sm text-white">{inv.name}</span>
-                          {inv.ticker && (
-                            <span className="ml-2 font-mono text-xs text-white/30">{inv.ticker}</span>
-                          )}
-                          {c !== "USD" && (
-                            <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 font-mono text-[9px] text-amber-400/70">{c}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) && (
-                          <PriceSparkline symbol={inv.ticker} />
-                        )}
-                        <div className="text-right">
-                          <p className="font-mono text-sm text-white">{formatCurrencyWithCode(inv.current_value, c)}</p>
-                          {c !== "USD" && <p className="font-mono text-[10px] text-white/25">{fmtAlt(inv.current_value, c)}</p>}
-                          <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                            {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)} ({gainPct.toFixed(1)}%)
-                          </p>
-                          {c !== "USD" && (
-                            <p className={`font-mono text-[10px] ${gain >= 0 ? "text-emerald-400/40" : "text-red-400/40"}`}>
-                              {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
-                            </p>
-                          )}
-                        </div>
-                        <span className="font-body text-xs text-white/20 capitalize">{inv.type}</span>
-                        {inv.quantity && (
-                          <span className="font-mono text-xs text-white/20">{inv.quantity} units</span>
-                        )}
-                        <button
-                          onClick={() => onDelete(inv.id)}
-                          className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          )}
+        <div className="flex items-center gap-3 shrink-0">
+          <select
+            value={intervalMinutes}
+            onChange={(e) => setIntervalMinutes(Number(e.target.value))}
+            className="bg-white/4 border border-white/8 rounded-lg px-2 py-1.5 font-mono text-[10px] text-white/40 focus:outline-none appearance-none"
+          >
+            {[1, 2, 5, 10, 15].map((m) => (
+              <option key={m} value={m} className="bg-[#0a0c12]">{m} min</option>
+            ))}
+          </select>
+          <button
+            onClick={refresh}
+            disabled={loading || isRefreshing}
+            className="glass-card px-4 py-2 rounded-xl text-xs font-body text-white/40 hover:text-white transition-all disabled:opacity-30 flex items-center gap-2"
+          >
+            {loading || isRefreshing ? (
+              "Refreshing..."
+            ) : (
+              <>
+                <span>Refresh</span>
+                <span className="font-mono text-[10px] text-white/20">
+                  {Math.floor(secondsRemaining / 60)}:{String(secondsRemaining % 60).padStart(2, "0")}
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
-          {/* Grid View */}
-          {viewMode === "grid" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredInvestments.map((inv, i) => {
-                const gain = inv.current_value - inv.purchase_price;
-                const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
-                const c = inv.currency || "USD";
-                return (
-                  <motion.div
-                    key={inv.id}
-                    className="glass-card rounded-2xl p-5 flex flex-col justify-between group"
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03, duration: 0.3 }}
-                  >
-                    <div>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2.5 h-2.5 rounded-full ${INVESTMENT_TYPE_COLORS[inv.type] || "bg-gray-500"}`} />
-                          <span className="font-body text-sm text-white font-medium">{inv.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {c !== "USD" && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 font-mono text-[9px] text-amber-400/70">{c}</span>
-                          )}
-                          <span className="font-body text-[10px] text-white/20 uppercase capitalize">{inv.type}</span>
-                        </div>
-                      </div>
-                      {inv.ticker && (
-                        <p className="font-mono text-xs text-white/30 mb-2">{inv.ticker}{inv.quantity ? ` · ${inv.quantity} units` : ""}</p>
-                      )}
-                      <div className="grid grid-cols-2 gap-3 mb-2">
-                        <div>
-                          <p className="font-mono text-[10px] text-white/25 uppercase">Value</p>
-                          <p className="font-mono text-lg text-white">{formatCurrencyWithCode(inv.current_value, c)}</p>
-                          {c !== "USD" && <p className="font-mono text-[10px] text-white/20">{fmtAlt(inv.current_value, c)}</p>}
-                        </div>
-                        <div>
-                          <p className="font-mono text-[10px] text-white/25 uppercase">Cost</p>
-                          <p className="font-mono text-lg text-white/50">{formatCurrencyWithCode(inv.purchase_price, c)}</p>
-                          {c !== "USD" && <p className="font-mono text-[10px] text-white/15">{fmtAlt(inv.purchase_price, c)}</p>}
-                        </div>
-                      </div>
-                      <p className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                        {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)} ({gainPct.toFixed(1)}%)
-                      </p>
-                      {c !== "USD" && (
-                        <p className={`font-mono text-[10px] ${gain >= 0 ? "text-emerald-400/40" : "text-red-400/40"}`}>
-                          {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
-                        </p>
-                      )}
-                      {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) && (
-                        <div className="mt-2">
-                          <PriceSparkline symbol={inv.ticker} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center pt-3 border-t border-white/5 mt-3">
-                      <button
-                        onClick={() => onDelete(inv.id)}
-                        className="px-2 py-1 rounded-lg text-[10px] font-body text-white/30 hover:text-red-400 hover:bg-white/5 transition-all ml-auto opacity-0 group-hover:opacity-100"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Table View */}
-          {viewMode === "table" && (
-            <div className="glass-card rounded-2xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-white/5">
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Name</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Type</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Ticker</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Qty</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Cost</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Value</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Gain/Loss</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider hidden lg:table-cell">Chart</th>
-                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredInvestments.map((inv) => {
-                      const gain = inv.current_value - inv.purchase_price;
-                      const gainPct = inv.purchase_price > 0 ? (gain / inv.purchase_price) * 100 : 0;
-                      const c = inv.currency || "USD";
-                      return (
-                        <tr key={inv.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                          <td className="px-4 py-2.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-body text-xs text-white/70">{inv.name}</span>
-                              {c !== "USD" && (
-                                <span className="px-1 py-0.5 rounded bg-amber-500/10 font-mono text-[8px] text-amber-400/70">{c}</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className="font-body text-xs text-white/40 capitalize">{inv.type}</span>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className="font-mono text-xs text-white/30">{inv.ticker || "—"}</span>
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className="font-mono text-xs text-white/40">{inv.quantity || "—"}</span>
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className="font-mono text-xs text-white/50">{formatCurrencyWithCode(inv.purchase_price, c)}</span>
-                            {c !== "USD" && <p className="font-mono text-[9px] text-white/20">{fmtAlt(inv.purchase_price, c)}</p>}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className="font-mono text-xs text-white">{formatCurrencyWithCode(inv.current_value, c)}</span>
-                            {c !== "USD" && <p className="font-mono text-[9px] text-white/20">{fmtAlt(inv.current_value, c)}</p>}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <span className={`font-mono text-xs ${gain >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                              {gain >= 0 ? "+" : ""}{formatCurrencyWithCode(gain, c)} ({gainPct.toFixed(1)}%)
-                            </span>
-                            {c !== "USD" && (
-                              <p className={`font-mono text-[9px] ${gain >= 0 ? "text-emerald-400/40" : "text-red-400/40"}`}>
-                                {gain >= 0 ? "+" : ""}{fmtAlt(gain, c)}
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 hidden lg:table-cell">
-                            {inv.ticker && LIVE_PRICE_TYPES.includes(inv.type) ? (
-                              <PriceSparkline symbol={inv.ticker} />
-                            ) : (
-                              <span className="font-mono text-xs text-white/10">--</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <button
-                              onClick={() => onDelete(inv.id)}
-                              className="px-1.5 py-0.5 rounded text-[10px] font-mono text-white/25 hover:text-red-400 transition-colors"
-                            >
-                              Del
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+      {/* Holdings - Grouped by Market */}
+      {investments.length === 0 ? (
+        <div className="glass-card rounded-2xl p-8 text-center">
+          <p className="font-body text-sm text-white/30">No investments tracked yet</p>
+          <p className="font-body text-xs text-white/15 mt-1">Add your first investment below</p>
+        </div>
+      ) : filterMarket === "all" && filterType === "all" ? (
+        /* Grouped display */
+        <div className="space-y-6">
+          {MARKET_GROUPS.filter((g) => grouped[g.key]?.length).map((g) => {
+            const groupInvs = grouped[g.key] || [];
+            const groupValue = groupInvs.reduce((s, i) => s + convertCurrency(i.current_value, i.currency, "USD", rates), 0);
+            const groupCost = groupInvs.reduce((s, i) => s + convertCurrency(i.purchase_price, i.currency, "USD", rates), 0);
+            const groupGain = groupValue - groupCost;
+            return (
+              <div key={g.key}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display font-semibold text-sm text-white">{g.label}</h3>
+                    <span className="font-mono text-[10px] text-white/20">({groupInvs.length})</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-white/40">{formatCurrencyWithCode(groupValue, "USD")}</span>
+                    <span className={`font-mono text-xs ${groupGain >= 0 ? "text-emerald-400/60" : "text-red-400/60"}`}>
+                      {groupGain >= 0 ? "+" : ""}{formatCurrencyWithCode(groupGain, "USD")}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <AnimatePresence>
+                    {groupInvs.map((inv) => renderInvestmentRow(inv))}
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
+        </div>
+      ) : (
+        /* Filtered display (flat list) */
+        <div className="space-y-2">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display font-semibold text-sm text-white">
+              Holdings
+              <span className="ml-2 font-mono text-xs text-white/30">({filteredInvestments.length})</span>
+            </h3>
+          </div>
+          <AnimatePresence>
+            {filteredInvestments.map((inv) => renderInvestmentRow(inv))}
+          </AnimatePresence>
         </div>
       )}
 
       {/* Add Investment Form */}
       <form onSubmit={handleAdd} className="glass-card rounded-2xl p-5 space-y-4">
         <h4 className="font-display font-semibold text-sm text-white">Add Investment</h4>
+
+        {/* Row 1: Search + Type */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Apple Inc."
-              className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-            />
-          </div>
-          <div>
-            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as InvestmentType)}
-              className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
-            >
-              {INVESTMENT_TYPES.map((t) => (
-                <option key={t.value} value={t.value} className="bg-[#0a0c12]">{t.label}</option>
-              ))}
-            </select>
-          </div>
-          <div ref={dropdownRef} className="relative">
-            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Ticker</label>
+          <div ref={dropdownRef} className="relative sm:col-span-2">
+            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Search Company / Asset</label>
             <div className="relative">
               <input
-                ref={tickerInputRef}
                 type="text"
                 value={ticker}
                 onChange={(e) => {
@@ -645,11 +713,11 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                 }}
                 onKeyDown={handleTickerKeyDown}
                 onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
-                placeholder={TICKER_PLACEHOLDERS[type] || "Search ticker..."}
-                className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                placeholder={TICKER_PLACEHOLDERS[type] || "Search..."}
+                className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
                 autoComplete="off"
               />
-              {searchLoading && (
+              {(searchLoading || priceFetching) && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-blue-400 rounded-full animate-spin" />
                 </div>
@@ -692,10 +760,30 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
                 ))}
               </div>
             )}
-            {priceError && (
-              <p className="font-mono text-[10px] text-amber-400/80 mt-1">{priceError}</p>
+            {priceError && <p className="font-mono text-[10px] text-amber-400/80 mt-1">{priceError}</p>}
+            {/* Auto-filled info */}
+            {name && ticker && (
+              <p className="font-mono text-[10px] text-white/20 mt-1">
+                {name} {exchange && `· ${exchange}`} {currency !== "USD" && `· ${currency}`}
+              </p>
             )}
           </div>
+          <div>
+            <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Type</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as InvestmentType)}
+              className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
+            >
+              {INVESTMENT_TYPES.map((t) => (
+                <option key={t.value} value={t.value} className="bg-[#0a0c12]">{t.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Row 2: Quantity + Bought Price + Current (auto) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Quantity</label>
             <input
@@ -710,56 +798,37 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
           </div>
           <div>
             <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">
-              Price / Unit
+              Bought Price / Unit
               {currency !== "USD" && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-400/70 normal-case">{currency}</span>}
             </label>
-            <div className="relative">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(e.target.value)}
-                placeholder={priceFetching ? "Fetching..." : "1500"}
-                className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-              />
-              {priceFetching && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-emerald-400 rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-            {currency !== "USD" && purchasePrice && (
-              <p className="font-mono text-[10px] text-white/20 mt-0.5">{fmtAlt(parseFloat(purchasePrice), currency)}</p>
-            )}
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={purchasePrice}
+              onChange={(e) => setPurchasePrice(e.target.value)}
+              placeholder={priceFetching ? "Fetching..." : "Price per unit"}
+              className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+            />
           </div>
           <div>
             <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">
               Current Price
               {currency !== "USD" && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-400/70 normal-case">{currency}</span>}
             </label>
-            <div className="relative">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={currentValue}
-                onChange={(e) => setCurrentValue(e.target.value)}
-                placeholder={priceFetching ? "Fetching..." : "Auto from ticker"}
-                className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-              />
-              {priceFetching && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-emerald-400 rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-            {currency !== "USD" && currentValue && (
-              <p className="font-mono text-[10px] text-white/20 mt-0.5">{fmtAlt(parseFloat(currentValue), currency)}</p>
-            )}
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={currentValue}
+              onChange={(e) => setCurrentValue(e.target.value)}
+              placeholder={priceFetching ? "Fetching..." : "Auto from search"}
+              className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+            />
           </div>
         </div>
-        {/* Total preview when quantity and price are set */}
+
+        {/* Total preview */}
         {quantity && purchasePrice && (
           <div className="flex items-center gap-4 px-1">
             <p className="font-mono text-xs text-white/30">
@@ -770,6 +839,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
             </p>
           </div>
         )}
+
         <button
           type="submit"
           disabled={!name.trim() || !purchasePrice}

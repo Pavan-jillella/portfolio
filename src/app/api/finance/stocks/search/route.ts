@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-
-export const revalidate = 3600; // 1-hour cache
+import yahooFinance from "yahoo-finance2";
 
 interface SearchResult {
   symbol: string;
@@ -18,18 +17,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=8&newsCount=0&enableFuzzyQuery=false&quotesQueryId=tss_match_phrase_query`;
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      next: { revalidate: 3600 },
-    });
-
-    if (!res.ok) {
-      return NextResponse.json({ results: [] });
-    }
-
-    const data = await res.json();
-    const quotes = data?.quotes || [];
+    const data = await yahooFinance.search(query, { quotesCount: 8, newsCount: 0 }) as Record<string, unknown>;
+    const quotes = (data?.quotes || []) as Record<string, unknown>[];
 
     const ALLOWED_TYPES = new Set([
       "EQUITY", "ETF", "INDEX", "CURRENCY", "COMMODITY", "CRYPTOCURRENCY",
@@ -37,12 +26,12 @@ export async function GET(request: Request) {
     ]);
 
     const results: SearchResult[] = quotes
-      .filter((q: { quoteType?: string }) => q.quoteType && ALLOWED_TYPES.has(q.quoteType))
-      .map((q: { symbol?: string; shortname?: string; longname?: string; quoteType?: string; exchange?: string; exchDisp?: string }) => ({
-        symbol: q.symbol || "",
-        name: q.shortname || q.longname || q.symbol || "",
-        type: (q.quoteType || "").toLowerCase(),
-        exchange: q.exchDisp || q.exchange || "",
+      .filter((q) => q.quoteType && ALLOWED_TYPES.has(q.quoteType as string))
+      .map((q) => ({
+        symbol: (q.symbol as string) || "",
+        name: (q.shortname as string) || (q.longname as string) || (q.symbol as string) || "",
+        type: ((q.quoteType as string) || "").toLowerCase(),
+        exchange: (q.exchDisp as string) || (q.exchange as string) || "",
       }));
 
     return NextResponse.json(

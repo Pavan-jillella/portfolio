@@ -1,4 +1,4 @@
-import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, PriceHistoryRange, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
+import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
 
 export const DEFAULT_EXPENSE_CATEGORIES: string[] = [
   "Rent", "Groceries", "Dining", "Travel", "Subscriptions",
@@ -85,14 +85,15 @@ export const INVESTMENT_TYPES: { value: InvestmentType; label: string }[] = [
   { value: "crypto", label: "Crypto" },
   { value: "commodity", label: "Commodity" },
   { value: "index", label: "Index" },
+  { value: "sip", label: "SIP / Mutual Fund" },
   { value: "forex", label: "Forex" },
   { value: "real-estate", label: "Real Estate" },
   { value: "other", label: "Other" },
 ];
 
-/** Asset types that support live Yahoo Finance price fetching */
+/** Asset types that support live price fetching */
 export const LIVE_PRICE_TYPES: InvestmentType[] = [
-  "stock", "crypto", "commodity", "index", "forex",
+  "stock", "crypto", "commodity", "index", "forex", "sip",
 ];
 
 export const DEFAULT_REFRESH_INTERVAL_MINUTES = 5;
@@ -102,10 +103,19 @@ export const INVESTMENT_TYPE_COLORS: Record<InvestmentType, string> = {
   crypto: "bg-amber-500",
   commodity: "bg-yellow-500",
   index: "bg-cyan-500",
+  sip: "bg-indigo-500",
   forex: "bg-green-500",
   "real-estate": "bg-purple-500",
   other: "bg-gray-500",
 };
+
+export const MARKET_GROUPS: { key: MarketRegion; label: string }[] = [
+  { key: "indian", label: "Indian Market" },
+  { key: "us", label: "US Market" },
+  { key: "crypto", label: "Crypto" },
+  { key: "commodity", label: "Gold & Silver" },
+  { key: "other", label: "Other" },
+];
 
 export const PRICE_HISTORY_CONFIG: Record<PriceHistoryRange, { range: string; interval: string }> = {
   "1D": { range: "1d", interval: "5m" },
@@ -120,6 +130,12 @@ export const TICKER_SUGGESTIONS: Partial<Record<InvestmentType, { symbol: string
     { symbol: "RELIANCE.NS", name: "Reliance (NSE)" },
     { symbol: "TCS.NS", name: "TCS (NSE)" },
     { symbol: "INFY.NS", name: "Infosys (NSE)" },
+    { symbol: "SBIN.NS", name: "SBI (NSE)" },
+  ],
+  sip: [
+    { symbol: "0P0000XVAA.BO", name: "SBI Blue Chip" },
+    { symbol: "0P0001BAO7.BO", name: "HDFC Mid-Cap" },
+    { symbol: "0P00009VDL.BO", name: "Axis Long Term" },
   ],
   commodity: [
     { symbol: "GC=F", name: "Gold" },
