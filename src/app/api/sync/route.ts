@@ -60,7 +60,11 @@ export async function POST(req: NextRequest) {
   const errors: string[] = [];
 
   if (upsert && Array.isArray(upsert) && upsert.length > 0) {
-    const { error } = await supabase.from(table).upsert(upsert, { onConflict: "id" });
+    // Strip fields that may not exist in DB yet (pending migration)
+    const cleanData = table === "investments"
+      ? (upsert as Record<string, unknown>[]).map(({ exchange, market, ...rest }) => rest)
+      : upsert;
+    const { error } = await supabase.from(table).upsert(cleanData, { onConflict: "id" });
     if (error) errors.push(`upsert: ${error.message}`);
   }
 
