@@ -12,8 +12,14 @@ function readStorage<T>(key: string, initialValue: T): T {
 }
 
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
-  const [storedValue, setStoredValue] = useState<T>(() => readStorage(key, initialValue));
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
   const keyRef = useRef(key);
+
+  // Hydrate from localStorage after mount to avoid SSR mismatch
+  useEffect(() => {
+    setStoredValue(readStorage(key, initialValue));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync if the key changes (rare but correct)
   useEffect(() => {
