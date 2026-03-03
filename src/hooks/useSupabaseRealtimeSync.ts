@@ -63,19 +63,15 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
   const previousUserRef = useRef<string | null>(null);
   latestDataRef.current = data;
 
-  // Reset when user changes (login/logout)
+  // Reset when user changes (login/logout/switch account)
   useEffect(() => {
     if (previousUserRef.current !== (user?.id ?? null)) {
       previousUserRef.current = user?.id ?? null;
 
-      if (!user) {
-        // Logged out — clear local data
-        initialSyncDone.current = false;
-        setLocalData(defaultValue);
-      } else if (initialSyncDone.current) {
-        // Different user logged in — reset sync
-        initialSyncDone.current = false;
-      }
+      // Always clear previous user's data and reset sync
+      // This prevents data from leaking between accounts via localStorage
+      initialSyncDone.current = false;
+      setLocalData(defaultValue);
     }
   }, [user, defaultValue, setLocalData]);
 
@@ -92,19 +88,9 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
 
         if (rows && rows.length > 0) {
           setLocalData(rows as T[]);
-        } else {
-          // Supabase is empty — push existing localStorage data via authenticated API
-          const localRaw =
-            typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null;
-          const localData: T[] = localRaw ? JSON.parse(localRaw) : [];
-          if (localData.length > 0) {
-            await fetch("/api/sync", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ table: tableName, upsert: localData }),
-            });
-          }
         }
+        // If Supabase is empty, start fresh — do NOT push stale localStorage
+        // data that may belong to a different user
       } catch {
         // Network error — continue with localStorage only
       }
