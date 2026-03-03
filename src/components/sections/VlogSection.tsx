@@ -2,13 +2,12 @@
 import { motion } from "framer-motion";
 import { FadeIn } from "@/components/ui/FadeIn";
 import Link from "next/link";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { Vlog } from "@/types";
-import { VLOGS as DEFAULT_VLOGS } from "@/lib/vlogs";
 import Image from "next/image";
 
 export function VlogSection() {
-  const [vlogs] = useLocalStorage<Vlog[]>("pj-vlogs", DEFAULT_VLOGS);
+  const [vlogs] = useSupabaseRealtimeSync<Vlog>("pj-vlogs", "vlogs", []);
   const latestVlog = vlogs[0];
 
   if (!latestVlog) return null;
@@ -41,7 +40,7 @@ export function VlogSection() {
             {/* Thumbnail with play */}
             <div className="relative aspect-video bg-charcoal-800">
               <Image
-                src={`https://img.youtube.com/vi/${latestVlog.youtubeId}/maxresdefault.jpg`}
+                src={`https://img.youtube.com/vi/${latestVlog.youtube_id}/maxresdefault.jpg`}
                 alt={latestVlog.title}
                 fill
                 className="object-cover"
@@ -69,7 +68,7 @@ export function VlogSection() {
                   {latestVlog.title}
                 </h3>
                 <p className="font-body text-sm text-white/40">
-                  {latestVlog.publishedAt} · {latestVlog.duration}
+                  {latestVlog.published_at} · {latestVlog.duration}
                 </p>
               </div>
 

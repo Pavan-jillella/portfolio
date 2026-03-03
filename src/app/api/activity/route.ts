@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getAllPosts } from "@/lib/mdx";
 
 interface ActivityItem {
   id: string;
@@ -106,22 +105,31 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Blog posts
+    // Blog posts from Supabase
     if (filter === "all" || filter === "blog") {
-      try {
-        const posts = getAllPosts();
-        posts.forEach((p) => {
-          items.push({
-            id: `blog-${p.slug}`,
-            type: "blog",
-            title: `Published: ${p.title}`,
-            description: p.description,
-            timestamp: new Date(p.date).toISOString(),
-            metadata: { category: p.category, slug: p.slug },
+      if (supabaseUrl && supabaseKey) {
+        try {
+          const sb = createClient(supabaseUrl, supabaseKey);
+          const { data: posts } = await sb
+            .from("blog_posts")
+            .select("id, title, slug, description, category, created_at")
+            .eq("published", true)
+            .order("created_at", { ascending: false })
+            .limit(50);
+
+          posts?.forEach((p) => {
+            items.push({
+              id: `blog-${p.slug}`,
+              type: "blog",
+              title: `Published: ${p.title}`,
+              description: p.description,
+              timestamp: p.created_at,
+              metadata: { category: p.category, slug: p.slug },
+            });
           });
-        });
-      } catch {
-        // Blog posts unavailable
+        } catch {
+          // Blog posts unavailable
+        }
       }
     }
 

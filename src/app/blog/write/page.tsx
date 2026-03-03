@@ -5,6 +5,8 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
+import { BlogPost } from "@/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const remarkPlugins: any[] = [remarkGfm];
@@ -14,6 +16,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 export default function BlogWritePage() {
   const router = useRouter();
+  const [posts, setPosts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Technology");
@@ -43,41 +46,36 @@ export default function BlogWritePage() {
     [wordCount]
   );
 
-  const handlePublish = useCallback(async () => {
+  const handlePublish = useCallback(() => {
     if (!title.trim() || !content.trim()) return;
     setStatus("saving");
     setErrorMsg("");
 
     try {
-      const res = await fetch("/api/admin/blog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          slug: slug || "untitled",
-          description: description.trim(),
-          category,
-          content: content.trim(),
-          tags: tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean),
-        }),
-      });
+      const newPost: BlogPost = {
+        id: Date.now().toString(),
+        title: title.trim(),
+        slug: slug || "untitled",
+        description: description.trim(),
+        content: content.trim(),
+        category,
+        read_time: readTime,
+        published: true,
+        tags: tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        created_at: new Date().toISOString(),
+      };
 
-      if (res.ok) {
-        setStatus("saved");
-        setTimeout(() => router.push(`/blog/${slug}`), 1000);
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setErrorMsg(data.error || "Failed to publish");
-        setStatus("error");
-      }
+      setPosts((prev) => [newPost, ...prev]);
+      setStatus("saved");
+      setTimeout(() => router.push(`/blog/${slug}`), 1000);
     } catch {
-      setErrorMsg("Network error");
+      setErrorMsg("Failed to publish");
       setStatus("error");
     }
-  }, [title, slug, description, category, content, tags, router]);
+  }, [title, slug, description, category, content, tags, readTime, router, setPosts]);
 
   return (
     <div className="min-h-screen flex flex-col">

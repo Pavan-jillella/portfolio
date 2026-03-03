@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { getAllPosts } from "@/lib/mdx";
 import { rateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
 
@@ -24,17 +23,8 @@ export async function POST(req: NextRequest) {
 
     const openai = new OpenAI({ apiKey });
 
-    // Build context from blog posts
-    const posts = getAllPosts();
-    const blogContext = posts
-      .map((p) => `Title: ${p.title}\nCategory: ${p.category}\nDescription: ${p.description}`)
-      .join("\n\n");
-
-    const systemPrompt = `You are Pavan Jillella's personal AI assistant on his portfolio website. You help visitors learn about his work in education, finance, and technology.
-
-You have knowledge of his blog posts:
-${blogContext}
-${context ? `\nYou also have access to his personal dashboard data:\n${context}` : ""}
+    const systemPrompt = `You are a personal AI assistant on a portfolio website. You help visitors learn about the user's work in education, finance, and technology.
+${context ? `\nYou have access to the user's personal dashboard data:\n${context}` : ""}
 
 Be concise, helpful, and professional. If asked about something you don't know, say so honestly. Keep responses under 200 words.`;
 

@@ -20,6 +20,9 @@ const ALLOWED_TABLES = new Set([
   "employers",
   "work_schedules",
   "enhanced_work_schedules",
+  "vlogs",
+  "blog_posts",
+  "user_projects",
 ]);
 
 function getAdminSupabase() {

@@ -2,16 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FadeIn } from "@/components/ui/FadeIn";
-
-interface BlogPost {
-  id: string;
-  title: string;
-  date: string;
-  description: string;
-  category: string;
-  readTime: string;
-  slug: string;
-}
+import { BlogPost } from "@/types";
 
 export function BlogFilters({ posts }: { posts: BlogPost[] }) {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -71,11 +62,11 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                       {post.description}
                     </p>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs text-white/25">{post.date}</span>
+                      <span className="font-mono text-xs text-white/25">{post.created_at}</span>
                       <span className="tag-badge px-2 py-0.5 rounded-full border border-white/8 bg-white/4 text-white/30 text-xs">
                         {post.category}
                       </span>
-                      <span className="font-mono text-xs text-white/20">{post.readTime}</span>
+                      <span className="font-mono text-xs text-white/20">{post.read_time}</span>
                     </div>
                   </div>
                   <span className="font-body text-sm text-white/20 group-hover:text-blue-400 transition-colors shrink-0 mt-1">
@@ -87,7 +78,15 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
           </FadeIn>
         ))}
         {filtered.length === 0 && (
-          <p className="text-center font-body text-sm text-white/20 py-12">No posts in this category</p>
+          <div className="text-center py-16">
+            <p className="font-body text-sm text-white/30">No posts yet.</p>
+            <Link
+              href="/blog/write"
+              className="mt-3 inline-block font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Write your first post
+            </Link>
+          </div>
         )}
       </div>
     </>

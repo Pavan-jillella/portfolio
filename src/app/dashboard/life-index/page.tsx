@@ -1,4 +1,3 @@
-import { getAllPosts } from "@/lib/mdx";
 import { LifeIndexDashboard } from "@/components/dashboard/LifeIndexDashboard";
 
 export const metadata = {
@@ -6,8 +5,6 @@ export const metadata = {
 };
 
 export default function LifeIndexPage() {
-  const blogCount = getAllPosts().length;
-
   return (
     <section className="min-h-screen py-32 px-6">
       <div className="max-w-6xl mx-auto">
@@ -20,7 +17,7 @@ export default function LifeIndexPage() {
             A single composite score across finance, learning, coding, and personal growth.
           </p>
         </div>
-        <LifeIndexDashboard blogCount={blogCount} />
+        <LifeIndexDashboard blogCount={0} />
       </div>
     </section>
   );

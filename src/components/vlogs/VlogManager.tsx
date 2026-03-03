@@ -62,7 +62,7 @@ export function VlogManager({ vlogs, onAdd, onEdit, onDelete }: VlogManagerProps
     if (editingId) {
       onEdit(editingId, {
         title,
-        youtubeId,
+        youtube_id: youtubeId,
         category,
         duration,
         description,
@@ -71,10 +71,10 @@ export function VlogManager({ vlogs, onAdd, onEdit, onDelete }: VlogManagerProps
       onAdd({
         id: Date.now().toString(),
         title,
-        youtubeId,
+        youtube_id: youtubeId,
         category,
         duration,
-        publishedAt: new Date().toLocaleDateString("en-US", {
+        published_at: new Date().toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
@@ -87,7 +87,7 @@ export function VlogManager({ vlogs, onAdd, onEdit, onDelete }: VlogManagerProps
 
   function startEdit(vlog: Vlog) {
     setTitle(vlog.title);
-    setYoutubeUrl(vlog.youtubeId);
+    setYoutubeUrl(vlog.youtube_id);
     setCategory(vlog.category);
     setDuration(vlog.duration);
     setDescription(vlog.description);
@@ -223,7 +223,7 @@ export function VlogManager({ vlogs, onAdd, onEdit, onDelete }: VlogManagerProps
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <img
-                  src={`https://img.youtube.com/vi/${vlog.youtubeId}/default.jpg`}
+                  src={`https://img.youtube.com/vi/${vlog.youtube_id}/default.jpg`}
                   alt=""
                   className="w-16 h-10 rounded object-cover flex-shrink-0"
                 />

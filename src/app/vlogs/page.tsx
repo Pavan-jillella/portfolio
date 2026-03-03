@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { Vlog } from "@/types";
-import { VLOGS as DEFAULT_VLOGS } from "@/lib/vlogs";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { YouTubeEmbed } from "@/components/ui/YouTubeEmbed";
 import { VlogManager } from "@/components/vlogs/VlogManager";
@@ -11,7 +10,7 @@ import { VlogManager } from "@/components/vlogs/VlogManager";
 const categories = ["All", "Technology", "Education", "Finance", "Lifestyle", "Other"];
 
 export default function VlogsPage() {
-  const [vlogs, setVlogs] = useLocalStorage<Vlog[]>("pj-vlogs", DEFAULT_VLOGS);
+  const [vlogs, setVlogs] = useSupabaseRealtimeSync<Vlog>("pj-vlogs", "vlogs", []);
   const [activeCategory, setActiveCategory] = useState("All");
   const [manageMode, setManageMode] = useState(false);
 
@@ -97,7 +96,7 @@ export default function VlogsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="glass-card rounded-2xl overflow-hidden"
                 >
-                  <YouTubeEmbed videoId={vlog.youtubeId} title={vlog.title} />
+                  <YouTubeEmbed videoId={vlog.youtube_id} title={vlog.title} />
                   <div className="p-5">
                     <h3 className="font-display font-semibold text-white mb-2">{vlog.title}</h3>
                     <p className="font-body text-sm text-white/40 mb-3 line-clamp-2">{vlog.description}</p>
@@ -106,7 +105,7 @@ export default function VlogsPage() {
                         {vlog.category}
                       </span>
                       <span className="font-mono text-xs text-white/20">{vlog.duration}</span>
-                      <span className="font-mono text-xs text-white/20">{vlog.publishedAt}</span>
+                      <span className="font-mono text-xs text-white/20">{vlog.published_at}</span>
                     </div>
                   </div>
                 </motion.div>

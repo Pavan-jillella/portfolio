@@ -1,26 +1,15 @@
-import { getAllPosts } from "@/lib/mdx";
-import { BLOG_POSTS } from "@/lib/data";
+"use client";
+import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
+import { BlogPost } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BlogFilters } from "@/components/blog/BlogFilters";
 
-export const metadata = {
-  title: "Blog | Pavan Jillella",
-  description: "Thoughts on technology, education, and finance — written by Pavan Jillella.",
-};
-
 export default function BlogPage() {
-  const mdxPosts = getAllPosts();
-  const posts = mdxPosts.length > 0
-    ? mdxPosts.map((p, i) => ({
-        id: String(i + 1),
-        title: p.title,
-        date: p.date,
-        description: p.description,
-        category: p.category,
-        readTime: p.readTime,
-        slug: p.slug,
-      }))
-    : BLOG_POSTS;
+  const [posts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+
+  const published = posts
+    .filter((p) => p.published)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <>
@@ -32,7 +21,7 @@ export default function BlogPage() {
 
       <section className="px-6 pb-20">
         <div className="max-w-5xl mx-auto">
-          <BlogFilters posts={posts} />
+          <BlogFilters posts={published} />
         </div>
       </section>
     </>

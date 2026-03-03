@@ -1,7 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { BLOG_POSTS } from "@/lib/data";
+import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
+import { BlogPost } from "@/types";
 import Link from "next/link";
 
 const categoryColors: Record<string, string> = {
@@ -11,6 +12,15 @@ const categoryColors: Record<string, string> = {
 };
 
 export function BlogSection() {
+  const [posts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+
+  const published = posts
+    .filter((p) => p.published)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 3);
+
+  if (published.length === 0) return null;
+
   return (
     <section id="blog" className="py-32 px-6">
       <div className="max-w-5xl mx-auto">
@@ -22,17 +32,17 @@ export function BlogSection() {
               Ideas worth sharing.
             </h2>
           </div>
-          <a
+          <Link
             href="/blog"
             className="font-body text-sm text-white/30 hover:text-blue-400 transition-colors shrink-0"
           >
             All posts →
-          </a>
+          </Link>
         </FadeIn>
 
         {/* Grid - show first 3 on homepage */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {BLOG_POSTS.slice(0, 3).map((post, i) => (
+          {published.map((post, i) => (
             <motion.a
               key={post.id}
               href={`/blog/${post.slug}`}
@@ -49,7 +59,7 @@ export function BlogSection() {
                 >
                   {post.category}
                 </span>
-                <span className="font-mono text-xs text-white/25">{post.readTime}</span>
+                <span className="font-mono text-xs text-white/25">{post.read_time}</span>
               </div>
 
               <h3 className="font-display font-semibold text-base text-white group-hover:text-blue-300 transition-colors leading-snug flex-1">
@@ -61,7 +71,7 @@ export function BlogSection() {
               </p>
 
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                <span className="font-mono text-xs text-white/25">{post.date}</span>
+                <span className="font-mono text-xs text-white/25">{post.created_at}</span>
                 <span className="text-white/20 group-hover:text-blue-400 transition-colors text-sm">→</span>
               </div>
             </motion.a>

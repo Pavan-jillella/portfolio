@@ -20,36 +20,36 @@ export interface Project {
 export interface BlogPost {
   id: string;
   title: string;
-  date: string;
-  description: string;
-  category: string;
-  readTime: string;
   slug: string;
-}
-
-export interface BlogPostMeta {
-  title: string;
-  date: string;
   description: string;
+  content: string;
   category: string;
-  readTime: string;
-  slug: string;
+  read_time: string;
   published: boolean;
   tags: string[];
-}
-
-export interface BlogPostFull extends BlogPostMeta {
-  content: string;
+  created_at: string;
 }
 
 export interface Vlog {
   id: string;
   title: string;
-  youtubeId: string;
+  youtube_id: string;
   category: string;
   duration: string;
-  publishedAt: string;
+  published_at: string;
   description: string;
+}
+
+export interface UserProject {
+  id: string;
+  name: string;
+  description: string;
+  language: string;
+  url: string;
+  stars: number;
+  forks: number;
+  topics: string[];
+  created_at: string;
 }
 
 export interface GitHubRepo {
