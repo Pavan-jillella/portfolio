@@ -1,19 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { createClient, SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
+import { SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
 import { useLocalStorage } from "./useLocalStorage";
 import { useAuth } from "@/components/providers/AuthProvider";
-
-let _supabase: SupabaseClient | null = null;
-
-function getSupabaseClient(): SupabaseClient | null {
-  if (_supabase) return _supabase;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  _supabase = createClient(url, key);
-  return _supabase;
-}
+import { createBrowserClient } from "@/lib/supabase/client";
 
 /**
  * Sync writes through the server-side /api/sync endpoint.
@@ -62,7 +52,12 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
   const [data, setLocalData] = useLocalStorage<T[]>(storageKey, defaultValue);
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const supabaseRef = useRef(getSupabaseClient());
+  const supabaseRef = useRef<SupabaseClient | null>(null);
+
+  // Use the SSR-aware browser client (carries auth session for RLS)
+  useEffect(() => {
+    supabaseRef.current = createBrowserClient();
+  }, []);
   const initialSyncDone = useRef(false);
   const latestDataRef = useRef<T[]>(data);
   const previousUserRef = useRef<string | null>(null);
