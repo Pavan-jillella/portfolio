@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 const EXPORT_TABLES = [
   "transactions",
@@ -13,9 +15,11 @@ const EXPORT_TABLES = [
   "courses",
   "edu_projects",
   "employers",
-  "schedules",
-  "shifts",
-  "paystubs",
+  "pay_stubs",
+  "part_time_jobs",
+  "part_time_hours",
+  "work_schedules",
+  "enhanced_work_schedules",
 ];
 
 function getAdminSupabase() {
@@ -25,14 +29,36 @@ function getAdminSupabase() {
   return createClient(url, key);
 }
 
+async function getCurrentUserId(): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {},
+    },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return user.id;
+}
+
 /**
- * GET /api/admin/export — Full data snapshot.
- * Returns all table data as JSON for backup purposes.
+ * GET /api/admin/export — User data snapshot.
+ * Returns all table data for the authenticated user as JSON.
  */
-export async function GET(req: NextRequest) {
-  // Verify auth cookie
-  const token = req.cookies.get("auth-token")?.value;
-  if (token !== "authenticated") {
+export async function GET() {
+  const userId = await getCurrentUserId();
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -46,7 +72,10 @@ export async function GET(req: NextRequest) {
 
   for (const table of EXPORT_TABLES) {
     try {
-      const { data, error } = await supabase.from(table).select("*");
+      const { data, error } = await supabase
+        .from(table)
+        .select("*")
+        .eq("user_id", userId);
       if (error) {
         errors.push(`${table}: ${error.message}`);
         snapshot[table] = [];
@@ -58,9 +87,6 @@ export async function GET(req: NextRequest) {
       snapshot[table] = [];
     }
   }
-
-  // Also export localStorage keys present on the client
-  // (those are sent separately by the client if needed)
 
   const exportData = {
     version: 1,

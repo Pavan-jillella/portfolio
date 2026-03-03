@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +21,32 @@ function getAdminSupabase() {
   return createClient(url, key);
 }
 
-export async function GET(req: NextRequest) {
-  const token = req.cookies.get("auth-token")?.value;
-  if (token !== "authenticated") {
+async function getCurrentUserId(): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {},
+    },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return user.id;
+}
+
+export async function GET() {
+  const userId = await getCurrentUserId();
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -30,14 +55,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 503 });
   }
 
-  const results: Record<string, { exists: boolean; count?: number; columns?: string[]; id_type?: string; error?: string; test_upsert?: string }> = {};
+  const results: Record<string, { exists: boolean; count?: number; columns?: string[]; error?: string }> = {};
 
   for (const table of PAYROLL_TABLES) {
     try {
-      // Check if table exists and get row count
       const { data, error, count } = await supabase
         .from(table)
         .select("*", { count: "exact", head: false })
+        .eq("user_id", userId)
         .limit(1);
 
       if (error) {
@@ -47,25 +72,10 @@ export async function GET(req: NextRequest) {
 
       const columns = data && data.length > 0 ? Object.keys(data[0]) : [];
 
-      // Try a test upsert with a dummy row then delete it
-      const testId = `__diag_test_${Date.now()}`;
-      const { error: upsertErr } = await supabase
-        .from(table)
-        .upsert([{ id: testId }], { onConflict: "id" });
-
-      let testResult = "ok";
-      if (upsertErr) {
-        testResult = upsertErr.message;
-      } else {
-        // Clean up test row
-        await supabase.from(table).delete().eq("id", testId);
-      }
-
       results[table] = {
         exists: true,
         count: count ?? 0,
         columns,
-        test_upsert: testResult,
       };
     } catch (err) {
       results[table] = { exists: false, error: String(err) };

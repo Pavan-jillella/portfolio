@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
 import { useLocalStorage } from "./useLocalStorage";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 let _supabase: SupabaseClient | null = null;
 
@@ -16,8 +17,8 @@ function getSupabaseClient(): SupabaseClient | null {
 
 /**
  * Sync writes through the server-side /api/sync endpoint.
- * The endpoint uses the service role key (bypasses RLS) and validates auth cookie.
- * This means the anon key never needs write access to any table.
+ * The endpoint uses the service role key (bypasses RLS) and validates session.
+ * It also injects user_id into all records automatically.
  */
 async function syncViaApi<T extends { id: string }>(
   tableName: string,
@@ -57,18 +58,36 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
   tableName: string,
   defaultValue: T[]
 ): [T[], (updater: T[] | ((prev: T[]) => T[])) => void, boolean] {
+  const { user } = useAuth();
   const [data, setLocalData] = useLocalStorage<T[]>(storageKey, defaultValue);
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const supabaseRef = useRef(getSupabaseClient());
   const initialSyncDone = useRef(false);
   const latestDataRef = useRef<T[]>(data);
+  const previousUserRef = useRef<string | null>(null);
   latestDataRef.current = data;
 
-  // ── Initial sync: read from Supabase (anon key = SELECT only) ──
+  // Reset when user changes (login/logout)
+  useEffect(() => {
+    if (previousUserRef.current !== (user?.id ?? null)) {
+      previousUserRef.current = user?.id ?? null;
+
+      if (!user) {
+        // Logged out — clear local data
+        initialSyncDone.current = false;
+        setLocalData(defaultValue);
+      } else if (initialSyncDone.current) {
+        // Different user logged in — reset sync
+        initialSyncDone.current = false;
+      }
+    }
+  }, [user, defaultValue, setLocalData]);
+
+  // ── Initial sync: read from Supabase (RLS filters by user_id) ──
   useEffect(() => {
     const supabase = supabaseRef.current;
-    if (!supabase || initialSyncDone.current) return;
+    if (!supabase || initialSyncDone.current || !user) return;
     initialSyncDone.current = true;
 
     (async () => {
@@ -95,19 +114,24 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
         // Network error — continue with localStorage only
       }
     })();
-  }, [tableName, storageKey, setLocalData]);
+  }, [tableName, storageKey, setLocalData, user]);
 
-  // ── Realtime subscription (read-only, anon key is fine) ──
+  // ── Realtime subscription (filtered by user_id) ──
   useEffect(() => {
     const supabase = supabaseRef.current;
-    if (!supabase) return;
+    if (!supabase || !user) return;
 
     try {
       const channel = supabase
-        .channel(`realtime-${tableName}`)
+        .channel(`realtime-${tableName}-${user.id}`)
         .on(
           "postgres_changes",
-          { event: "*", schema: "public", table: tableName },
+          {
+            event: "*",
+            schema: "public",
+            table: tableName,
+            filter: `user_id=eq.${user.id}`,
+          },
           (payload) => {
             if (payload.eventType === "INSERT") {
               setLocalData((prev) => {
@@ -139,7 +163,7 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
     } catch {
       // Realtime not available, fall back to local storage only
     }
-  }, [tableName, setLocalData]);
+  }, [tableName, setLocalData, user]);
 
   // ── setData wrapper: writes go through authenticated /api/sync ──
   const setData = useCallback(

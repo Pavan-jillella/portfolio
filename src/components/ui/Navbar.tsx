@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useVisibility } from "@/hooks/useVisibility";
 import { SECTION_LABELS, SectionKey } from "@/lib/visibility";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -24,14 +25,16 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { visibility, toggleSection } = useVisibility();
+  const { user, signOut } = useAuth();
 
-  function handleSignOut() {
-    document.cookie = "auth-token=; path=/; max-age=0";
-    router.push("/login");
+  async function handleSignOut() {
+    await signOut();
   }
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export function Navbar() {
   useEffect(() => {
     setMenuOpen(false);
     setSettingsOpen(false);
+    setUserMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -55,6 +59,17 @@ export function Navbar() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [settingsOpen]);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [userMenuOpen]);
 
   return (
     <motion.header
@@ -175,16 +190,69 @@ export function Navbar() {
             Say hello →
           </Link>
 
-          <button
-            onClick={handleSignOut}
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-white/40 hover:text-red-400 bg-white/4 border border-white/5 hover:border-red-500/20 transition-all"
-            aria-label="Sign out"
-            title="Sign out"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
+          {/* User menu */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-white/5 transition-all"
+            >
+              {user?.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt={user.user_metadata?.full_name || "User"}
+                  width={28}
+                  height={28}
+                  className="rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span className="text-xs font-medium text-blue-400">
+                    {user?.email?.charAt(0).toUpperCase() || "?"}
+                  </span>
+                </div>
+              )}
+              <svg
+                className={cn("w-3 h-3 text-white/40 transition-transform", userMenuOpen && "rotate-180")}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <AnimatePresence>
+              {userMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-64 glass-card rounded-xl p-3"
+                >
+                  <div className="px-2 py-2 border-b border-white/5 mb-2">
+                    <p className="font-body text-sm text-white truncate">
+                      {user?.user_metadata?.full_name || "User"}
+                    </p>
+                    <p className="font-mono text-xs text-white/40 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 w-full px-2 py-2 rounded-lg hover:bg-white/5 transition-colors text-white/60 hover:text-red-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span className="font-body text-sm">Sign out</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Mobile menu button */}

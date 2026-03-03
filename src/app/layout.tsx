@@ -8,6 +8,7 @@ import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -49,8 +50,9 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased overflow-x-hidden">
         <ThemeProvider>
-          <QueryProvider>
-            <PostHogProvider>
+          <AuthProvider>
+            <QueryProvider>
+              <PostHogProvider>
               <SmoothScroll>
                 <GrainOverlay />
                 <CursorGlow />
@@ -60,7 +62,8 @@ export default function RootLayout({
                 <Analytics />
               </SmoothScroll>
             </PostHogProvider>
-          </QueryProvider>
+            </QueryProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

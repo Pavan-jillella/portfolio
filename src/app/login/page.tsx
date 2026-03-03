@@ -1,97 +1,42 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { createBrowserClient } from "@/lib/supabase/client";
 
-const TOTAL_DIGITS = 10;
-const emptyPin = () => Array(TOTAL_DIGITS).fill("");
-
-export default function LoginPage() {
-  const [pin, setPin] = useState(emptyPin());
-  const [error, setError] = useState("");
+function LoginContent() {
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [shake, setShake] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/";
+  const errorParam = searchParams.get("error");
 
-  useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
-
-  const filledCount = pin.filter((d) => d !== "").length;
-  const progress = filledCount / TOTAL_DIGITS;
-
-  function handleChange(index: number, value: string) {
-    if (!/^\d*$/.test(value)) return;
-    const newPin = [...pin];
-    newPin[index] = value.slice(-1);
-    setPin(newPin);
-    setError("");
-
-    if (value && index < TOTAL_DIGITS - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    if (value && index === TOTAL_DIGITS - 1 && newPin.every((d) => d !== "")) {
-      submitPin(newPin.join(""));
-    }
-  }
-
-  function handleKeyDown(index: number, e: React.KeyboardEvent) {
-    if (e.key === "Backspace" && !pin[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-    if (e.key === "Enter") {
-      const full = pin.join("");
-      if (full.length === TOTAL_DIGITS) submitPin(full);
-    }
-  }
-
-  function handlePaste(e: React.ClipboardEvent) {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, TOTAL_DIGITS);
-    if (!pasted) return;
-    const newPin = [...pin];
-    for (let i = 0; i < pasted.length; i++) {
-      newPin[i] = pasted[i];
-    }
-    setPin(newPin);
-    if (pasted.length === TOTAL_DIGITS) {
-      submitPin(newPin.join(""));
-    } else {
-      inputRefs.current[Math.min(pasted.length, TOTAL_DIGITS - 1)]?.focus();
-    }
-  }
-
-  const triggerShake = useCallback(() => {
-    setShake(true);
-    setTimeout(() => setShake(false), 600);
-  }, []);
-
-  async function submitPin(code: string) {
+  async function handleGoogleSignIn() {
     setLoading(true);
     setError("");
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin: code }),
-      });
-      if (res.ok) {
-        setSuccess(true);
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 800);
-      } else {
-        setError("Invalid PIN");
-        triggerShake();
-        setPin(emptyPin());
-        setTimeout(() => inputRefs.current[0]?.focus(), 100);
-      }
-    } catch {
-      setError("Something went wrong");
-      triggerShake();
+
+    const supabase = createBrowserClient();
+    if (!supabase) {
+      setError("Authentication not configured");
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(next)}`,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   }
 
   return (
@@ -136,23 +81,13 @@ export default function LoginPage() {
         ))}
       </div>
 
-      {/* Progress glow ring at top */}
-      <motion.div
-        className="absolute top-0 left-0 right-0 h-[2px]"
-        style={{
-          background: `linear-gradient(90deg, transparent, rgba(59,130,246,${progress * 0.8}), rgba(6,182,212,${progress * 0.6}), transparent)`,
-        }}
-        animate={{ opacity: progress > 0 ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-      />
-
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="w-full max-w-lg relative z-10"
+        className="w-full max-w-md relative z-10"
       >
-        {/* Lock icon with pulse ring */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,46 +116,20 @@ export default function LoginPage() {
                 border: "1px solid rgba(255,255,255,0.08)",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)",
               }}
-              animate={success ? { scale: [1, 1.1, 1], borderColor: "rgba(34,197,94,0.4)" } : {}}
-              transition={{ duration: 0.5 }}
             >
-              <AnimatePresence mode="wait">
-                {success ? (
-                  <motion.svg
-                    key="check"
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-7 h-7 text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <motion.path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
-                    />
-                  </motion.svg>
-                ) : (
-                  <motion.svg
-                    key="lock"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, scale: 0.5 }}
-                    className="w-7 h-7 text-blue-400/80"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                  </motion.svg>
-                )}
-              </AnimatePresence>
+              <svg
+                className="w-7 h-7 text-blue-400/80"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
             </motion.div>
           </div>
 
@@ -230,7 +139,7 @@ export default function LoginPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="font-display font-bold text-4xl text-white mb-3"
           >
-            {success ? "Welcome" : "Enter PIN"}
+            Welcome
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -238,16 +147,16 @@ export default function LoginPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="font-body text-sm text-white/35"
           >
-            {success ? "Redirecting to dashboard..." : "Enter your 10-digit access code"}
+            Sign in to access your dashboard
           </motion.p>
         </motion.div>
 
         {/* Main glass card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={shake ? { x: [-12, 12, -8, 8, -4, 4, 0], opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-          transition={shake ? { duration: 0.5 } : { duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="relative rounded-[28px] p-8 pb-7"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="relative rounded-[28px] p-8"
           style={{
             background: "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))",
             backdropFilter: "blur(24px)",
@@ -255,7 +164,7 @@ export default function LoginPage() {
             boxShadow: "0 20px 80px rgba(0,0,0,0.3), 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
         >
-          {/* Inner glow on card */}
+          {/* Inner glow */}
           <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none">
             <div
               className="absolute -top-1/2 left-1/2 -translate-x-1/2 w-[300px] h-[200px] rounded-full"
@@ -263,118 +172,28 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* PIN label */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex items-center justify-center gap-2 mb-6"
-          >
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/[0.06]" />
-            <span className="font-mono text-[10px] text-white/25 uppercase tracking-[0.2em]">Access Code</span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/[0.06]" />
-          </motion.div>
+          {/* Error display */}
+          {(error || errorParam) && (
+            <div className="mb-6 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/[0.06] border border-red-500/15">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+              <p className="font-body text-sm text-red-400/90">
+                {error || "Authentication failed. Please try again."}
+              </p>
+            </div>
+          )}
 
-          {/* PIN input grid — two rows of 5 */}
-          <div className="space-y-3 mb-6" onPaste={handlePaste}>
-            {[0, 5].map((rowStart) => (
-              <div key={rowStart} className="flex gap-2.5 justify-center">
-                {pin.slice(rowStart, rowStart + 5).map((digit, i) => {
-                  const index = rowStart + i;
-                  const isFilled = digit !== "";
-                  const isFocusTarget = index === filledCount;
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.4 + index * 0.04 }}
-                      className="relative"
-                    >
-                      <input
-                        ref={(el) => { inputRefs.current[index] = el; }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleChange(index, e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(index, e)}
-                        disabled={loading || success}
-                        className="relative z-10 w-12 h-14 text-center rounded-xl font-mono text-xl text-white focus:outline-none transition-all duration-300 disabled:opacity-40 bg-transparent border"
-                        style={{
-                          borderColor: isFilled
-                            ? "rgba(59,130,246,0.35)"
-                            : isFocusTarget
-                              ? "rgba(59,130,246,0.2)"
-                              : "rgba(255,255,255,0.06)",
-                          background: isFilled
-                            ? "rgba(59,130,246,0.08)"
-                            : "rgba(255,255,255,0.03)",
-                          boxShadow: isFilled
-                            ? "0 0 20px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.03)"
-                            : "inset 0 1px 0 rgba(255,255,255,0.02)",
-                        }}
-                      />
-                      {/* Dot indicator below each input */}
-                      <motion.div
-                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                        animate={{
-                          backgroundColor: isFilled ? "rgba(59,130,246,0.6)" : "rgba(255,255,255,0.1)",
-                          scale: isFilled ? 1.2 : 1,
-                        }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          {/* Progress bar */}
-          <div className="relative h-0.5 rounded-full bg-white/[0.04] mb-6 overflow-hidden">
-            <motion.div
-              className="absolute inset-y-0 left-0 rounded-full"
-              style={{
-                background: success
-                  ? "linear-gradient(90deg, rgba(34,197,94,0.6), rgba(34,197,94,0.8))"
-                  : "linear-gradient(90deg, rgba(59,130,246,0.4), rgba(6,182,212,0.6))",
-              }}
-              animate={{ width: success ? "100%" : `${progress * 100}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            />
-          </div>
-
-          {/* Error */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -8, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: "auto" }}
-                exit={{ opacity: 0, y: -8, height: 0 }}
-                className="mb-4 overflow-hidden"
-              >
-                <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/[0.06] border border-red-500/15">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                  <p className="font-body text-sm text-red-400/90">{error}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Submit button */}
+          {/* Google Sign In Button */}
           <motion.button
             type="button"
-            disabled={loading || pin.some((d) => d === "") || success}
-            onClick={() => submitPin(pin.join(""))}
+            disabled={loading}
+            onClick={handleGoogleSignIn}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full relative overflow-hidden rounded-2xl py-4 font-body text-sm font-medium text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group"
+            className="w-full relative overflow-hidden rounded-2xl py-4 font-body text-sm font-medium text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group flex items-center justify-center gap-3"
             style={{
-              background: "linear-gradient(135deg, rgba(59,130,246,0.8), rgba(6,182,212,0.6))",
-              boxShadow: progress === 1 && !success
-                ? "0 8px 32px rgba(59,130,246,0.25), 0 0 0 1px rgba(59,130,246,0.2)"
-                : "0 4px 16px rgba(0,0,0,0.2)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
             }}
           >
             {/* Button shimmer */}
@@ -386,23 +205,42 @@ export default function LoginPage() {
               animate={{ x: ["-100%", "200%"] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             />
-            <span className="relative z-10">
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <motion.div
-                    className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+
+            {loading ? (
+              <motion.div
+                className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+              />
+            ) : (
+              <>
+                {/* Google icon */}
+                <svg className="w-5 h-5 relative z-10" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   />
-                  Verifying...
-                </span>
-              ) : success ? (
-                "Authenticated"
-              ) : (
-                "Unlock"
-              )}
-            </span>
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                <span className="relative z-10">Continue with Google</span>
+              </>
+            )}
           </motion.button>
+
+          <p className="mt-6 text-center font-body text-xs text-white/20 relative z-10">
+            Sign in with your Google account to access your dashboard
+          </p>
         </motion.div>
 
         {/* Footer */}
@@ -418,5 +256,13 @@ export default function LoginPage() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

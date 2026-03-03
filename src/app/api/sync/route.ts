@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 const ALLOWED_TABLES = new Set([
   "transactions",
@@ -27,15 +29,41 @@ function getAdminSupabase() {
   return createClient(url, key);
 }
 
+async function getCurrentUserId(): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {
+        // Read-only in this context
+      },
+    },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  if (error || !user) return null;
+
+  return user.id;
+}
+
 /**
  * POST /api/sync — Authenticated write proxy.
  * Accepts upserts and deletes for allowed tables.
- * Uses service role key (bypasses RLS) so anon key never needs write access.
+ * Injects user_id from session into all records.
+ * Uses service role key (bypasses RLS).
  */
 export async function POST(req: NextRequest) {
-  // Verify auth cookie
-  const token = req.cookies.get("auth-token")?.value;
-  if (token !== "authenticated") {
+  const userId = await getCurrentUserId();
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -60,16 +88,28 @@ export async function POST(req: NextRequest) {
   const errors: string[] = [];
 
   if (upsert && Array.isArray(upsert) && upsert.length > 0) {
+    // Inject user_id into all records
+    let dataWithUserId: Record<string, unknown>[] = (upsert as Record<string, unknown>[]).map((record) => ({
+      ...record,
+      user_id: userId,
+    }));
+
     // Strip fields that may not exist in DB yet (pending migration)
-    const cleanData = table === "investments"
-      ? (upsert as Record<string, unknown>[]).map(({ exchange, market, ...rest }) => rest)
-      : upsert;
-    const { error } = await supabase.from(table).upsert(cleanData, { onConflict: "id" });
+    if (table === "investments") {
+      dataWithUserId = dataWithUserId.map(({ exchange: _e, market: _m, ...rest }) => rest);
+    }
+
+    const { error } = await supabase.from(table).upsert(dataWithUserId, { onConflict: "id" });
     if (error) errors.push(`upsert: ${error.message}`);
   }
 
   if (toDelete && Array.isArray(toDelete) && toDelete.length > 0) {
-    const { error } = await supabase.from(table).delete().in("id", toDelete);
+    // Only delete records belonging to this user
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .in("id", toDelete)
+      .eq("user_id", userId);
     if (error) errors.push(`delete: ${error.message}`);
   }
 
