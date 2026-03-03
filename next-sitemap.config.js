@@ -5,13 +5,21 @@ module.exports = {
   sitemapSize: 7000,
   changefreq: "weekly",
   priority: 0.7,
-  exclude: ["/admin", "/admin/*", "/login"],
+  exclude: [
+    "/admin",
+    "/admin/*",
+    "/login",
+    "/dashboard",
+    "/dashboard/*",
+    "/finance/tracker",
+    "/education/dashboard",
+  ],
   robotsTxtOptions: {
     policies: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/login"],
+        disallow: ["/admin", "/login", "/dashboard", "/finance/tracker", "/education/dashboard"],
       },
     ],
   },

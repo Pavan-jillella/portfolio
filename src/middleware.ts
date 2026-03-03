@@ -2,10 +2,30 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/middleware";
 
-const PUBLIC_PATHS = ["/login", "/api/auth", "/_next", "/favicon.ico"];
-const PUBLIC_EXTENSIONS = [".svg", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".woff", ".woff2", ".ttf", ".css", ".js"];
+/** Paths that never require authentication */
+const PUBLIC_PATHS = [
+  "/login",
+  "/api/auth",
+  "/api/contact",
+  "/api/comments",
+  "/api/analytics",
+];
+
+/** Files at the root that should be publicly accessible */
+const PUBLIC_FILES = [
+  "/robots.txt",
+  "/sitemap.xml",
+  "/sitemap-0.xml",
+  "/favicon.ico",
+];
+
+const PUBLIC_EXTENSIONS = [
+  ".svg", ".png", ".jpg", ".jpeg", ".gif", ".ico",
+  ".webp", ".woff", ".woff2", ".ttf", ".css", ".js",
+];
 
 function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_FILES.includes(pathname)) return true;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
   if (PUBLIC_EXTENSIONS.some((ext) => pathname.endsWith(ext))) return true;
   return false;
@@ -18,17 +38,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // API routes that aren't /api/auth need session validation too
-  // but they handle their own auth — let them through
-  if (pathname.startsWith("/api")) {
-    return NextResponse.next();
-  }
-
   const { supabase, response } = createMiddlewareClient(request);
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // API routes: refresh session cookies but don't redirect (they return 401 themselves)
+  if (pathname.startsWith("/api")) {
+    return response;
+  }
 
   if (!user) {
     const loginUrl = new URL("/login", request.url);
