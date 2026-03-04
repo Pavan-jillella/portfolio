@@ -296,8 +296,10 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                   return (
                     <div key={sub.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {sub.service.logo_url && (
+                        {sub.service.logo_url ? (
                           <img src={sub.service.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        ) : (
+                          <span className="w-4 h-4 rounded-sm bg-white/10 flex items-center justify-center font-display text-[8px] text-white/40">{sub.service.name.charAt(0).toUpperCase()}</span>
                         )}
                         <span className="font-body text-sm text-white">{sub.service.name}</span>
                         {sub.plan && <span className="font-mono text-[10px] text-white/20">{sub.plan.name}</span>}
@@ -346,12 +348,18 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                 {/* Show selected service info */}
                 {selectedService && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                    <img
-                      src={selectedService.logo_url || `https://logo.clearbit.com/${selectedService.domain}`}
-                      alt=""
-                      className="w-8 h-8 rounded-lg bg-white/10"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
+                    {selectedService.logo_url ? (
+                      <img
+                        src={selectedService.logo_url}
+                        alt=""
+                        className="w-8 h-8 rounded-lg bg-white/10"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <span className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-display text-sm text-white/40">
+                        {selectedService.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                     <div>
                       <p className="font-body text-sm text-white">{selectedService.name}</p>
                       <p className="font-mono text-[10px] text-white/30">{selectedService.category} &middot; {selectedService.domain}</p>
@@ -589,7 +597,6 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
               {viewMode === "grid" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredSubs.map((sub, i) => {
-                    const logoUrl = sub.service.logo_url || `https://logo.clearbit.com/${sub.service.domain}`;
                     return (
                       <motion.div
                         key={sub.id}
@@ -601,12 +608,18 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                         <div>
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <img
-                                src={logoUrl}
-                                alt=""
-                                className="w-5 h-5 rounded-md"
-                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                              />
+                              {sub.service.logo_url ? (
+                                <img
+                                  src={sub.service.logo_url}
+                                  alt=""
+                                  className="w-5 h-5 rounded-md"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              ) : (
+                                <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center font-display text-[10px] text-white/40">
+                                  {sub.service.name.charAt(0).toUpperCase()}
+                                </span>
+                              )}
                               <span className="font-body text-sm text-white font-medium">{sub.service.name}</span>
                             </div>
                             <button
@@ -697,8 +710,10 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                             </td>
                             <td className="px-4 py-2.5">
                               <div className="flex items-center gap-2">
-                                {sub.service.logo_url && (
+                                {sub.service.logo_url ? (
                                   <img src={sub.service.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                ) : (
+                                  <span className="w-4 h-4 rounded-sm bg-white/10 flex items-center justify-center font-display text-[8px] text-white/40">{sub.service.name.charAt(0).toUpperCase()}</span>
                                 )}
                                 <span className="font-body text-xs text-white/70">{sub.service.name}</span>
                               </div>

@@ -27,7 +27,7 @@ export function SubscriptionCard({ subscription: sub, onToggle, onDelete, index 
     daysUntil === 1 ? "Tomorrow" :
     `${daysUntil}d`;
 
-  const logoUrl = sub.service.logo_url || `https://logo.clearbit.com/${sub.service.domain}`;
+  const logoUrl = sub.service.logo_url;
   const serviceName = sub.service.name;
   const planName = sub.plan?.name;
 
@@ -42,19 +42,25 @@ export function SubscriptionCard({ subscription: sub, onToggle, onDelete, index 
       <div className="flex items-center gap-3">
         {/* Logo */}
         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center shrink-0 overflow-hidden">
-          <img
-            src={logoUrl}
-            alt=""
-            className="w-6 h-6 rounded-md object-contain"
-            onError={(e) => {
-              const el = e.target as HTMLImageElement;
-              el.style.display = "none";
-              const fallback = document.createElement("span");
-              fallback.className = "font-display text-sm text-white/40";
-              fallback.textContent = serviceName.charAt(0).toUpperCase();
-              el.parentElement?.appendChild(fallback);
-            }}
-          />
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              className="w-6 h-6 rounded-md object-contain"
+              onError={(e) => {
+                const el = e.target as HTMLImageElement;
+                el.style.display = "none";
+                const fallback = document.createElement("span");
+                fallback.className = "font-display text-sm text-white/40";
+                fallback.textContent = serviceName.charAt(0).toUpperCase();
+                el.parentElement?.appendChild(fallback);
+              }}
+            />
+          ) : (
+            <span className="font-display text-sm text-white/40">
+              {serviceName.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
 
         {/* Info */}

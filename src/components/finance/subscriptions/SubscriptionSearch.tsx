@@ -70,14 +70,24 @@ export function SubscriptionSearch({ services, onSelect, onCustom }: Subscriptio
               onClick={() => handleSelect(service)}
               className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
             >
-              <img
-                src={service.logo_url || `https://logo.clearbit.com/${service.domain}`}
-                alt=""
-                className="w-6 h-6 rounded-md bg-white/10"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
+              {service.logo_url ? (
+                <img
+                  src={service.logo_url}
+                  alt=""
+                  className="w-6 h-6 rounded-md bg-white/10"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                    const fallback = document.createElement("span");
+                    fallback.className = "w-6 h-6 rounded-md bg-white/10 flex items-center justify-center font-display text-xs text-white/40";
+                    fallback.textContent = service.name.charAt(0).toUpperCase();
+                    (e.target as HTMLImageElement).parentElement?.appendChild(fallback);
+                  }}
+                />
+              ) : (
+                <span className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center font-display text-xs text-white/40">
+                  {service.name.charAt(0).toUpperCase()}
+                </span>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-white truncate">{service.name}</p>
                 <p className="font-mono text-[10px] text-white/30">{service.category}</p>
