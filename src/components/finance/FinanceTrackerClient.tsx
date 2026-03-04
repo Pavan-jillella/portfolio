@@ -35,6 +35,7 @@ import { AIAnalysis } from "./AIAnalysis";
 import { MonthlyReportEmail } from "./MonthlyReportEmail";
 import { CurrencySettings } from "./CurrencySettings";
 import { SubscriptionTracker } from "./SubscriptionTracker";
+import { SubscriptionManager } from "./subscriptions/SubscriptionManager";
 import { PayrollTracker } from "./PayrollTracker";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -272,6 +273,23 @@ export function FinanceTrackerClient() {
 
   function deleteSubscription(id: string) {
     setSubscriptions((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  // Budget integration: auto-create expense transaction when adding subscription
+  function addSubscriptionWithIntegration(sub: Subscription) {
+    setSubscriptions((prev) => [sub, ...prev]);
+    if (sub.active && sub.amount > 0) {
+      const tx: Transaction = {
+        id: crypto.randomUUID(),
+        type: "expense",
+        amount: sub.amount,
+        category: sub.category,
+        description: `Subscription: ${sub.name}`,
+        date: sub.next_billing_date || new Date().toISOString().slice(0, 10),
+        created_at: new Date().toISOString(),
+      };
+      setTransactions((prev) => [tx, ...prev]);
+    }
   }
 
   // Payroll handlers
@@ -641,9 +659,9 @@ export function FinanceTrackerClient() {
       {activeTab === "subscriptions" && (
         <FadeIn>
           <ErrorBoundary module="Subscriptions">
-            <SubscriptionTracker
+            <SubscriptionManager
             subscriptions={subscriptions}
-            onAdd={addSubscription}
+            onAdd={addSubscriptionWithIntegration}
             onToggle={toggleSubscription}
             onDelete={deleteSubscription}
           />
@@ -689,7 +707,7 @@ export function FinanceTrackerClient() {
       {activeTab === "analysis" && (
         <FadeIn>
           <ErrorBoundary module="AI Analysis">
-            <AIAnalysis transactions={transactions} budgets={budgets} />
+            <AIAnalysis transactions={transactions} budgets={budgets} subscriptions={subscriptions} />
           </ErrorBoundary>
         </FadeIn>
       )}

@@ -101,6 +101,9 @@ export async function POST(req: NextRequest) {
     if (table === "investments") {
       dataWithUserId = dataWithUserId.map(({ exchange: _e, market: _m, ...rest }) => rest);
     }
+    if (table === "subscriptions") {
+      dataWithUserId = dataWithUserId.map(({ website: _w, logo_url: _l, card_last4: _c, notes: _n, service_id: _s, ...rest }) => rest);
+    }
 
     const { error } = await supabase.from(table).upsert(dataWithUserId, { onConflict: "id" });
     if (error) errors.push(`upsert: ${error.message}`);

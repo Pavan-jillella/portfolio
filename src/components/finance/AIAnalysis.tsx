@@ -1,14 +1,15 @@
 "use client";
 import { useState } from "react";
-import { Transaction, Budget, MonthlySpending } from "@/types";
-import { formatCurrency, getCategoryBreakdown, getMonthlyTrend } from "@/lib/finance-utils";
+import { Transaction, Budget, Subscription, MonthlySpending } from "@/types";
+import { formatCurrency, getCategoryBreakdown, getMonthlyTrend, getMonthlySubscriptionTotal } from "@/lib/finance-utils";
 
 interface AIAnalysisProps {
   transactions: Transaction[];
   budgets: Budget[];
+  subscriptions?: Subscription[];
 }
 
-export function AIAnalysis({ transactions, budgets }: AIAnalysisProps) {
+export function AIAnalysis({ transactions, budgets, subscriptions = [] }: AIAnalysisProps) {
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +39,18 @@ export function AIAnalysis({ transactions, budgets }: AIAnalysisProps) {
       ...budgets.map((b) => `${b.category}: ${formatCurrency(b.monthly_limit)} limit (${b.month})`),
     ];
 
-    const prompt = `Analyze this personal finance data and provide actionable insights. Focus on: spending patterns, savings opportunities, budget adherence, and any anomalies. Be specific and use the numbers provided.
+    // Add subscription context if available
+    if (subscriptions.length > 0) {
+      const activeSubs = subscriptions.filter((s) => s.active);
+      const monthlySubTotal = getMonthlySubscriptionTotal(subscriptions);
+      summaryLines.push(
+        "",
+        `Active subscriptions: ${activeSubs.length} (${formatCurrency(monthlySubTotal)}/month, ${formatCurrency(monthlySubTotal * 12)}/year)`,
+        ...activeSubs.map((s) => `  ${s.name}: ${formatCurrency(s.amount)}/${s.frequency} (${s.category})`),
+      );
+    }
+
+    const prompt = `Analyze this personal finance data and provide actionable insights. Focus on: spending patterns, savings opportunities, budget adherence, subscription optimization, and any anomalies. Be specific and use the numbers provided.
 
 ${summaryLines.join("\n")}
 
@@ -46,7 +58,8 @@ Provide your analysis in these sections:
 1. Spending Patterns - what trends do you see?
 2. Savings Opportunities - where can they save?
 3. Budget Health - are they within budget targets?
-4. Predictions & Tips - what should they watch for next month?`;
+4. Subscription Insights - are there overlapping services, too many subscriptions, or cost reduction opportunities?
+5. Predictions & Tips - what should they watch for next month?`;
 
     try {
       const res = await fetch("/api/chat", {

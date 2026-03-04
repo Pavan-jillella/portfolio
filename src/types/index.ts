@@ -276,6 +276,20 @@ export interface Subscription {
   reminder_days: number;
   active: boolean;
   created_at: string;
+  website?: string;
+  logo_url?: string;
+  card_last4?: string;
+  notes?: string;
+  service_id?: string;
+}
+
+export interface SubscriptionCatalogEntry {
+  id: string;
+  name: string;
+  domain: string;
+  category: string;
+  default_amount?: number;
+  default_frequency?: SubscriptionFrequency;
 }
 
 // ===== Currency Types =====
