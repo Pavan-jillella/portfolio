@@ -35,6 +35,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
   // Form state
   const [selectedService, setSelectedService] = useState<SubscriptionService | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [isCustomPlan, setIsCustomPlan] = useState(false);
   const [customMode, setCustomMode] = useState(false);
   const [customName, setCustomName] = useState("");
   const [price, setPrice] = useState("");
@@ -130,6 +131,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
   const resetForm = useCallback(() => {
     setSelectedService(null);
     setSelectedPlan(null);
+    setIsCustomPlan(false);
     setCustomMode(false);
     setCustomName("");
     setPrice("");
@@ -143,6 +145,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
   function handleServiceSelect(service: SubscriptionService) {
     setSelectedService(service);
     setSelectedPlan(null);
+    setIsCustomPlan(false);
     setCustomMode(false);
     setCustomName("");
   }
@@ -156,12 +159,14 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
 
   function handlePlanSelect(plan: SubscriptionPlan) {
     setSelectedPlan(plan);
+    setIsCustomPlan(false);
     setPrice(String(plan.price));
     setBillingCycle(plan.billing_cycle);
   }
 
   function handleCustomPlan() {
     setSelectedPlan(null);
+    setIsCustomPlan(true);
     setPrice("");
   }
 
@@ -305,12 +310,15 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
           {/* Add Subscription Form */}
           <AnimatePresence>
             {showForm && (
-              <motion.form
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+              <form
                 onSubmit={handleAdd}
-                className="glass-card rounded-2xl p-5 space-y-4 overflow-hidden"
+                className="glass-card rounded-2xl p-5 space-y-4"
               >
                 <h4 className="font-display font-semibold text-sm text-white">Add Subscription</h4>
 
@@ -357,6 +365,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                   <SubscriptionPlanSelector
                     plans={servicePlans}
                     selectedPlanId={selectedPlan?.id || null}
+                    isCustom={isCustomPlan}
                     onSelect={handlePlanSelect}
                     onCustom={handleCustomPlan}
                   />
@@ -446,7 +455,8 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                 {catalogLoading && (
                   <p className="font-body text-xs text-white/20">Loading catalog...</p>
                 )}
-              </motion.form>
+              </form>
+              </motion.div>
             )}
           </AnimatePresence>
 

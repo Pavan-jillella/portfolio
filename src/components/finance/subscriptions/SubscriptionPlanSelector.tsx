@@ -6,11 +6,12 @@ import { motion } from "framer-motion";
 interface SubscriptionPlanSelectorProps {
   plans: SubscriptionPlan[];
   selectedPlanId: string | null;
+  isCustom: boolean;
   onSelect: (plan: SubscriptionPlan) => void;
   onCustom: () => void;
 }
 
-export function SubscriptionPlanSelector({ plans, selectedPlanId, onSelect, onCustom }: SubscriptionPlanSelectorProps) {
+export function SubscriptionPlanSelector({ plans, selectedPlanId, isCustom, onSelect, onCustom }: SubscriptionPlanSelectorProps) {
   if (plans.length === 0) {
     return (
       <div className="col-span-full">
@@ -63,7 +64,7 @@ export function SubscriptionPlanSelector({ plans, selectedPlanId, onSelect, onCu
           transition={{ delay: plans.length * 0.03 }}
           onClick={onCustom}
           className={`text-left p-3 rounded-xl border transition-all ${
-            selectedPlanId === null
+            isCustom
               ? "border-blue-500/40 bg-blue-500/[0.08]"
               : "border-white/8 border-dashed bg-white/[0.02] hover:border-white/15"
           }`}
