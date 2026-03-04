@@ -155,7 +155,8 @@ Composed of 7 sections rendered in order:
 - Finds post by slug from `useSupabaseRealtimeSync` data
 - Renders markdown with `react-markdown` + `remark-gfm`
 - Styled component overrides for: h1-h3, p, a, ul, ol, blockquote, code (inline/block), hr, table, th, td
-- Loading state while data fetches, "Post not found" fallback
+- Loading/ready state with timeout (distinguishes "loading" from "empty data"), "Post not found" fallback
+- Markdown links sanitized: `isSafeHref()` blocks `javascript:` URLs; tags use optional chaining
 - `CommentSection` for per-slug comments (global, not per-user)
 
 ### Blog Content Pipeline
@@ -178,7 +179,7 @@ User writes markdown in /blog/write
 
 - Split-view modes: Editor | Split | Preview
 - Live markdown preview with `react-markdown`
-- Auto-slug generation from title
+- Auto-slug generation from title with uniqueness check (appends timestamp suffix if slug exists)
 - Word count and auto-calculated read time
 - Metadata: description, category (Technology/Finance/Education), tags (comma-separated)
 - Saves directly via `setPosts()` — creates BlogPost with `id: Date.now().toString()`, `created_at: new Date().toISOString()`
@@ -234,6 +235,7 @@ User writes markdown in /blog/write
 - Exchanges auth code for Supabase session
 - Sets session cookies
 - Redirects to `next` query param or `/`
+- Validates `next` param: must start with `/` and not `//` (prevents open redirect)
 
 ### Admin Panel
 
@@ -330,7 +332,7 @@ All `/admin/*` routes protected by Google OAuth middleware.
 |---|---|---|
 | `/dashboard/activity` | `ActivityTimeline` | Unified activity feed (study, notes, courses, projects, blog, code) |
 | `/dashboard/analytics` | `PersonalAnalyticsClient` | Contribution heatmap, commit timeline, correlation charts, growth metrics |
-| `/dashboard/life-index` | `LifeIndexDashboard` | Composite 0-100 life score across Financial Health, Learning, Technical, Personal Growth |
+| `/dashboard/life-index` | `LifeIndexDashboard` | Composite 0-100 life score across Financial Health, Learning, Technical, Personal Growth; reads actual blog post count via `useSupabaseRealtimeSync` |
 
 ---
 
@@ -345,7 +347,7 @@ All `/admin/*` routes protected by Google OAuth middleware.
 | `/api/search-data` | GET | Returns empty (blog data is per-user, client-fetched) |
 | `/api/comments` | GET, POST | Blog comments (global by slug) |
 | `/api/chat` | POST | AI chat (OpenAI GPT-4o-mini) |
-| `/api/activity` | GET | Unified activity feed (Supabase + GitHub) |
+| `/api/activity` | GET | Unified activity feed (Supabase + GitHub); filters by authenticated user_id |
 
 ### GitHub & LeetCode
 
@@ -362,11 +364,11 @@ All `/admin/*` routes protected by Google OAuth middleware.
 |---|---|---|
 | `/api/finance/stocks` | GET | Stock quotes (Yahoo Finance) |
 | `/api/finance/stocks/history` | GET | Historical stock prices |
-| `/api/finance/stocks/search` | GET | Stock symbol search |
+| `/api/finance/stocks/search` | GET | Stock symbol search (rate-limited: 20/60s) |
 | `/api/finance/currency` | GET | Exchange rates |
 | `/api/finance/crypto` | GET | Cryptocurrency prices |
-| `/api/finance/report` | POST | Email monthly finance report |
-| `/api/finance/payroll-import` | POST | Import payroll from Google Sheets |
+| `/api/finance/report` | POST | Email monthly finance report (HTML-escaped) |
+| `/api/finance/payroll-import` | POST | Import payroll from Google Sheets (SSRF-protected) |
 
 ### Embeddings & Analytics
 
@@ -384,9 +386,9 @@ All `/admin/*` routes protected by Google OAuth middleware.
 | `/api/admin/setup-db` | GET | Check table status, provide migration SQL |
 | `/api/admin/export` | GET | Full JSON backup of all tables |
 | `/api/admin/check-tables` | GET | Check which tables exist |
-| `/api/admin/migrate-owner` | POST | Migrate data ownership between users |
-| `/api/contact` | POST | Contact form email (CAPTCHA-protected) |
-| `/api/newsletter` | POST | Newsletter subscription |
+| `/api/admin/migrate-owner` | POST | Migrate data ownership between users (owner email via env var) |
+| `/api/contact` | POST | Contact form email (CAPTCHA-protected, HTML-escaped) |
+| `/api/newsletter` | POST | Newsletter subscription (rate-limited: 5/60s, regex-validated) |
 | `/api/education/upload` | POST | Upload file to Supabase Storage |
 | `/api/education/upload/[path]` | DELETE | Delete file from Supabase Storage |
 
@@ -623,4 +625,4 @@ src/
 
 ---
 
-*Updated on 2026-03-03. Reflects Google OAuth authentication, per-user Supabase data isolation (vlogs, blogs, projects), Vercel deployment, and RLS policies on all tables.*
+*Updated on 2026-03-04. Reflects comprehensive QA audit (10 backend security fixes + 11 UI bug fixes), Google OAuth authentication, per-user Supabase data isolation (vlogs, blogs, projects), Vercel deployment, and RLS policies on all tables.*

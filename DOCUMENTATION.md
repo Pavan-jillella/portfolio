@@ -210,14 +210,15 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 - **Type:** Client component with `use(params)` for Next.js 15 async params
 - **Data Source:** Finds post by slug from `useSupabaseRealtimeSync` blog_posts
 - **Rendering:** `react-markdown` + `remark-gfm` with styled component overrides (headings, paragraphs, code blocks, tables, blockquotes, lists)
-- **Features:** Loading state, "Post not found" state, CommentSection
+- **Features:** Loading/ready state with timeout (distinguishes "loading" from "empty"), "Post not found" state, CommentSection
+- **Security:** Markdown links sanitized via `isSafeHref()` — blocks `javascript:` URLs; tags accessed with optional chaining to prevent crashes on undefined
 - **Note:** No `generateStaticParams` or `generateMetadata` — fully client-rendered per-user
 
 #### Blog Editor (`/blog/write`)
 - **File:** `src/app/blog/write/page.tsx`
 - **Type:** Client component
 - **Data Source:** `useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", [])`
-- **Features:** Split-view editor (Editor | Split | Preview), live Markdown preview, word count, read time estimate, metadata panel (description, category, tags), auto-slug generation
+- **Features:** Split-view editor (Editor | Split | Preview), live Markdown preview, word count, read time estimate, metadata panel (description, category, tags), auto-slug generation with uniqueness check (appends timestamp suffix if slug already exists)
 - **Save:** Directly calls `setPosts()` from the sync hook — creates a `BlogPost` object with `id: Date.now().toString()`, auto-calculated `read_time`, `created_at: new Date().toISOString()`
 
 #### Login (`/login`)
@@ -238,6 +239,8 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 
 #### Life Index (`/dashboard/life-index`)
 - **File:** `src/app/dashboard/life-index/page.tsx`
+- **Type:** Client component
+- **Data Source:** `useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", [])` — reads actual published post count
 - **Component:** `LifeIndexDashboard`
 - **Features:** Composite life score (0-100) across four equally weighted domains:
   - **Financial Health** — savings rate, budget adherence, net worth, savings goal progress
@@ -299,6 +302,7 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 #### `GET /api/auth/callback`
 - **Purpose:** Handle Google OAuth callback from Supabase Auth
 - **Behavior:** Exchanges auth code for session, sets cookies, redirects to `next` param or home
+- **Security:** Validates `next` param starts with `/` and is not a protocol-relative URL (`//`)
 
 ### Blog & Content
 
@@ -367,6 +371,7 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 
 #### `GET /api/finance/stocks/search`
 - **Purpose:** Search for stock symbols
+- **Rate Limit:** 20 req / 60s per IP
 
 #### `GET /api/finance/currency`
 - **Purpose:** USD exchange rates
@@ -378,14 +383,17 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 
 #### `POST /api/finance/report`
 - **Purpose:** Generate and email monthly finance report (HTML)
+- **Security:** HTML-escapes category names and recommendations in report template
 
 #### `POST /api/finance/payroll-import`
 - **Purpose:** Import payroll from Google Sheets / Apps Script
+- **Security:** SSRF protection — uses `redirect: "manual"` and only follows redirects to Google domains
 
 ### Activity & Analytics
 
 #### `GET /api/activity`
 - **Purpose:** Unified activity feed (study, notes, courses, projects, blog, code)
+- **Auth:** Requires authenticated session; filters all queries by `user_id`
 - **Params:** `?cursor=id&limit=20&filter=all|study|note|course|project|blog|code`
 - **Sources:** Supabase (study/notes/courses/projects/blog) + GitHub API (code)
 - **Blog data:** Fetched from Supabase `blog_posts` table (not MDX)
@@ -421,9 +429,12 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 #### `POST /api/contact`
 - **Purpose:** Send contact form email
 - **Protection:** Cloudflare Turnstile CAPTCHA, honeypot field, rate limit (3/60s)
+- **Security:** HTML-escapes all user input (name, email, message) before injecting into HTML email template
 
 #### `POST /api/newsletter`
 - **Purpose:** Newsletter subscription
+- **Rate Limit:** 5 req / 60s per IP
+- **Validation:** Regex email validation (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`)
 
 #### `POST /api/education/upload` & `DELETE /api/education/upload/[path]`
 - **Purpose:** Upload/delete files in Supabase storage
@@ -437,7 +448,7 @@ All routes require Google OAuth authentication. The middleware uses `@supabase/s
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| **AnimatedCounter** | `ui/AnimatedCounter.tsx` | Animated number counter with easing |
+| **AnimatedCounter** | `ui/AnimatedCounter.tsx` | Animated number counter with easing; cancels `requestAnimationFrame` on unmount to prevent memory leaks |
 | **ContactForm** | `ui/ContactForm.tsx` | Contact form with Turnstile CAPTCHA |
 | **CursorGlow** | `ui/CursorGlow.tsx` | Mouse-following glow effect |
 | **EmptyState** | `ui/EmptyState.tsx` | Empty state placeholder with icon/message |
@@ -488,7 +499,7 @@ The finance tracker is the largest module:
 | Component | Purpose |
 |-----------|---------|
 | **FinanceTrackerClient** | Main orchestrator - manages all state, tabs, and child components |
-| **TransactionForm** | Add/edit transaction form |
+| **TransactionForm** | Add/edit transaction form; validates against NaN amounts |
 | **TransactionTable** | Transaction display with 3 view modes, sorting, inline editing |
 | **TransactionList** | Legacy transaction list (card view) |
 | **TransactionFilters** | Filter bar (type, category, date range) |
@@ -497,7 +508,7 @@ The finance tracker is the largest module:
 #### Budgets & Savings
 | Component | Purpose |
 |-----------|---------|
-| **BudgetManager** | Set monthly category budgets with progress bars |
+| **BudgetManager** | Set monthly category budgets with progress bars; prevents duplicate budgets per category/month; guards divide-by-zero on zero-limit budgets |
 | **BudgetPlanner** | Budget planning and analysis |
 | **SavingsGoals** | Target savings goals with progress tracking |
 | **SavingsTrendChart** | Line chart of savings over time |
@@ -530,7 +541,7 @@ The finance tracker is the largest module:
 | **PayrollMonthlyTrend** | Monthly payroll trend chart |
 | **PayrollWeeklyTrend** | Weekly earnings trend chart |
 | **PayrollPieChart** | Employer income distribution |
-| **PayStubForm** | Create/edit pay stub with tax calculations |
+| **PayStubForm** | Create/edit pay stub with tax calculations; validates required fields (employer, dates) |
 | **PayStubList** | List pay stubs with 3 view modes |
 | **PayrollSettingsPanel** | Payroll configuration |
 | **EmployerManager** | Add/edit/remove employers with pay rates |
@@ -597,7 +608,7 @@ PersonalAnalyticsClient, ContributionHeatmap, CommitTimeline, CorrelationChart, 
 | **FilterChips** | Activity type filter chips |
 | **LayoutShell** | App shell with Navbar + ChatWidget |
 | **MDXContent** | MDX renderer (legacy component, not used by blog) |
-| **VlogManager** | Vlog add/edit/delete management |
+| **VlogManager** | Vlog add/edit/delete management; validates YouTube URL/ID before saving (returns empty on invalid URL) |
 | **LifeIndexDashboard** | Composite life score ring + 4 domain cards |
 | **AuthProvider** | Supabase auth context provider |
 | **PostHogProvider** | PostHog analytics provider |
@@ -1024,6 +1035,25 @@ frame-src cloudflare youtube accounts.google.com
 - Chat: 5 req / 60s
 - Embeddings: 10 req / 60s + 100 embeddings/day daily cap
 - Payroll Import: 10 req / 60s
+- Newsletter: 5 req / 60s
+- Stock Search: 20 req / 60s
+
+### Input Validation & Sanitization
+- **Email validation:** Proper regex `/^[^\s@]+@[^\s@]+\.[^\s@]+$/` on newsletter endpoint
+- **HTML escaping:** User-supplied data in email templates (contact form + finance reports) escaped via `escapeHtml()` (`&`, `<`, `>`, `"`)
+- **Markdown XSS prevention:** Blog post markdown links validated with `isSafeHref()` — only `http://`, `https://`, `/`, and `#` URLs allowed; `javascript:` blocked
+- **Form validation:** TransactionForm rejects `NaN` amounts, PayStubForm requires employer/dates, BudgetManager blocks duplicate category budgets
+
+### Open Redirect Prevention
+- Auth callback `next` param validated: must start with `/` and must NOT start with `//` (blocks protocol-relative URLs)
+
+### SSRF Prevention
+- Payroll import uses `redirect: "manual"` instead of `redirect: "follow"`
+- Redirects only followed to whitelisted Google domains (`script.googleusercontent.com`, `script.google.com`)
+
+### Credential Hygiene
+- Owner email moved to `OWNER_EMAIL` environment variable (not hardcoded)
+- Supabase project ID dynamically extracted from `NEXT_PUBLIC_SUPABASE_URL` (not hardcoded in API responses)
 
 ### Spam Protection
 - Cloudflare Turnstile CAPTCHA on contact form
@@ -1063,6 +1093,7 @@ next-sitemap        # Generate sitemap (postbuild)
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile | Optional |
 | `NEXT_PUBLIC_POSTHOG_KEY` | PostHog analytics | Optional |
 | `SENTRY_DSN` | Sentry error tracking | Optional |
+| `OWNER_EMAIL` | Owner email for admin migration endpoint | Optional |
 
 ### SEO
 - Dynamic sitemap via `next-sitemap` (auto-generated on build)
@@ -1254,4 +1285,4 @@ portfolio/
 
 ---
 
-*Updated on 2026-03-03. Reflects multi-user Google OAuth authentication, per-user Supabase data (vlogs, blogs, projects), Vercel deployment, and complete data isolation via RLS.*
+*Updated on 2026-03-04. Reflects comprehensive QA audit (10 backend security fixes + 11 UI bug fixes), multi-user Google OAuth authentication, per-user Supabase data (vlogs, blogs, projects), Vercel deployment, and complete data isolation via RLS.*
