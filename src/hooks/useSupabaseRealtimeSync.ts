@@ -65,13 +65,19 @@ export function useSupabaseRealtimeSync<T extends { id: string }>(
 
   // Reset when user changes (login/logout/switch account)
   useEffect(() => {
-    if (previousUserRef.current !== (user?.id ?? null)) {
-      previousUserRef.current = user?.id ?? null;
+    const newUserId = user?.id ?? null;
+    const prevUserId = previousUserRef.current;
 
-      // Always clear previous user's data and reset sync
-      // This prevents data from leaking between accounts via localStorage
+    if (prevUserId !== newUserId) {
+      previousUserRef.current = newUserId;
       initialSyncDone.current = false;
-      setLocalData(defaultValue);
+
+      // Only clear data when switching between actual users or logging out.
+      // On initial page load (null → userId), preserve localStorage so that
+      // data survives refresh even when Supabase tables don't exist yet.
+      if (prevUserId !== null) {
+        setLocalData(defaultValue);
+      }
     }
   }, [user, defaultValue, setLocalData]);
 
