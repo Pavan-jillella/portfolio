@@ -1,11 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
-export async function GET() {
+const EMPTY_RESPONSE = {
+  solved: 0, easy: 0, medium: 0, hard: 0,
+  totalQuestions: 0, totalEasy: 0, totalMedium: 0, totalHard: 0,
+  ranking: 0, contributionPoints: 0,
+  recentSubmissions: [], submissionCalendar: {},
+};
+
+export async function GET(request: NextRequest) {
   try {
-    const username = process.env.LEETCODE_USERNAME || "Punisher_17";
+    const username = request.nextUrl.searchParams.get("username");
+    if (!username) {
+      return NextResponse.json(EMPTY_RESPONSE);
+    }
 
     const res = await fetch(
       `https://alfa-leetcode-api.onrender.com/userProfile/${username}`,

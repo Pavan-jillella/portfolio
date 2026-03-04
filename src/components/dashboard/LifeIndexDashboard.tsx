@@ -175,16 +175,19 @@ export function LifeIndexDashboard({ blogCount }: LifeIndexDashboardProps) {
   const [notes] = useLocalStorage<Note[]>("pj-edu-notes", []);
 
   // ── External data ──
-  const { data: githubData } = useGitHubData();
-  const { data: leetcodeData } = useLeetCodeData();
+  const [githubUsername] = useLocalStorage<string>("pj-github-username", "");
+  const [leetcodeUsername] = useLocalStorage<string>("pj-leetcode-username", "");
+  const { data: githubData } = useGitHubData(githubUsername);
+  const { data: leetcodeData } = useLeetCodeData(leetcodeUsername);
   const [commitDays, setCommitDays] = useState<{ date: string; count: number }[]>([]);
 
   useEffect(() => {
-    fetch("/api/github/events")
+    if (!githubUsername) return;
+    fetch(`/api/github/events?username=${encodeURIComponent(githubUsername)}`)
       .then((r) => r.json())
       .then((d) => setCommitDays(d.commits || []))
       .catch(() => {});
-  }, []);
+  }, [githubUsername]);
 
   const currentMonth = getCurrentMonth();
 

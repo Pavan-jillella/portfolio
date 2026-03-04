@@ -1,16 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const username = request.nextUrl.searchParams.get("username");
+    if (!username) {
+      return NextResponse.json({ commits: [] });
+    }
+
     const headers: HeadersInit = { Accept: "application/vnd.github.v3+json" };
     if (process.env.GITHUB_TOKEN) {
       headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
     }
 
     const res = await fetch(
-      "https://api.github.com/users/Pavan-jillella/events?per_page=100",
+      `https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100`,
       { headers, next: { revalidate: 3600 } }
     );
 

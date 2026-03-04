@@ -134,14 +134,15 @@ export async function GET(req: NextRequest) {
     }
 
     // GitHub commits
-    if (filter === "all" || filter === "code") {
+    const githubUsername = req.nextUrl.searchParams.get("github_username");
+    if ((filter === "all" || filter === "code") && githubUsername) {
       try {
         const headers: HeadersInit = { Accept: "application/vnd.github.v3+json" };
         if (process.env.GITHUB_TOKEN) {
           headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
         }
         const res = await fetch(
-          "https://api.github.com/users/Pavan-jillella/events?per_page=30",
+          `https://api.github.com/users/${encodeURIComponent(githubUsername)}/events?per_page=30`,
           { headers, next: { revalidate: 3600 } }
         );
         if (res.ok) {

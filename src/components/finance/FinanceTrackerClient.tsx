@@ -17,7 +17,7 @@ import {
   getPartTimeJobEarnings,
   formatCurrency,
 } from "@/lib/finance-utils";
-import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TAX_CONFIG, DEFAULT_EMPLOYERS } from "@/lib/constants";
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_TAX_CONFIG } from "@/lib/constants";
 import { MonthPicker } from "./MonthPicker";
 import { MonthlySummaryCards } from "./MonthlySummaryCards";
 import { TransactionForm } from "./TransactionForm";
@@ -36,7 +36,6 @@ import { MonthlyReportEmail } from "./MonthlyReportEmail";
 import { CurrencySettings } from "./CurrencySettings";
 import { SubscriptionTracker } from "./SubscriptionTracker";
 import { PayrollTracker } from "./PayrollTracker";
-import { STEMTREE_PAYROLL_HISTORY } from "@/lib/stemtree-payroll";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { RealtimeStatus } from "@/components/ui/RealtimeStatus";
@@ -87,7 +86,7 @@ export function FinanceTrackerClient() {
   const [partTimeJobs, setPartTimeJobs, ptJobsConnected] = useSupabaseRealtimeSync<PartTimeJob>("pj-part-time-jobs", "part_time_jobs", []);
   const [partTimeHours, setPartTimeHours] = useSupabaseRealtimeSync<PartTimeHourEntry>("pj-part-time-hours", "part_time_hours", []);
   const [workSchedules, setWorkSchedules] = useSupabaseRealtimeSync<WorkSchedule>("pj-work-schedules", "work_schedules", []);
-  const [employers, setEmployers] = useSupabaseRealtimeSync<Employer>("pj-employers", "employers", DEFAULT_EMPLOYERS);
+  const [employers, setEmployers] = useSupabaseRealtimeSync<Employer>("pj-employers", "employers", []);
   const [enhancedSchedules, setEnhancedSchedules] = useSupabaseRealtimeSync<EnhancedWorkSchedule>("pj-enhanced-schedules", "enhanced_work_schedules", []);
 
   // Settings remain in localStorage (config, not data)
@@ -105,7 +104,7 @@ export function FinanceTrackerClient() {
     schedule_name: "Pavan",
     hourly_rate: 14,
     tax_config: DEFAULT_TAX_CONFIG,
-    employers: DEFAULT_EMPLOYERS,
+    employers: [],
     income_goals: [],
     auto_send_to_income: false,
     auto_sync_enabled: false,
@@ -113,27 +112,6 @@ export function FinanceTrackerClient() {
     last_synced_at: null,
   });
   const [displayCurrency, setDisplayCurrency] = useLocalStorage<string>("pj-display-currency", "USD");
-  // Seed Stemtree payroll history — dedup inside functional updater
-  // so prev reflects the real localStorage-loaded state
-  useEffect(() => {
-    // Clean up stale flag from old seeding logic
-    try { window.localStorage.removeItem("pj-payroll-seeded"); } catch {}
-    setPayStubs((prev) => {
-      // Deduplicate any existing entries first (cleanup from old bug)
-      const seen = new Set<string>();
-      const deduped = prev.filter((s) => {
-        if (seen.has(s.id)) return false;
-        seen.add(s.id);
-        return true;
-      });
-      // Add any missing Stemtree stubs
-      const existingIds = new Set(deduped.map((s) => s.id));
-      const newStubs = STEMTREE_PAYROLL_HISTORY.filter((s) => !existingIds.has(s.id));
-      if (newStubs.length === 0 && deduped.length === prev.length) return prev;
-      return [...newStubs, ...deduped];
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [activeTab, setActiveTab] = useState("overview");

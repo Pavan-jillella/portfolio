@@ -19,16 +19,19 @@ const KnowledgeGraph = dynamic(
 
 export function PersonalAnalyticsClient() {
   const [sessions] = useLocalStorage<any[]>("pj-study-sessions", []);
-  const { data: githubData } = useGitHubData();
-  const { data: leetcodeData } = useLeetCodeData();
+  const [githubUsername] = useLocalStorage<string>("pj-github-username", "");
+  const [leetcodeUsername] = useLocalStorage<string>("pj-leetcode-username", "");
+  const { data: githubData } = useGitHubData(githubUsername);
+  const { data: leetcodeData } = useLeetCodeData(leetcodeUsername);
   const [commitDays, setCommitDays] = useState<{ date: string; count: number }[]>([]);
 
   useEffect(() => {
-    fetch("/api/github/events")
+    if (!githubUsername) return;
+    fetch(`/api/github/events?username=${encodeURIComponent(githubUsername)}`)
       .then((r) => r.json())
       .then((data) => setCommitDays(data.commits || []))
       .catch(() => {});
-  }, []);
+  }, [githubUsername]);
 
   const leetcodeSolved = leetcodeData?.solved || 0;
 

@@ -8,8 +8,8 @@ interface GitHubData {
   languages: GitHubLanguageBreakdown[];
 }
 
-async function fetchGitHubData(): Promise<GitHubData> {
-  const res = await fetch("/api/github?all=true");
+async function fetchGitHubData(username: string): Promise<GitHubData> {
+  const res = await fetch(`/api/github?all=true&username=${encodeURIComponent(username)}`);
   if (!res.ok) throw new Error("Failed to fetch GitHub data");
   const json = await res.json();
 
@@ -35,10 +35,11 @@ async function fetchGitHubData(): Promise<GitHubData> {
   return { repos, stats, languages };
 }
 
-export function useGitHubData() {
+export function useGitHubData(username: string) {
   return useQuery({
-    queryKey: ["github-repos"],
-    queryFn: fetchGitHubData,
+    queryKey: ["github-repos", username],
+    queryFn: () => fetchGitHubData(username),
+    enabled: !!username,
     staleTime: 30 * 60 * 1000,
   });
 }

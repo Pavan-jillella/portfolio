@@ -2,7 +2,8 @@
 
 **Author:** Pavan Jillella
 **Stack:** Next.js 14 (App Router) | TypeScript | Tailwind CSS | Framer Motion | Supabase | TipTap
-**URL:** pavanjillella.com
+**Deployment:** Vercel (`pavanjillella.vercel.app`)
+**Auth:** Google OAuth via Supabase Auth (all routes protected)
 
 ---
 
@@ -41,6 +42,7 @@ The root layout (`src/app/layout.tsx`) wraps every page with a unified dark-them
 | `SmoothScroll` | `src/components/ui/SmoothScroll.tsx` | Lenis-powered smooth scrolling |
 | `PageViewTracker` | `src/components/analytics/PageViewTracker.tsx` | Background page view analytics |
 | `ChatWidget` | `src/components/chat/ChatWidget.tsx` | AI chat overlay (GPT-4o-mini) |
+| `AuthProvider` | `src/components/providers/AuthProvider.tsx` | Supabase auth context |
 
 ### Design System
 
@@ -51,46 +53,55 @@ The root layout (`src/app/layout.tsx`) wraps every page with a unified dark-them
 
 ### Authentication & Middleware
 
-- **Provider:** Supabase Auth (`@supabase/ssr`)
-- **Middleware:** `src/middleware.ts` protects `/admin/*` routes, redirects unauthorized users to `/login`
-- **Clients:** Three Supabase client factories:
-  - `src/lib/supabase/client.ts` — browser client for client components
+- **Provider:** Supabase Auth with Google OAuth (`@supabase/ssr`)
+- **Middleware:** `src/middleware.ts` protects ALL routes, redirects unauthenticated users to `/login`
+- **Public paths:** `/login`, `/api/auth/callback`, `/api/contact`, `/api/comments`, `/api/analytics`, static assets
+- **Session:** Cookie-based via Supabase, validated with `getUser()` on every request
+- **Clients:** Four Supabase client factories:
+  - `src/lib/supabase/client.ts` — browser client (SSR-aware, reads auth cookies)
   - `src/lib/supabase/server.ts` — server client with disabled session persistence
-  - `src/lib/supabase/admin.ts` — admin client using service role key
+  - `src/lib/supabase/admin.ts` — admin client using service role key (bypasses RLS)
+  - `src/lib/supabase/middleware.ts` — middleware-specific client for auth checks
 
-### Data Persistence Pattern
+### Data Persistence Pattern (Multi-User)
 
-All interactive features use a two-layer persistence strategy:
+All interactive features use a three-layer persistence strategy via `useSupabaseRealtimeSync`:
 
-1. **Primary:** `useLocalStorage<T>` hook — SSR-safe browser storage with TypeScript generics and `pj-` namespaced keys
-2. **Optional:** `useSupabaseSync` hook — syncs localStorage data to Supabase cloud when configured
-3. **Files:** `useSupabaseStorage` hook — upload/delete to Supabase Storage `education-files` bucket
+1. **localStorage:** Immediate, synchronous writes for instant UI feedback
+2. **Supabase PostgreSQL:** Async fire-and-forget writes via `/api/sync` (authenticated, injects `user_id`)
+3. **Supabase Realtime:** WebSocket subscriptions for live cross-tab/device sync (RLS-filtered by `user_id`)
+
+**Multi-user isolation:**
+- localStorage is cleared when user changes (prevents cross-account data leak)
+- Supabase reads are RLS-filtered: `auth.uid() = user_id`
+- Writes go through `/api/sync` which automatically injects `user_id` from session
+- New users start with completely empty data (0 blogs, 0 vlogs, 0 projects)
 
 ### SEO
 
 - Dynamic `sitemap.ts` and `robots.ts` route handlers
 - `next-sitemap` post-build generation
-- Per-page `metadata` exports on every route
+- Per-page `metadata` exports on static pages
 
 ---
 
 ## 2. Home Page
 
 **Route:** `/`
-**Type:** Server Component
+**Type:** Server Component with client sub-sections
 **File:** `src/app/page.tsx`
 
 Composed of 7 sections rendered in order:
 
-| Section | Component | Description |
-|---|---|---|
-| Hero | `HeroSection` | Name, title, animated entrance |
-| Vlogs | `VlogSection` | Featured vlogs with YouTube embeds |
-| Blog | `BlogSection` | Latest blog post cards |
-| Projects | `ProjectsSection` | Featured projects from GitHub |
-| Stats | `StatsSection` | Animated counters (repos, stars, LeetCode) |
-| Philosophy | `PhilosophySection` | Personal philosophy cards |
-| Footer | `Footer` | Links, newsletter signup, social |
+| Section | Component | Data Source | Description |
+|---|---|---|---|
+| Hero | `HeroSection` | Static | Name, title, animated entrance |
+| Vlogs | `VlogSection` | `useSupabaseRealtimeSync<Vlog>` | Featured vlog (or null if empty) |
+| Blog | `BlogSection` | `useSupabaseRealtimeSync<BlogPost>` | Latest 3 published posts (or null if empty) |
+| Projects | `ProjectsSection` | `useSupabaseRealtimeSync<UserProject>` | Top 3 projects (or null if empty) |
+| Stats | `StatsSection` | GitHub + LeetCode APIs | Animated counters (repos, stars, LeetCode) |
+| Philosophy | `PhilosophySection` | Static | Personal philosophy cards |
+| Footer | `Footer` | Static | Links, newsletter signup, social |
 
 ---
 
@@ -109,11 +120,14 @@ Composed of 7 sections rendered in order:
 ## 4. Projects
 
 **Route:** `/projects`
-**Type:** Server Component
+**Type:** Client Component
 **File:** `src/app/projects/page.tsx`
 
-- Live GitHub repos fetched via `/api/github`
-- `ProjectCard` components displaying: repo name, description, stars, forks, language badge, topic tags
+- **Data Source:** `useSupabaseRealtimeSync<UserProject>("pj-user-projects", "user_projects", [])`
+- Built-in management UI: add/edit/delete projects with inline form
+- Language filter chips
+- Project cards displaying: name, description, stars, forks, language badge, topic tags
+- Empty state with "Add your first project" prompt for new users
 
 ---
 
@@ -122,32 +136,52 @@ Composed of 7 sections rendered in order:
 ### Blog List
 
 **Route:** `/blog`
-**Type:** Server Component
+**Type:** Client Component
 **File:** `src/app/blog/page.tsx`
 
-- MDX files parsed with `gray-matter` for frontmatter extraction
-- Post cards with title, date, description, category
-- Loading skeleton (`loading.tsx`)
+- **Data Source:** `useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", [])`
+- Filters by `published === true`, sorts by `created_at` desc
+- Category filter tags, post cards with title/description/category/read_time/created_at
+- Empty state with "Write your first post" link
+- "Write" button linking to `/blog/write`
 
 ### Blog Post Detail
 
 **Route:** `/blog/[slug]`
-**Type:** Server Component with `generateStaticParams`
+**Type:** Client Component
 **File:** `src/app/blog/[slug]/page.tsx`
 
-- Full MDX rendering via `next-mdx-remote`
-- Syntax highlighting (`rehype-highlight`)
-- Auto-linked headings (`rehype-autolink-headings` + `rehype-slug`)
-- GitHub Flavored Markdown (`remark-gfm`)
-- `CommentSection` — fetch/post comments via Supabase
+- Uses `use(params)` for Next.js 15 async params
+- Finds post by slug from `useSupabaseRealtimeSync` data
+- Renders markdown with `react-markdown` + `remark-gfm`
+- Styled component overrides for: h1-h3, p, a, ul, ol, blockquote, code (inline/block), hr, table, th, td
+- Loading state while data fetches, "Post not found" fallback
+- `CommentSection` for per-slug comments (global, not per-user)
 
 ### Blog Content Pipeline
 
 ```
-/content/blog/*.mdx → gray-matter → next-mdx-remote → rendered page
+User writes markdown in /blog/write
+  -> setPosts() via useSupabaseRealtimeSync
+    -> localStorage + /api/sync -> Supabase blog_posts table
+  -> Navigate to /blog/[slug]
+    -> useSupabaseRealtimeSync fetches blog_posts
+    -> Find post by slug
+    -> react-markdown renders content
 ```
 
-**Utilities:** `src/lib/mdx.ts` — `getAllPosts()`, `getPostBySlug()`, `getAllPostSlugs()`
+### Blog Editor
+
+**Route:** `/blog/write`
+**Type:** Client Component
+**File:** `src/app/blog/write/page.tsx`
+
+- Split-view modes: Editor | Split | Preview
+- Live markdown preview with `react-markdown`
+- Auto-slug generation from title
+- Word count and auto-calculated read time
+- Metadata: description, category (Technology/Finance/Education), tags (comma-separated)
+- Saves directly via `setPosts()` — creates BlogPost with `id: Date.now().toString()`, `created_at: new Date().toISOString()`
 
 ---
 
@@ -157,10 +191,12 @@ Composed of 7 sections rendered in order:
 **Type:** Client Component
 **File:** `src/app/vlogs/page.tsx`
 
-- Category filter tabs
+- **Data Source:** `useSupabaseRealtimeSync<Vlog>("pj-vlogs", "vlogs", [])`
+- Category filter tabs (Technology, Education, Finance, Lifestyle, Other)
 - `YouTubeEmbed` component for video playback
 - Framer Motion card animations
-- Static data from `src/lib/vlogs.ts`
+- `VlogManager` component for add/edit/delete with inline form
+- Field names: `youtube_id`, `published_at` (snake_case matching DB)
 
 ---
 
@@ -172,7 +208,7 @@ Composed of 7 sections rendered in order:
 
 | Component | Purpose |
 |---|---|
-| `ContactForm` | Form with `react-hook-form` + Zod validation, sends via NodeMailer |
+| `ContactForm` | Form with `react-hook-form` + Zod validation, Cloudflare Turnstile CAPTCHA, sends via NodeMailer |
 | `NewsletterForm` | Email subscription stored in Supabase |
 
 ---
@@ -185,19 +221,31 @@ Composed of 7 sections rendered in order:
 **Type:** Client Component
 **File:** `src/app/login/page.tsx`
 
-- Supabase email/password authentication
-- Redirects to `/admin` on success
+- Google OAuth "Sign in with Google" button
+- Supabase Auth handles the OAuth flow
+- Redirects to `/api/auth/callback` then to original route
+- Animated background
+
+### OAuth Callback
+
+**Route:** `/api/auth/callback`
+**File:** `src/app/api/auth/callback/route.ts`
+
+- Exchanges auth code for Supabase session
+- Sets session cookies
+- Redirects to `next` query param or `/`
 
 ### Admin Panel
 
-All `/admin/*` routes protected by Supabase auth middleware.
+All `/admin/*` routes protected by Google OAuth middleware.
 
 | Route | File | Feature |
 |---|---|---|
 | `/admin` | `src/app/admin/page.tsx` | Dashboard with overview stats |
-| `/admin/blog` | `src/app/admin/blog/page.tsx` | Blog post management (list, delete) |
-| `/admin/blog/new` | `src/app/admin/blog/new/page.tsx` | MDX blog post editor (create) |
-| `/admin/analytics` | `src/app/admin/analytics/page.tsx` | Page view analytics with charts |
+| `/admin/blog` | `src/app/admin/blog/page.tsx` | Links to `/blog` and `/blog/write` (blog management moved to main pages) |
+| `/admin/blog/new` | `src/app/admin/blog/new/page.tsx` | Server redirect to `/blog/write` |
+| `/admin/analytics` | `src/app/admin/analytics/page.tsx` | Page view analytics |
+| `/admin/setup` | `src/app/admin/setup/page.tsx` | DB table checker, migration SQL, backup download |
 
 ---
 
@@ -218,47 +266,30 @@ All `/admin/*` routes protected by Supabase auth middleware.
 **Route:** `/finance/tracker`
 **Type:** Server Component wrapping Client Orchestrator
 **Orchestrator:** `src/components/finance/FinanceTrackerClient.tsx`
-**Pattern:** Central "use client" component managing all state via 8 `useLocalStorage` hooks
+**Pattern:** Central "use client" component managing all state via `useSupabaseRealtimeSync` hooks
 
 #### Tabs & Features
 
 | Tab | Components | Features |
 |---|---|---|
-| **Overview** | `MonthlySummaryCards`, `MonthlyTrend` | Income/expense/savings summary, monthly trend line chart |
-| **Transactions** | `TransactionForm`, `TransactionList`, `TransactionTable`, `TransactionFilters` | Add/edit/delete transactions, sortable table, category badges, date filtering |
+| **Overview** | `MonthlySummaryCards`, `MonthlyTrend`, `Sparkline` | Income/expense/savings summary, monthly trend chart |
+| **Transactions** | `TransactionForm`, `TransactionList`, `TransactionTable`, `TransactionFilters` | Add/edit/delete transactions, 3 view modes, sorting, filtering |
 | **Budgets** | `BudgetManager`, `BudgetPlanner` | Monthly budgets per category, progress bars, over-budget alerts |
 | **Savings** | `SavingsGoals`, `SavingsTrendChart` | Target/current amounts, deadline tracking, trend visualization |
-| **Investments** | `InvestmentTracker` | Portfolio tracking (stocks, crypto, real estate), live stock quotes via Yahoo Finance API |
+| **Investments** | `InvestmentTracker` | Portfolio tracking (stocks, crypto, real estate), live stock quotes via Yahoo Finance |
 | **Net Worth** | `NetWorthCalculator` | Assets vs liabilities, category breakdown, net worth total |
-| **Subscriptions** | `SubscriptionTracker` | Recurring payments (weekly/monthly/yearly), renewal alerts, active/inactive toggle |
-| **Analysis** | `AIAnalysis`, `CategoryBreakdown`, `PieChart`, `Recommendations` | AI spending analysis, pie chart breakdown, smart recommendations |
+| **Subscriptions** | `SubscriptionTracker` | Recurring payments with renewal alerts |
+| **Analysis** | `AIAnalysis`, `CategoryBreakdown`, `PieChart`, `Recommendations` | AI spending analysis, pie chart, smart recommendations |
 | **Reports** | `MonthlyReportEmail` | Email monthly finance reports via NodeMailer |
 | **Categories** | `CategoryManager` | Custom expense category CRUD |
+| **Payroll** | `PayrollTracker`, `PayrollDashboard`, `PayStubForm`, `PayStubList` | Full payroll system with tax calculations, charts, employer management |
 
 #### Additional Finance Features
 
-- **Multi-Currency:** `CurrencySettings` supports 10 currencies (USD, EUR, GBP, JPY, CAD, AUD, INR, CNY, CHF, SGD) with live exchange rates
-- **Export:** `ExcelExport` / `ExportButton` — CSV and Excel (XLSX) transaction export
-- **Month Navigation:** `MonthPicker` component
-
-#### Finance localStorage Keys
-
-```
-pj-transactions, pj-budgets, pj-savings-goals, pj-investments,
-pj-net-worth, pj-subscriptions, pj-custom-categories, pj-display-currency
-```
-
-#### Finance Utilities
-
-**File:** `src/lib/finance-utils.ts`
-
-- `generateId()` — `crypto.randomUUID()`
-- `getCategoryBreakdown()` — spending per category
-- `getMonthlyTrend()` — monthly totals over time
-- `getRecommendations()` — smart spending recommendations
-- `calculateNetWorth()` — assets minus liabilities
-- `convertCurrency()` — currency conversion math
-- `exportToCSV()` — transaction CSV generation
+- **Multi-Currency:** 10 currencies with live exchange rates
+- **Export:** CSV and Excel (XLSX) transaction export
+- **Payroll:** Federal + Virginia state tax calculations, pay stub PDF generation, shift calendar, Google Sheets import
+- **Live Data:** Stock quotes (Yahoo Finance), exchange rates (ExchangeRate-API), crypto prices
 
 ---
 
@@ -270,259 +301,174 @@ pj-net-worth, pj-subscriptions, pj-custom-categories, pj-display-currency
 **Type:** Server Component
 **File:** `src/app/education/page.tsx`
 
-- 4 learning principle cards (Learn in Public, Systems Over Goals, First Principles, Compounding Knowledge)
+- 4 learning principle cards
 - 6-book recommended reading list
 - Knowledge system description (PARA method)
-- Course Tracker section with: `CourseCard`, `CourseDetail`, `CourseForm`, `CourseFilters`, `CourseStats`, `ProgressRing`, `MaterialsList`, `UpdatesLog`
-- "Education Dashboard" CTA link at bottom
+- Course Tracker section
 
 ### Education Dashboard App
 
 **Route:** `/education/dashboard`
 **Type:** Server Component wrapping Client Orchestrator
 **Orchestrator:** `src/components/education/dashboard/EducationDashboardClient.tsx`
-**Pattern:** Central "use client" component managing all state via 13 `useLocalStorage` hooks
+**Pattern:** Central "use client" component managing all state via `useSupabaseRealtimeSync` hooks
 
-#### Tabs & Features
+#### 8 Dashboard Tabs
 
-##### Tab 1: Overview
+1. **Overview** — Stats cards, weekly study chart, recent activity feed
+2. **Study Planner** — Study session logging, bar charts, streak counter, subject breakdown, weekly goals
+3. **Courses** — Course tracker with modules, notes, file uploads, progress tracking
+4. **Notes** — Rich text editor (TipTap), tag management, course/project linking, version history, search
+5. **Projects** — Project management with milestones, status tracking, notes, files
+6. **GitHub** — Live repo stats, language breakdown chart
+7. **LeetCode** — Solved problems, difficulty bar, ranking
+8. **Files** — File upload/management with Supabase Storage (10MB limit)
 
-**Component:** `OverviewTab`
-**Directory:** `src/components/education/dashboard/overview/`
+### Dashboard Pages
 
-- 8 animated stat cards: study hours this week, current streak, total courses, active projects, courses completed, notes count, all-time sessions, total study hours
-- Weekly mini bar chart (7 days, study minutes per day)
-- Recent activity feed with color-coded timeline dots (blue=study, purple=note, green=project, cyan=course)
-
-##### Tab 2: Study Planner
-
-**Components:** 7 files in `src/components/education/dashboard/study/`
-
-| Component | Purpose |
-|---|---|
-| `StudyPlannerTab` | Container with stats, charts, session list |
-| `StudySessionForm` | Modal: subject dropdown (14 subjects), duration, date, notes. Edit mode support |
-| `StudySessionList` | Session rows with edit/delete on hover |
-| `StudyBarChart` | Pure SVG bar chart (daily/weekly modes), subject-colored stacking |
-| `StudyStreakCounter` | Large `AnimatedCounter` with streak display |
-| `StudyGoalsTracker` | Goal progress bars per subject, add/edit/delete |
-| `SubjectBreakdownChart` | SVG donut chart using `stroke-dasharray` technique |
-
-**Subjects (14):** Python, JavaScript, TypeScript, React, Next.js, Data Science, Machine Learning, System Design, DSA, DevOps, Databases, Math, Finance, Other
-
-##### Tab 3: Courses
-
-**Components:** 4 files in `src/components/education/dashboard/courses/`
-
-| Component | Purpose |
-|---|---|
-| `CourseTrackerTab` | Stats (total/completed/avg progress), course card grid, expandable detail |
-| `CourseModuleList` | Checkbox module list with progress bar, inline add, delete on hover |
-| `CourseNotesEditor` | Textarea for per-course notes, save button, dirty state tracking |
-| `CourseFileUpload` | File list with type badges, file input, `URL.createObjectURL` for local files |
-
-##### Tab 4: Notes
-
-**Components:** 7 files in `src/components/education/dashboard/notes/`
-
-| Component | Purpose |
-|---|---|
-| `TipTapEditor` | Reusable rich text editor — toolbar: Bold, Italic, H1, H2, Bullet list, Ordered list, Code block, Link. Uses `@tiptap/react`, `StarterKit`, `Link`, `Placeholder`. Custom ProseMirror styling |
-| `NotesTab` | Two-column layout (320px sidebar + editor), search, note list, new note button |
-| `NoteEditor` | Full editor: title input, dynamically imported TipTapEditor (`next/dynamic` with `ssr: false`), tag management, course/project linking dropdowns, save version button, auto-save (2s debounce) |
-| `NoteCard` | Preview card: title, HTML-stripped excerpt (80 chars), date, tag badges, linked entity badges |
-| `NoteSearch` | Debounced search input (300ms) with magnifying glass icon, clear button |
-| `NoteVersionHistory` | Modal: sorted version list, content preview, restore button per version |
-| `NoteFileAttachment` | Inline file chips with type icon, name, size, remove button |
-
-##### Tab 5: Projects
-
-**Components:** 5 files in `src/components/education/dashboard/projects/`
-
-| Component | Purpose |
-|---|---|
-| `ProjectsTab` | Container: status filter tabs, stat cards, project grid, detail view |
-| `ProjectCard` | Glass card: name, status badge, description, milestone progress bar, GitHub icon |
-| `ProjectForm` | Create/edit modal: name, description, status dropdown, GitHub URL |
-| `ProjectDetail` | Full view: edit/delete actions, TipTap notes, file attachments, milestone list |
-| `ProjectMilestoneList` | Checkbox list with due dates (red if overdue), inline add form |
-
-**Statuses (4):** Planned, In Progress, Completed, On Hold — each with distinct color/background
-
-##### Tab 6: GitHub
-
-**Components:** 3 files in `src/components/education/dashboard/github/`
-
-| Component | Purpose |
-|---|---|
-| `GitHubDashboardTab` | Live API fetch (`/api/github?all=true`), stat cards (repos/stars/forks), repo grid, language chart |
-| `LanguageChart` | SVG donut chart for language distribution, uses `GITHUB_LANGUAGE_COLORS` lookup |
-| `RepoCard` | Compact card: name, description, stars, forks, language dot, external link |
-
-##### Tab 7: LeetCode
-
-**Components:** 2 files in `src/components/education/dashboard/leetcode/`
-
-| Component | Purpose |
-|---|---|
-| `LeetCodeDashboardTab` | Live API fetch (`/api/leetcode`), animated stat cards (solved/easy/medium/hard), streak, global ranking |
-| `DifficultyBar` | Stacked horizontal bar — green (easy), amber (medium), red (hard) with percentage labels |
-
-##### Tab 8: Files
-
-**Components:** 5 files in `src/components/education/dashboard/files/`
-
-| Component | Purpose |
-|---|---|
-| `FilesTab` | Container: total files/size stats, uploader, filter tabs (all/course/project/note/standalone), file list, preview modal |
-| `FileUploader` | Drag-and-drop zone + click-to-browse, 10MB limit, upload progress spinner, graceful fallback to `URL.createObjectURL` |
-| `FileList` | Sorted file rows: type badge, name, size, entity type badge, delete on hover, click to preview |
-| `FilePreview` | Modal: image preview for image types, "preview not available" for others, download link, metadata |
-| `SupabaseStorageFallback` | "Storage Not Configured" informational message with cloud icon |
-
-#### Education Dashboard localStorage Keys
-
-```
-pj-study-sessions, pj-study-goals, pj-courses, pj-course-modules,
-pj-course-notes, pj-course-files, pj-edu-notes, pj-note-versions,
-pj-edu-files, pj-edu-projects, pj-project-milestones,
-pj-project-files, pj-project-notes
-```
-
-#### Education Utilities
-
-**File:** `src/lib/education-utils.ts`
-
-| Function | Purpose |
-|---|---|
-| `getStudyStreak(sessions)` | Consecutive study days count |
-| `getDailyStudyData(sessions, days)` | Daily minute totals for bar chart |
-| `getWeeklyStudyData(sessions, weeks)` | Weekly totals for chart |
-| `getSubjectBreakdown(sessions)` | Time per subject for pie chart |
-| `getWeeklyGoalProgress(sessions, goals)` | Goal tracking calculations |
-| `calculateModuleProgress(modules)` | Percentage of completed modules |
-| `getRecentActivity(sessions, notes, projects)` | Unified activity feed |
-| `formatDuration(minutes)` | "Xh Ym" format |
-| `getWeekStart(date)` | Monday of current week |
-| `searchNotes(notes, query)` | Search by title + stripped HTML content |
-| `formatFileSize(bytes)` | "X.X MB" format |
-
-#### Education Constants
-
-**File:** `src/lib/constants.ts` (education section)
-
-| Constant | Description |
-|---|---|
-| `STUDY_SUBJECTS` | 14 subjects array |
-| `SUBJECT_COLORS` | Hex color per subject for charts |
-| `PROJECT_STATUS_CONFIG` | Label, text color, background per status |
-| `GITHUB_LANGUAGE_COLORS` | Hex color per programming language |
-| `FILE_TYPE_ICONS` | MIME type to label mapping (PDF, PNG, JPG, etc.) |
-| `DASHBOARD_TABS` | 8 tab definitions (id + label) |
-| `DashboardTabId` | TypeScript type union from tab IDs |
+| Route | Component | Features |
+|---|---|---|
+| `/dashboard/activity` | `ActivityTimeline` | Unified activity feed (study, notes, courses, projects, blog, code) |
+| `/dashboard/analytics` | `PersonalAnalyticsClient` | Contribution heatmap, commit timeline, correlation charts, growth metrics |
+| `/dashboard/life-index` | `LifeIndexDashboard` | Composite 0-100 life score across Financial Health, Learning, Technical, Personal Growth |
 
 ---
 
 ## 11. API Routes
 
-### Content & Social
+### Content & Data
 
-| Endpoint | Method | File | Purpose |
-|---|---|---|---|
-| `/api/github` | GET | `src/app/api/github/route.ts` | GitHub repos. Default: top 6. With `?all=true`: all repos + language aggregation + stats |
-| `/api/leetcode` | GET | `src/app/api/leetcode/route.ts` | LeetCode stats via GraphQL (solved, easy, medium, hard) |
-| `/api/stats` | GET | `src/app/api/stats/route.ts` | Aggregated GitHub + LeetCode stats |
-| `/api/chat` | POST | `src/app/api/chat/route.ts` | AI chat using OpenAI GPT-4o-mini with blog context injection |
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/auth/callback` | GET | Google OAuth callback handler |
+| `/api/sync` | POST | Authenticated write proxy for all 19 user data tables (injects user_id) |
+| `/api/search-data` | GET | Returns empty (blog data is per-user, client-fetched) |
+| `/api/comments` | GET, POST | Blog comments (global by slug) |
+| `/api/chat` | POST | AI chat (OpenAI GPT-4o-mini) |
+| `/api/activity` | GET | Unified activity feed (Supabase + GitHub) |
 
-### Blog & Comments
+### GitHub & LeetCode
 
-| Endpoint | Method | File | Purpose |
-|---|---|---|---|
-| `/api/admin/blog` | POST | `src/app/api/admin/blog/route.ts` | Create blog post (development only) |
-| `/api/comments` | GET | `src/app/api/comments/route.ts` | Get comments for a blog post (`?slug=`) |
-| `/api/comments` | POST | `src/app/api/comments/route.ts` | Post new comment (Supabase) |
-
-### Communication
-
-| Endpoint | Method | File | Purpose |
-|---|---|---|---|
-| `/api/contact` | POST | `src/app/api/contact/route.ts` | Contact form email via NodeMailer (Zod validated) |
-| `/api/newsletter` | POST | `src/app/api/newsletter/route.ts` | Newsletter subscription (Supabase) |
-
-### Analytics
-
-| Endpoint | Method | File | Purpose |
-|---|---|---|---|
-| `/api/analytics` | GET | `src/app/api/analytics/route.ts` | Retrieve page view analytics |
-| `/api/analytics` | POST | `src/app/api/analytics/route.ts` | Log a page view (Supabase) |
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/github` | GET | GitHub repos with stats |
+| `/api/github/events` | GET | Commit activity timeline |
+| `/api/leetcode` | GET | LeetCode profile stats |
+| `/api/stats` | GET | Combined GitHub + LeetCode stats |
 
 ### Finance
 
-| Endpoint | Method | File | Purpose |
-|---|---|---|---|
-| `/api/finance/stocks` | GET | `src/app/api/finance/stocks/route.ts` | Stock quotes via Yahoo Finance (`?symbols=`) |
-| `/api/finance/currency` | GET | `src/app/api/finance/currency/route.ts` | Exchange rates via ExchangeRate-API |
-| `/api/finance/report` | POST | `src/app/api/finance/report/route.ts` | Email monthly finance report (NodeMailer) |
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/finance/stocks` | GET | Stock quotes (Yahoo Finance) |
+| `/api/finance/stocks/history` | GET | Historical stock prices |
+| `/api/finance/stocks/search` | GET | Stock symbol search |
+| `/api/finance/currency` | GET | Exchange rates |
+| `/api/finance/crypto` | GET | Cryptocurrency prices |
+| `/api/finance/report` | POST | Email monthly finance report |
+| `/api/finance/payroll-import` | POST | Import payroll from Google Sheets |
 
-### Education
+### Embeddings & Analytics
 
-| Endpoint | Method | File | Purpose |
-|---|---|---|---|
-| `/api/education/upload` | POST | `src/app/api/education/upload/route.ts` | Upload file to Supabase Storage `education-files` bucket |
-| `/api/education/upload/[path]` | DELETE | `src/app/api/education/upload/[path]/route.ts` | Delete file from Supabase Storage |
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/embeddings/generate` | POST | Generate OpenAI embeddings |
+| `/api/embeddings/search` | GET | Semantic vector search |
+| `/api/knowledge-graph` | GET | Knowledge graph from embeddings |
+| `/api/analytics` | GET, POST | Page view tracking |
+
+### Admin & Utility
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/admin/setup-db` | GET | Check table status, provide migration SQL |
+| `/api/admin/export` | GET | Full JSON backup of all tables |
+| `/api/admin/check-tables` | GET | Check which tables exist |
+| `/api/admin/migrate-owner` | POST | Migrate data ownership between users |
+| `/api/contact` | POST | Contact form email (CAPTCHA-protected) |
+| `/api/newsletter` | POST | Newsletter subscription |
+| `/api/education/upload` | POST | Upload file to Supabase Storage |
+| `/api/education/upload/[path]` | DELETE | Delete file from Supabase Storage |
 
 ---
 
 ## 12. Database Schema
 
 **Provider:** Supabase (PostgreSQL)
-**File:** `supabase-schema.sql`
-**All tables have Row Level Security (RLS) enabled.**
+**All user data tables have Row Level Security (RLS): `auth.uid() = user_id`**
 
-### Core Tables (3)
+### Content Tables (3)
 
-| Table | Columns | Purpose |
+| Table | Key Columns | Purpose |
 |---|---|---|
-| `comments` | id, blog_slug, author_name, content, parent_id, created_at | Blog post comments (supports threading) |
-| `newsletter_subscribers` | id, email, subscribed_at | Newsletter signups |
-| `page_views` | id, path, visited_at, referrer | Analytics tracking |
+| `vlogs` | id, user_id, title, youtube_id, category, duration, published_at, description | Per-user YouTube vlogs |
+| `blog_posts` | id, user_id, title, slug, description, content, category, read_time, published, tags (jsonb), created_at | Per-user blog posts (markdown content stored in DB) |
+| `user_projects` | id, user_id, name, description, language, url, stars, forks, topics (jsonb), created_at | Per-user portfolio projects |
 
 ### Finance Tables (6)
 
 | Table | Key Columns | Purpose |
 |---|---|---|
-| `transactions` | id, type, amount, category, description, date | Income/expense records |
-| `budgets` | id, category, monthly_limit, month | Monthly budget limits |
-| `savings_goals` | id, name, target_amount, current_amount, deadline | Savings targets |
-| `investments` | id, name, type, ticker, quantity, purchase_price, current_value, currency | Investment portfolio |
-| `net_worth_entries` | id, name, type, category, value, currency | Assets and liabilities |
-| `subscriptions` | id, name, amount, currency, frequency, category, next_billing_date, active | Recurring payments |
+| `transactions` | id, user_id, type, amount, category, description, date | Income/expense records |
+| `budgets` | id, user_id, category, monthly_limit, month | Monthly budget limits |
+| `savings_goals` | id, user_id, name, target_amount, current_amount, deadline | Savings targets |
+| `investments` | id, user_id, name, type, ticker, quantity, purchase_price, current_value | Investment portfolio |
+| `subscriptions` | id, user_id, name, amount, currency, frequency, category, next_billing_date | Recurring payments |
+| `net_worth_entries` | id, user_id, name, type, category, value, currency | Assets and liabilities |
 
-### Education Tables — Original (3)
-
-| Table | Key Columns | Purpose |
-|---|---|---|
-| `courses` | id, name, platform, url, progress, status, category, total_hours | Course tracking |
-| `course_materials` | id, course_id (FK), title, type, content | Course-linked materials |
-| `course_updates` | id, course_id (FK), description, date | Course activity log |
-
-### Education Dashboard Tables (9)
+### Education Tables (4)
 
 | Table | Key Columns | Purpose |
 |---|---|---|
-| `study_sessions` | id, subject, duration_minutes, date, notes | Study session logs |
-| `study_goals` | id, subject, target_hours_per_week | Weekly study targets |
-| `course_modules` | id, course_id (FK), title, order, completed | Course module checklists |
-| `course_notes` | id, course_id (FK), content_html, updated_at | Rich text per-course notes |
-| `notes` | id, title, content_html, linked_course_id, linked_project_id, tags[] | Standalone knowledge base |
-| `note_versions` | id, note_id (FK), content_html, saved_at | Note version history |
-| `dashboard_projects` | id, name, description, status, github_url | Project workspace |
-| `project_milestones` | id, project_id (FK), title, due_date, completed | Project milestone tracking |
-| `uploaded_files` | id, file_name, file_url, file_type, file_size, storage_path, linked_entity_type, linked_entity_id | Unified file storage |
+| `study_sessions` | id, user_id, subject, duration_minutes, date, notes | Study session logs |
+| `edu_notes` | id, user_id, title, content_html, tags (jsonb) | Knowledge base notes |
+| `courses` | id, user_id, name, platform, url, progress, status | Course tracking |
+| `edu_projects` | id, user_id, name, description, status, github_url | Project workspace |
+
+### Payroll & Schedule Tables (6)
+
+| Table | Key Columns | Purpose |
+|---|---|---|
+| `pay_stubs` | id, user_id, employer_name, pay period, hours, deductions, net_pay | Individual pay stubs |
+| `part_time_jobs` | id, user_id, name, pay_rate | Part-time job records |
+| `part_time_hours` | id, user_id, job_id, hours, date | Hourly time entries |
+| `employers` | id, user_id, name, pay_type, hourly_rate, color | Employer configuration |
+| `work_schedules` | id, user_id, period_label, dates, hours | Work schedule records |
+| `enhanced_work_schedules` | id, user_id, shifts, employer | Enhanced shift data |
+
+### System Tables
+
+| Table | Purpose |
+|---|---|
+| `comments` | Blog comments (global by slug) |
+| `newsletter` | Email subscriptions |
+| `page_views` | Analytics tracking |
+| `embeddings` | AI semantic search vectors |
+| `user_profiles` | User profile data |
+
+### Migrations (11 files)
+
+Located in `supabase/migrations/`:
+
+| Migration | Purpose |
+|---|---|
+| `20240301_payroll_tables` | Initial payroll tables |
+| `20240302_finance_education_tables` | Finance + education tables |
+| `20240303_tighten_rls_policies` | Tighten RLS to SELECT-only |
+| `20240303_payroll_tables` | Additional payroll setup |
+| `20240304_fix_payroll_schema` | Fix column types |
+| `20240305_add_hours_times` | Add hours/times columns |
+| `20240306_expand_investment_types` | Expand investment options |
+| `20240307_investment_exchange_market` | Add exchange/market fields |
+| `20240308_add_user_profiles` | User profiles table |
+| `20240309_add_user_id_to_tables` | Add user_id to all tables |
+| `20240310_user_based_rls_policies` | Per-user RLS + vlogs/blog_posts/user_projects tables (idempotent) |
 
 ### Storage
 
 - **Bucket:** `education-files` (private) in Supabase Storage
+- **Limit:** 10MB per file
+- **Types:** PDF, images, text, Office docs, ZIP, CSV
 
 ---
 
@@ -534,201 +480,125 @@ src/
 │   ├── layout.tsx                          # Root layout
 │   ├── page.tsx                            # Home
 │   ├── not-found.tsx                       # 404
+│   ├── global-error.tsx                    # Sentry error boundary
 │   ├── robots.ts                           # SEO
 │   ├── sitemap.ts                          # SEO
 │   ├── about/page.tsx
-│   ├── projects/page.tsx
+│   ├── projects/page.tsx                   # Per-user + management UI
 │   ├── blog/
-│   │   ├── page.tsx                        # Blog list
-│   │   └── [slug]/page.tsx                 # Blog detail
-│   ├── vlogs/page.tsx
+│   │   ├── page.tsx                        # Per-user blog list
+│   │   ├── write/page.tsx                  # Blog editor -> Supabase
+│   │   └── [slug]/page.tsx                 # Blog post (react-markdown)
+│   ├── vlogs/page.tsx                      # Per-user + management UI
 │   ├── contact/page.tsx
-│   ├── login/page.tsx
+│   ├── login/page.tsx                      # Google OAuth
 │   ├── admin/
 │   │   ├── layout.tsx
 │   │   ├── page.tsx
-│   │   ├── blog/page.tsx
-│   │   ├── blog/new/page.tsx
-│   │   └── analytics/page.tsx
+│   │   ├── blog/page.tsx                   # -> /blog redirect
+│   │   ├── blog/new/page.tsx              # -> /blog/write redirect
+│   │   ├── analytics/page.tsx
+│   │   └── setup/page.tsx
 │   ├── finance/
 │   │   ├── page.tsx                        # Finance landing
 │   │   └── tracker/page.tsx                # Finance tracker app
 │   ├── education/
 │   │   ├── page.tsx                        # Education landing
 │   │   └── dashboard/page.tsx              # Education dashboard app
-│   └── api/
-│       ├── admin/blog/route.ts
+│   ├── dashboard/
+│   │   ├── activity/page.tsx
+│   │   ├── analytics/page.tsx
+│   │   └── life-index/page.tsx
+│   └── api/                                # 29 API routes
+│       ├── auth/callback/route.ts
+│       ├── sync/route.ts                   # Write proxy (19 tables)
+│       ├── activity/route.ts
 │       ├── analytics/route.ts
 │       ├── chat/route.ts
 │       ├── comments/route.ts
 │       ├── contact/route.ts
 │       ├── newsletter/route.ts
-│       ├── github/route.ts
-│       ├── leetcode/route.ts
+│       ├── search-data/route.ts
 │       ├── stats/route.ts
-│       ├── finance/
-│       │   ├── stocks/route.ts
-│       │   ├── currency/route.ts
-│       │   └── report/route.ts
-│       └── education/
-│           └── upload/
-│               ├── route.ts                # POST upload
-│               └── [path]/route.ts         # DELETE file
+│       ├── leetcode/route.ts
+│       ├── knowledge-graph/route.ts
+│       ├── github/{route,events/route}.ts
+│       ├── finance/{stocks,stocks/history,stocks/search,currency,crypto,report,payroll-import}
+│       ├── embeddings/{generate,search}
+│       ├── education/upload/{route,[path]/route}.ts
+│       └── admin/{setup-db,export,check-tables,migrate-owner}
 │
 ├── components/
-│   ├── analytics/PageViewTracker.tsx
-│   ├── blog/CommentSection.tsx
-│   ├── chat/ChatWidget.tsx
-│   ├── mdx/MDXContent.tsx
-│   ├── sections/
-│   │   ├── HeroSection.tsx
-│   │   ├── VlogSection.tsx
-│   │   ├── BlogSection.tsx
-│   │   ├── ProjectsSection.tsx
-│   │   ├── StatsSection.tsx
-│   │   ├── PhilosophySection.tsx
-│   │   └── Footer.tsx
-│   ├── ui/
-│   │   ├── AnimatedCounter.tsx
-│   │   ├── ContactForm.tsx
-│   │   ├── CursorGlow.tsx
-│   │   ├── EmptyState.tsx
-│   │   ├── FadeIn.tsx
-│   │   ├── FloatingBackground.tsx
-│   │   ├── GrainOverlay.tsx
-│   │   ├── Navbar.tsx
-│   │   ├── NewsletterForm.tsx
-│   │   ├── PageHeader.tsx
-│   │   ├── ProjectCard.tsx
-│   │   ├── SmoothScroll.tsx
-│   │   ├── StatsClient.tsx
-│   │   └── YouTubeEmbed.tsx
-│   ├── education/
-│   │   ├── CourseCard.tsx
-│   │   ├── CourseDetail.tsx
-│   │   ├── CourseFilters.tsx
-│   │   ├── CourseForm.tsx
-│   │   ├── CourseStats.tsx
-│   │   ├── CourseTrackerSection.tsx
-│   │   ├── MaterialsList.tsx
-│   │   ├── ProgressRing.tsx
-│   │   ├── UpdatesLog.tsx
-│   │   └── dashboard/
-│   │       ├── EducationDashboardClient.tsx
-│   │       ├── overview/OverviewTab.tsx
-│   │       ├── study/
-│   │       │   ├── StudyPlannerTab.tsx
-│   │       │   ├── StudySessionForm.tsx
-│   │       │   ├── StudySessionList.tsx
-│   │       │   ├── StudyBarChart.tsx
-│   │       │   ├── StudyStreakCounter.tsx
-│   │       │   ├── StudyGoalsTracker.tsx
-│   │       │   └── SubjectBreakdownChart.tsx
-│   │       ├── courses/
-│   │       │   ├── CourseTrackerTab.tsx
-│   │       │   ├── CourseModuleList.tsx
-│   │       │   ├── CourseNotesEditor.tsx
-│   │       │   └── CourseFileUpload.tsx
-│   │       ├── notes/
-│   │       │   ├── TipTapEditor.tsx
-│   │       │   ├── NotesTab.tsx
-│   │       │   ├── NoteEditor.tsx
-│   │       │   ├── NoteCard.tsx
-│   │       │   ├── NoteSearch.tsx
-│   │       │   ├── NoteVersionHistory.tsx
-│   │       │   └── NoteFileAttachment.tsx
-│   │       ├── projects/
-│   │       │   ├── ProjectsTab.tsx
-│   │       │   ├── ProjectCard.tsx
-│   │       │   ├── ProjectForm.tsx
-│   │       │   ├── ProjectDetail.tsx
-│   │       │   └── ProjectMilestoneList.tsx
-│   │       ├── github/
-│   │       │   ├── GitHubDashboardTab.tsx
-│   │       │   ├── LanguageChart.tsx
-│   │       │   └── RepoCard.tsx
-│   │       ├── leetcode/
-│   │       │   ├── LeetCodeDashboardTab.tsx
-│   │       │   └── DifficultyBar.tsx
-│   │       └── files/
-│   │           ├── FilesTab.tsx
-│   │           ├── FileUploader.tsx
-│   │           ├── FileList.tsx
-│   │           ├── FilePreview.tsx
-│   │           └── SupabaseStorageFallback.tsx
-│   └── finance/
-│       ├── FinanceTrackerClient.tsx
-│       ├── AIAnalysis.tsx
-│       ├── BudgetManager.tsx
-│       ├── BudgetPlanner.tsx
-│       ├── CategoryBreakdown.tsx
-│       ├── CategoryManager.tsx
-│       ├── CurrencySettings.tsx
-│       ├── ExcelExport.tsx
-│       ├── ExportButton.tsx
-│       ├── InvestmentTracker.tsx
-│       ├── MonthPicker.tsx
-│       ├── MonthlyReportEmail.tsx
-│       ├── MonthlySummaryCards.tsx
-│       ├── MonthlyTrend.tsx
-│       ├── NetWorthCalculator.tsx
-│       ├── PieChart.tsx
-│       ├── Recommendations.tsx
-│       ├── SavingsGoals.tsx
-│       ├── SavingsTrendChart.tsx
-│       ├── SubscriptionTracker.tsx
-│       ├── TransactionFilters.tsx
-│       ├── TransactionForm.tsx
-│       ├── TransactionList.tsx
-│       └── TransactionTable.tsx
+│   ├── activity/                           # 3: ActivityCard, ActivityTimeline, FilterChips
+│   ├── analytics/                          # 9: PersonalAnalyticsClient, ContributionHeatmap, etc.
+│   ├── blog/                               # 2: BlogFilters, CommentSection
+│   ├── chat/                               # 2: ChatWidget, SuggestedPrompts
+│   ├── dashboard/                          # 1: LifeIndexDashboard
+│   ├── education/                          # 24 components across 9 sub-modules
+│   ├── finance/                            # 42 components
+│   ├── layout/                             # 1: LayoutShell
+│   ├── mdx/                                # 1: MDXContent (legacy)
+│   ├── providers/                          # 4: AuthProvider, PostHogProvider, QueryProvider, ThemeProvider
+│   ├── search/                             # 3: CommandPalette, SearchResult, SearchResultGroup
+│   ├── sections/                           # 7: Hero, Vlog, Blog, Projects, Stats, Philosophy, Footer
+│   ├── ui/                                 # 22 reusable components
+│   └── vlogs/                              # 1: VlogManager
 │
 ├── hooks/
-│   ├── useLocalStorage.ts
-│   ├── useSupabaseStorage.ts
-│   └── useSupabaseSync.ts
+│   ├── useLocalStorage.ts                  # SSR-safe localStorage
+│   ├── useSupabaseRealtimeSync.ts          # Primary data hook (3-layer sync)
+│   ├── useSupabaseSync.ts                  # Simple one-way sync
+│   ├── useSupabaseStorage.ts               # File upload/delete
+│   ├── useAutoRefresh.ts                   # Auto-refresh intervals
+│   ├── useAutoSync.ts                      # Payroll auto-sync
+│   ├── useEmbeddingSync.ts                 # AI embedding generation
+│   ├── useRecentSearches.ts                # Search history
+│   ├── useSearchIndex.ts                   # Fuse.js search
+│   ├── useVisibility.ts                    # Section visibility toggle
+│   └── queries/                            # 7 React Query hooks
 │
 ├── lib/
-│   ├── utils.ts                            # cn() — Tailwind class merge
-│   ├── api.ts                              # fetchGitHubRepos, fetchLeetCodeStats
-│   ├── constants.ts                        # All app constants
-│   ├── data.ts                             # Static blog/project data
-│   ├── vlogs.ts                            # Static vlog entries
-│   ├── mdx.ts                              # MDX parsing utilities
+│   ├── supabase/{client,server,admin,middleware}.ts
 │   ├── finance-utils.ts                    # Finance calculations
+│   ├── payroll-{utils,tax,pdf,schemas}.ts  # Payroll system
 │   ├── education-utils.ts                  # Education calculations
-│   └── supabase/
-│       ├── client.ts                       # Browser client
-│       ├── server.ts                       # Server client
-│       └── admin.ts                        # Admin client
+│   ├── constants.ts                        # All app constants
+│   ├── {api,ai-context,search-index,rate-limit,utils,visibility}.ts
+│   └── stemtree-payroll.ts                 # Seed payroll data
 │
 ├── types/
-│   └── index.ts                            # 50+ TypeScript interfaces
+│   └── index.ts                            # 80+ TypeScript interfaces
 │
-└── middleware.ts                            # Auth protection for /admin/*
+└── middleware.ts                            # Google OAuth enforcement
 ```
 
 ---
 
 ## 14. Dependencies
 
-### Production (38 packages)
+### Production (~47 packages)
 
 | Category | Packages |
 |---|---|
 | **Framework** | `next@14.2.5`, `react@18`, `react-dom@18` |
 | **Styling** | `tailwindcss`, `tailwind-merge`, `tailwindcss-animate`, `clsx`, `class-variance-authority` |
 | **Animation** | `framer-motion`, `lenis` |
-| **Database** | `@supabase/supabase-js`, `@supabase/ssr` |
+| **Database & Auth** | `@supabase/supabase-js`, `@supabase/ssr` |
 | **Rich Text** | `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-placeholder`, `@tiptap/extension-code-block-lowlight`, `@tiptap/pm`, `lowlight` |
 | **UI Primitives** | `@radix-ui/react-dialog`, `@radix-ui/react-label`, `@radix-ui/react-separator`, `@radix-ui/react-slot`, `@radix-ui/react-tabs`, `@radix-ui/react-toast`, `lucide-react` |
-| **MDX/Content** | `next-mdx-remote`, `gray-matter`, `rehype-highlight`, `rehype-autolink-headings`, `rehype-slug`, `remark-gfm` |
+| **Blog Rendering** | `react-markdown`, `remark-gfm` |
+| **Server State** | `@tanstack/react-query` |
 | **Forms** | `react-hook-form`, `@hookform/resolvers`, `zod` |
 | **AI** | `openai` |
 | **Email** | `nodemailer` |
-| **Export** | `xlsx` |
+| **Export** | `xlsx`, `jspdf` |
 | **SEO** | `next-sitemap` |
+| **Analytics** | `posthog-js`, `@vercel/analytics` |
+| **Error Tracking** | `@sentry/nextjs` |
+| **CAPTCHA** | `@marsidev/react-turnstile` |
+| **Search** | `fuse.js` |
 
-### Dev (9 packages)
+### Dev (~9 packages)
 
 `typescript`, `@types/node`, `@types/react`, `@types/react-dom`, `@types/nodemailer`, `eslint`, `eslint-config-next`, `autoprefixer`, `postcss`
 
@@ -738,14 +608,19 @@ src/
 
 | Metric | Count |
 |---|---|
-| Pages/Routes | 31 |
-| API Endpoints | 20 |
-| Components | 80+ |
-| Custom Hooks | 3 |
-| Utility Libraries | 11 |
-| Type Definitions | 50+ interfaces |
-| Database Tables | 18 |
+| Page Routes | 21 |
+| API Endpoints | 29 |
+| React Components | ~110 |
+| Custom Hooks | 17 (10 data + 7 query) |
+| Utility Libraries | 18 |
+| Type Definitions | 80+ interfaces |
+| Database Tables | 19 user data + 4-5 system |
+| SQL Migrations | 11 |
 | Storage Buckets | 1 |
-| localStorage Keys | 21 |
-| Production Dependencies | 38 |
-| Dev Dependencies | 9 |
+| External Integrations | 11 |
+| Production Dependencies | ~47 |
+| Dev Dependencies | ~9 |
+
+---
+
+*Updated on 2026-03-03. Reflects Google OAuth authentication, per-user Supabase data isolation (vlogs, blogs, projects), Vercel deployment, and RLS policies on all tables.*

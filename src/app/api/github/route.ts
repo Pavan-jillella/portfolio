@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const EMPTY_RESPONSE = {
+  repos: [],
+  languages: [],
+  stats: { totalRepos: 0, totalStars: 0, totalForks: 0 },
+};
+
 export async function GET(request: NextRequest) {
   try {
+    const username = request.nextUrl.searchParams.get("username");
+    if (!username) {
+      return NextResponse.json(EMPTY_RESPONSE);
+    }
+
     const headers: HeadersInit = { Accept: "application/vnd.github.v3+json" };
     if (process.env.GITHUB_TOKEN) {
       headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
     }
 
     const res = await fetch(
-      "https://api.github.com/users/Pavan-jillella/repos?per_page=100&type=owner&sort=stars&direction=desc",
+      `https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&type=owner&sort=stars&direction=desc`,
       { headers, next: { revalidate: 3600 } }
     );
 

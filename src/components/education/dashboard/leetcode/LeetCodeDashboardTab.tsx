@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import { useLeetCodeData } from "@/hooks/queries/useLeetCodeData";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { SkeletonGrid } from "@/components/ui/SkeletonGrid";
 import { DifficultyBar } from "./DifficultyBar";
@@ -60,8 +62,46 @@ function DifficultyProgress({ label, solved, total, color, bgColor }: {
   );
 }
 
+function UsernamePrompt({ onSave }: { onSave: (username: string) => void }) {
+  const [input, setInput] = useState("");
+  return (
+    <div className="flex flex-col gap-6">
+      <h2 className="font-display font-semibold text-xl text-white">LeetCode</h2>
+      <div className="glass-card rounded-2xl p-8 text-center space-y-4">
+        <p className="font-body text-sm text-white/60">
+          Enter your LeetCode username to view your problem-solving stats.
+        </p>
+        <form
+          onSubmit={(e) => { e.preventDefault(); if (input.trim()) onSave(input.trim()); }}
+          className="flex items-center gap-3 max-w-sm mx-auto"
+        >
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="e.g. leetcoder123"
+            className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/20 focus:outline-none focus:border-blue-500/50"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="px-4 py-2 rounded-xl bg-blue-500/20 text-blue-400 font-body text-sm hover:bg-blue-500/30 transition-colors disabled:opacity-30"
+          >
+            Save
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function LeetCodeDashboardTab() {
-  const { data, isLoading, error } = useLeetCodeData();
+  const [username, setUsername] = useLocalStorage<string>("pj-leetcode-username", "");
+  const { data, isLoading, error } = useLeetCodeData(username);
+
+  if (!username) {
+    return <UsernamePrompt onSave={setUsername} />;
+  }
 
   if (isLoading) {
     return (
@@ -89,14 +129,22 @@ export function LeetCodeDashboardTab() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-semibold text-xl text-white">LeetCode</h2>
-        <a
-          href={`https://leetcode.com/u/${process.env.NEXT_PUBLIC_LEETCODE_USERNAME || "Punisher_17"}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-body text-xs text-white/30 hover:text-blue-400 transition-colors"
-        >
-          View profile →
-        </a>
+        <div className="flex items-center gap-3">
+          <a
+            href={`https://leetcode.com/u/${encodeURIComponent(username)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-body text-xs text-white/30 hover:text-blue-400 transition-colors"
+          >
+            View profile
+          </a>
+          <button
+            onClick={() => setUsername("")}
+            className="font-body text-xs text-white/20 hover:text-white/50 transition-colors"
+          >
+            Change username
+          </button>
+        </div>
       </div>
 
       {/* Main progress card */}
