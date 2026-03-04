@@ -57,7 +57,31 @@ export async function POST(req: NextRequest) {
     const isAppsScript = url.includes("script.google.com") || url.includes("script.googleusercontent.com");
 
     if (isAppsScript) {
-      const res = await fetch(url, { redirect: "follow" });
+      const res = await fetch(url, { redirect: "manual" });
+
+      // Google Apps Script redirects to script.googleusercontent.com — allow only Google domains
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get("location");
+        if (
+          location &&
+          (location.includes("script.googleusercontent.com") || location.includes("script.google.com"))
+        ) {
+          const redirectRes = await fetch(location, { redirect: "manual" });
+          if (!redirectRes.ok) {
+            return NextResponse.json(
+              { error: `Apps Script returned HTTP ${redirectRes.status}. Make sure you deployed as "Anyone" can access.` },
+              { status: 400 }
+            );
+          }
+          const data = await redirectRes.json();
+          return NextResponse.json({ type: "apps-script", data });
+        }
+        return NextResponse.json(
+          { error: "Unexpected redirect. Only Google Apps Script URLs are supported." },
+          { status: 400 }
+        );
+      }
+
       if (!res.ok) {
         return NextResponse.json(
           { error: `Apps Script returned HTTP ${res.status}. Make sure you deployed as "Anyone" can access.` },

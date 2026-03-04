@@ -22,14 +22,14 @@ const DATA_TABLES = [
   "enhanced_work_schedules",
 ];
 
-const OWNER_EMAIL = "pavankalyan171199@gmail.com";
+const OWNER_EMAIL = process.env.OWNER_EMAIL;
 
 export async function POST() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !anonKey || !serviceKey) {
+  if (!url || !anonKey || !serviceKey || !OWNER_EMAIL) {
     return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 

@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit } from "@/lib/rate-limit";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed } = rateLimit(ip, 5, 60000);
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many requests. Try again in a minute." }, { status: 429 });
+    }
+
     const { email } = await req.json();
 
-    if (!email || !email.includes("@")) {
+    if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email)) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
     }
 

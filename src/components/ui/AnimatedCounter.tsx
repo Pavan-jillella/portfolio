@@ -28,6 +28,7 @@ export function AnimatedCounter({
     if (!isInView || started.current) return;
     started.current = true;
 
+    let rafId: number;
     const startTime = performance.now();
     const tick = (now: number) => {
       const elapsed = now - startTime;
@@ -35,9 +36,10 @@ export function AnimatedCounter({
       const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
       const value = eased * target;
       setCount(dp === 0 ? Math.round(value) : parseFloat(value.toFixed(dp)));
-      if (progress < 1) requestAnimationFrame(tick);
+      if (progress < 1) rafId = requestAnimationFrame(tick);
     };
-    requestAnimationFrame(tick);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [isInView, target, duration, dp]);
 
   const display = dp === 0 ? count.toLocaleString() : count.toFixed(dp);

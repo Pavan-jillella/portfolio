@@ -42,7 +42,7 @@ export function VlogManager({ vlogs, onAdd, onEdit, onDelete }: VlogManagerProps
     }
     // If it's already just an ID
     if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
-    return url;
+    return "";
   }
 
   function resetForm() {
@@ -58,6 +58,7 @@ export function VlogManager({ vlogs, onAdd, onEdit, onDelete }: VlogManagerProps
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const youtubeId = extractYoutubeId(youtubeUrl);
+    if (!youtubeId) return;
 
     if (editingId) {
       onEdit(editingId, {

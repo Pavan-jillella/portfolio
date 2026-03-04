@@ -73,12 +73,16 @@ export async function GET() {
     ? rlsSql
     : migrationSql + "\n\n" + rlsSql;
 
+  // Extract project ID from Supabase URL for dashboard link
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const projectId = supabaseUrl.replace("https://", "").split(".")[0];
+
   return NextResponse.json({
     tables: results,
     allExist,
     missingTables,
     migrationSql: combinedSql,
     rlsSql,
-    supabaseDashboardUrl: `https://supabase.com/dashboard/project/tawdygpdsqdqryuqewim/sql/new`,
+    supabaseDashboardUrl: `https://supabase.com/dashboard/project/${projectId}/sql/new`,
   });
 }

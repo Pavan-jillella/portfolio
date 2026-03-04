@@ -93,16 +93,16 @@ export function FinanceTrackerClient() {
   const [payrollSettings, setPayrollSettings] = useLocalStorage<PayrollSettings>("pj-payroll-settings", {
     pay_frequency: "biweekly",
     google_sheets_url: "",
-    default_employer: "Stemtree",
-    schedule_name: "Pavan",
+    default_employer: "",
+    schedule_name: "",
     hourly_rate: 0,
   });
   const [enhancedPayrollSettings, setEnhancedPayrollSettings] = useLocalStorage<EnhancedPayrollSettings>("pj-enhanced-payroll-settings", {
     pay_frequency: "biweekly",
     google_sheets_url: "",
-    default_employer: "Stemtree",
-    schedule_name: "Pavan",
-    hourly_rate: 14,
+    default_employer: "",
+    schedule_name: "",
+    hourly_rate: 0,
     tax_config: DEFAULT_TAX_CONFIG,
     employers: [],
     income_goals: [],
@@ -509,7 +509,7 @@ export function FinanceTrackerClient() {
                   <div className="space-y-3">
                     {monthBudgets.map((budget) => {
                       const spent = categoryBreakdown.find((s) => s.category === budget.category)?.total || 0;
-                      const pct = Math.min((spent / budget.monthly_limit) * 100, 100);
+                      const pct = budget.monthly_limit > 0 ? Math.min((spent / budget.monthly_limit) * 100, 100) : 0;
                       const overBudget = spent > budget.monthly_limit;
                       return (
                         <div key={budget.id}>

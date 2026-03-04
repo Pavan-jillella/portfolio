@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 interface ActivityItem {
   id: string;
@@ -10,8 +12,33 @@ interface ActivityItem {
   metadata?: Record<string, unknown>;
 }
 
+async function getCurrentUserId(): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {},
+    },
+  });
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return user.id;
+}
+
 export async function GET(req: NextRequest) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json({ items: [], nextCursor: null });
+    }
+
     const cursor = req.nextUrl.searchParams.get("cursor") || "";
     const limit = parseInt(req.nextUrl.searchParams.get("limit") || "20");
     const filter = req.nextUrl.searchParams.get("filter") || "all";
@@ -29,6 +56,7 @@ export async function GET(req: NextRequest) {
         const { data: sessions } = await supabase
           .from("study_sessions")
           .select("id, subject, duration_minutes, date, created_at")
+          .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -49,6 +77,7 @@ export async function GET(req: NextRequest) {
         const { data: notes } = await supabase
           .from("notes")
           .select("id, title, tags, created_at, updated_at")
+          .eq("user_id", userId)
           .order("updated_at", { ascending: false })
           .limit(50);
 
@@ -69,6 +98,7 @@ export async function GET(req: NextRequest) {
         const { data: courses } = await supabase
           .from("courses")
           .select("id, name, platform, status, progress, created_at")
+          .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -89,6 +119,7 @@ export async function GET(req: NextRequest) {
         const { data: projects } = await supabase
           .from("dashboard_projects")
           .select("id, name, description, status, created_at")
+          .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -103,33 +134,27 @@ export async function GET(req: NextRequest) {
           });
         });
       }
-    }
 
-    // Blog posts from Supabase
-    if (filter === "all" || filter === "blog") {
-      if (supabaseUrl && supabaseKey) {
-        try {
-          const sb = createClient(supabaseUrl, supabaseKey);
-          const { data: posts } = await sb
-            .from("blog_posts")
-            .select("id, title, slug, description, category, created_at")
-            .eq("published", true)
-            .order("created_at", { ascending: false })
-            .limit(50);
+      // Blog posts
+      if (filter === "all" || filter === "blog") {
+        const { data: posts } = await supabase
+          .from("blog_posts")
+          .select("id, title, slug, description, category, created_at")
+          .eq("user_id", userId)
+          .eq("published", true)
+          .order("created_at", { ascending: false })
+          .limit(50);
 
-          posts?.forEach((p) => {
-            items.push({
-              id: `blog-${p.slug}`,
-              type: "blog",
-              title: `Published: ${p.title}`,
-              description: p.description,
-              timestamp: p.created_at,
-              metadata: { category: p.category, slug: p.slug },
-            });
+        posts?.forEach((p) => {
+          items.push({
+            id: `blog-${p.slug}`,
+            type: "blog",
+            title: `Published: ${p.title}`,
+            description: p.description,
+            timestamp: p.created_at,
+            metadata: { category: p.category, slug: p.slug },
           });
-        } catch {
-          // Blog posts unavailable
-        }
+        });
       }
     }
 

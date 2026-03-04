@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { rateLimit } from "@/lib/rate-limit";
 
 const yf = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
@@ -10,9 +11,14 @@ interface SearchResult {
   exchange: string;
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q");
+export async function GET(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed } = rateLimit(ip, 20, 60000);
+  if (!allowed) {
+    return NextResponse.json({ results: [], error: "Too many requests" }, { status: 429 });
+  }
+
+  const query = request.nextUrl.searchParams.get("q");
 
   if (!query || query.length < 1) {
     return NextResponse.json({ results: [] });

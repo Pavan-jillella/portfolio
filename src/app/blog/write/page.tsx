@@ -27,14 +27,15 @@ export default function BlogWritePage() {
   const [view, setView] = useState<EditorView>("split");
   const [showMeta, setShowMeta] = useState(true);
 
-  const slug = useMemo(
-    () =>
-      title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, ""),
-    [title]
-  );
+  const slug = useMemo(() => {
+    const base = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    if (!base) return "";
+    const exists = posts.some((p) => p.slug === base);
+    return exists ? `${base}-${Date.now().toString(36)}` : base;
+  }, [title, posts]);
 
   const wordCount = useMemo(
     () => content.trim().split(/\s+/).filter(Boolean).length,

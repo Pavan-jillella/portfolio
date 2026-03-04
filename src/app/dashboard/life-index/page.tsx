@@ -1,10 +1,12 @@
+"use client";
 import { LifeIndexDashboard } from "@/components/dashboard/LifeIndexDashboard";
-
-export const metadata = {
-  title: "Life Index — Pavan Jillella",
-};
+import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
+import { BlogPost } from "@/types";
 
 export default function LifeIndexPage() {
+  const [posts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+  const publishedCount = posts.filter((p) => p.published).length;
+
   return (
     <section className="min-h-screen py-32 px-6">
       <div className="max-w-6xl mx-auto">
@@ -17,7 +19,7 @@ export default function LifeIndexPage() {
             A single composite score across finance, learning, coding, and personal growth.
           </p>
         </div>
-        <LifeIndexDashboard blogCount={0} />
+        <LifeIndexDashboard blogCount={publishedCount} />
       </div>
     </section>
   );

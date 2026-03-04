@@ -1,5 +1,5 @@
 "use client";
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -11,6 +11,11 @@ import { FadeIn } from "@/components/ui/FadeIn";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const remarkPlugins: any[] = [remarkGfm];
 
+function isSafeHref(href: string | undefined): boolean {
+  if (!href) return false;
+  return href.startsWith("/") || href.startsWith("https://") || href.startsWith("http://") || href.startsWith("#");
+}
+
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -18,10 +23,22 @@ interface BlogPostPageProps {
 export default function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = use(params);
   const [posts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+  const [ready, setReady] = useState(false);
+
+  // After a short delay, consider data loaded (handles both empty and populated states)
+  useEffect(() => {
+    const timer = setTimeout(() => setReady(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Mark ready immediately if we have posts
+  useEffect(() => {
+    if (posts.length > 0) setReady(true);
+  }, [posts.length]);
 
   const post = posts.find((p) => p.slug === slug);
 
-  if (posts.length === 0) {
+  if (!ready) {
     return (
       <div className="pt-32 pb-20 px-6 text-center">
         <div className="w-5 h-5 border-2 border-white/20 border-t-white/60 rounded-full animate-spin mx-auto" />
@@ -66,9 +83,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             <p className="font-body text-white/40">{post.description}</p>
             <div className="flex items-center gap-3 mt-4">
               <span className="font-mono text-xs text-white/20">{post.created_at}</span>
-              {post.tags.length > 0 && (
+              {post.tags?.length > 0 && (
                 <div className="flex gap-2">
-                  {post.tags.map((tag) => (
+                  {post.tags?.map((tag) => (
                     <span
                       key={tag}
                       className="px-2 py-0.5 rounded-full border border-white/5 bg-white/[0.02] font-mono text-xs text-white/20"
@@ -101,7 +118,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                   <p className="font-body text-sm text-white/60 leading-relaxed mb-4">{children}</p>
                 ),
                 a: ({ children, href }) => (
-                  <a href={href} className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">
+                  <a href={isSafeHref(href) ? href : "#"} rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">
                     {children}
                   </a>
                 ),

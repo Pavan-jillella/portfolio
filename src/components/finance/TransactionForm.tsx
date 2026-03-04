@@ -26,7 +26,8 @@ export function TransactionForm({ open, onClose, onSubmit, customCategories = []
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) return;
+    const parsed = parseFloat(amount);
+    if (!amount || isNaN(parsed) || parsed <= 0) return;
 
     onSubmit({
       id: generateId(),

@@ -22,7 +22,9 @@ export function BudgetManager({ budgets, spending, selectedMonth, onAddBudget, o
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!newLimit || parseFloat(newLimit) <= 0) return;
+    const parsed = parseFloat(newLimit);
+    if (!newLimit || isNaN(parsed) || parsed <= 0) return;
+    if (monthBudgets.some((b) => b.category === newCategory)) return;
     onAddBudget({
       id: generateId(),
       category: newCategory,
@@ -43,8 +45,8 @@ export function BudgetManager({ budgets, spending, selectedMonth, onAddBudget, o
 
       {monthBudgets.map((budget, i) => {
         const spent = spending.find((s) => s.category === budget.category)?.total || 0;
-        const pct = Math.min((spent / budget.monthly_limit) * 100, 100);
-        const overPct = spent > budget.monthly_limit ? ((spent - budget.monthly_limit) / budget.monthly_limit) * 100 : 0;
+        const pct = budget.monthly_limit > 0 ? Math.min((spent / budget.monthly_limit) * 100, 100) : 0;
+        const overPct = budget.monthly_limit > 0 && spent > budget.monthly_limit ? ((spent - budget.monthly_limit) / budget.monthly_limit) * 100 : 0;
 
         return (
           <motion.div

@@ -31,6 +31,14 @@ function getMonthLabel(month: string): string {
   return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -54,11 +62,11 @@ export async function POST(req: NextRequest) {
     }
 
     const topCatRows = reportData.topCategories
-      .map((c) => `<tr><td style="padding:8px 16px;border-bottom:1px solid #1e293b;color:#94a3b8;">${c.category}</td><td style="padding:8px 16px;border-bottom:1px solid #1e293b;color:#f1f5f9;text-align:right;">${formatCurrency(c.total)}</td></tr>`)
+      .map((c) => `<tr><td style="padding:8px 16px;border-bottom:1px solid #1e293b;color:#94a3b8;">${escapeHtml(c.category)}</td><td style="padding:8px 16px;border-bottom:1px solid #1e293b;color:#f1f5f9;text-align:right;">${formatCurrency(c.total)}</td></tr>`)
       .join("");
 
     const recsHtml = reportData.recommendations.length > 0
-      ? reportData.recommendations.map((r) => `<li style="margin-bottom:8px;color:#94a3b8;">${r}</li>`).join("")
+      ? reportData.recommendations.map((r) => `<li style="margin-bottom:8px;color:#94a3b8;">${escapeHtml(r)}</li>`).join("")
       : `<li style="color:#94a3b8;">No specific recommendations this month. Keep it up!</li>`;
 
     const html = `

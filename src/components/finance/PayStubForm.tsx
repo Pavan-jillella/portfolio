@@ -133,6 +133,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!employer.trim() || !periodStart || !periodEnd || !payDate) return;
     const stub: PayStub = {
       id: editStub?.id || generateId(),
       employer_name: employer,
