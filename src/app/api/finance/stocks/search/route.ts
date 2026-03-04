@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await yf.search(query, { quotesCount: 8, newsCount: 0 });
+    const data: any = await yf.search(query, { quotesCount: 8, newsCount: 0 }, { validateResult: false });
     const quotes = data?.quotes || [];
 
     const ALLOWED_TYPES = new Set([
@@ -28,8 +28,8 @@ export async function GET(request: Request) {
     ]);
 
     const results: SearchResult[] = quotes
-      .filter((q) => q.quoteType && ALLOWED_TYPES.has(String(q.quoteType)))
-      .map((q) => ({
+      .filter((q: any) => q.quoteType && ALLOWED_TYPES.has(String(q.quoteType)))
+      .map((q: any) => ({
         symbol: String(q.symbol || ""),
         name: String(q.shortname || q.longname || q.symbol || ""),
         type: String(q.quoteType || "").toLowerCase(),
