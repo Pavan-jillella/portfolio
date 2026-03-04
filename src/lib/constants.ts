@@ -183,6 +183,25 @@ export const SUBSCRIPTION_CATEGORY_OPTIONS: string[] = [
   "Design Tools", "Business SaaS", "Productivity", "Other",
 ];
 
+export const SUBSCRIPTION_CATEGORY_COLORS: Record<string, string> = {
+  Streaming: "#e879f9",
+  Music: "#818cf8",
+  Gaming: "#34d399",
+  Software: "#60a5fa",
+  "AI Tools": "#a78bfa",
+  Cloud: "#38bdf8",
+  Education: "#22d3ee",
+  Fitness: "#f472b6",
+  News: "#fbbf24",
+  Storage: "#fb923c",
+  VPN: "#4ade80",
+  "Developer Tools": "#2dd4bf",
+  "Design Tools": "#c084fc",
+  "Business SaaS": "#f97316",
+  Productivity: "#67e8f9",
+  Other: "#6b7280",
+};
+
 // ===== Fallback Subscription Catalog =====
 // Used when the Supabase catalog tables are unavailable
 
