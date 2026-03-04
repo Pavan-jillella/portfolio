@@ -311,10 +311,10 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
           <AnimatePresence>
             {showForm && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
               >
               <form
                 onSubmit={handleAdd}
@@ -323,42 +323,42 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                 <h4 className="font-display font-semibold text-sm text-white">Add Subscription</h4>
 
                 {/* Step 1: Search service */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="relative z-30">
                   <SubscriptionSearch
                     services={services}
                     onSelect={handleServiceSelect}
                     onCustom={handleCustomService}
                   />
-
-                  {/* Show selected service info */}
-                  {selectedService && (
-                    <div className="sm:col-span-2 flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/8">
-                      <img
-                        src={selectedService.logo_url || `https://logo.clearbit.com/${selectedService.domain}`}
-                        alt=""
-                        className="w-8 h-8 rounded-lg bg-white/10"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
-                      <div>
-                        <p className="font-body text-sm text-white">{selectedService.name}</p>
-                        <p className="font-mono text-[10px] text-white/30">{selectedService.category} &middot; {selectedService.domain}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {customMode && (
-                    <div className="sm:col-span-2">
-                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Custom Service Name</label>
-                      <input
-                        type="text"
-                        value={customName}
-                        onChange={(e) => setCustomName(e.target.value)}
-                        placeholder="My Custom Service"
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-                      />
-                    </div>
-                  )}
                 </div>
+
+                {/* Show selected service info */}
+                {selectedService && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                    <img
+                      src={selectedService.logo_url || `https://logo.clearbit.com/${selectedService.domain}`}
+                      alt=""
+                      className="w-8 h-8 rounded-lg bg-white/10"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    <div>
+                      <p className="font-body text-sm text-white">{selectedService.name}</p>
+                      <p className="font-mono text-[10px] text-white/30">{selectedService.category} &middot; {selectedService.domain}</p>
+                    </div>
+                  </div>
+                )}
+
+                {customMode && (
+                  <div>
+                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Custom Service Name</label>
+                    <input
+                      type="text"
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      placeholder="My Custom Service"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                    />
+                  </div>
+                )}
 
                 {/* Step 2: Select plan (if service has plans) */}
                 {selectedService && servicePlans.length > 0 && (
@@ -383,7 +383,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         placeholder="15.99"
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
                       />
                     </div>
                     <div>
@@ -391,7 +391,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                       <select
                         value={billingCycle}
                         onChange={(e) => setBillingCycle(e.target.value as SubscriptionFrequency)}
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
                       >
                         {SUBSCRIPTION_FREQUENCIES.map((f) => (
                           <option key={f.value} value={f.value} className="bg-[#0a0c12]">{f.label}</option>
@@ -404,7 +404,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                         type="date"
                         value={nextDate}
                         onChange={(e) => setNextDate(e.target.value)}
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all"
                       />
                     </div>
                     <div>
@@ -415,7 +415,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                         max="30"
                         value={reminderDays}
                         onChange={(e) => setReminderDays(e.target.value)}
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
                       />
                     </div>
                     <div>
@@ -426,7 +426,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                         value={cardLast4}
                         onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, ""))}
                         placeholder="1234"
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
                       />
                     </div>
                     <div>
@@ -436,7 +436,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Family plan, shared with..."
-                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
                       />
                     </div>
                   </div>

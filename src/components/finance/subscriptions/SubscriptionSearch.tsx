@@ -60,7 +60,7 @@ export function SubscriptionSearch({ services, onSelect, onCustom }: Subscriptio
         onFocus={() => query.trim() && setIsOpen(true)}
         onKeyDown={handleKeyDown}
         placeholder="Search Netflix, Spotify, ChatGPT..."
-        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
       />
       {isOpen && results.length > 0 && (
         <div className="absolute z-50 mt-1 w-full bg-[#0f1118] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto">
