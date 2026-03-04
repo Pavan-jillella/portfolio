@@ -1,15 +1,16 @@
 "use client";
 import { useState } from "react";
-import { Transaction, Budget, Subscription, MonthlySpending } from "@/types";
-import { formatCurrency, getCategoryBreakdown, getMonthlyTrend, getMonthlySubscriptionTotal } from "@/lib/finance-utils";
+import { Transaction, Budget, UserSubscription, SubscriptionService, MonthlySpending } from "@/types";
+import { formatCurrency, getCategoryBreakdown, getMonthlyTrend, getUserSubscriptionMonthlyTotal } from "@/lib/finance-utils";
 
 interface AIAnalysisProps {
   transactions: Transaction[];
   budgets: Budget[];
-  subscriptions?: Subscription[];
+  userSubscriptions?: UserSubscription[];
+  subscriptionServices?: SubscriptionService[];
 }
 
-export function AIAnalysis({ transactions, budgets, subscriptions = [] }: AIAnalysisProps) {
+export function AIAnalysis({ transactions, budgets, userSubscriptions = [], subscriptionServices = [] }: AIAnalysisProps) {
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -40,13 +41,19 @@ export function AIAnalysis({ transactions, budgets, subscriptions = [] }: AIAnal
     ];
 
     // Add subscription context if available
-    if (subscriptions.length > 0) {
-      const activeSubs = subscriptions.filter((s) => s.active);
-      const monthlySubTotal = getMonthlySubscriptionTotal(subscriptions);
+    if (userSubscriptions.length > 0) {
+      const activeSubs = userSubscriptions.filter((s) => s.active);
+      const monthlySubTotal = getUserSubscriptionMonthlyTotal(userSubscriptions);
+      const serviceMap = new Map(subscriptionServices.map((s) => [s.id, s]));
       summaryLines.push(
         "",
         `Active subscriptions: ${activeSubs.length} (${formatCurrency(monthlySubTotal)}/month, ${formatCurrency(monthlySubTotal * 12)}/year)`,
-        ...activeSubs.map((s) => `  ${s.name}: ${formatCurrency(s.amount)}/${s.frequency} (${s.category})`),
+        ...activeSubs.map((s) => {
+          const service = serviceMap.get(s.service_id);
+          const name = service?.name || "Unknown";
+          const category = service?.category || "Other";
+          return `  ${name}: ${formatCurrency(s.price)}/${s.billing_cycle} (${category})`;
+        }),
       );
     }
 

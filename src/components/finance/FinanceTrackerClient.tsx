@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
-import { Transaction, Budget, SavingsGoal, Investment, NetWorthEntry, Subscription, PayStub, PartTimeJob, PartTimeHourEntry, PayrollSettings, WorkSchedule, Employer, EnhancedWorkSchedule, EnhancedPayrollSettings, TaxConfig, IncomeGoal } from "@/types";
+import { Transaction, Budget, SavingsGoal, Investment, NetWorthEntry, Subscription, UserSubscription, PayStub, PartTimeJob, PartTimeHourEntry, PayrollSettings, WorkSchedule, Employer, EnhancedWorkSchedule, EnhancedPayrollSettings, TaxConfig, IncomeGoal } from "@/types";
 import {
   getCurrentMonth,
   getMonthlyTransactions,
@@ -14,6 +14,7 @@ import {
   calculateNetWorth,
   getSubscriptionAlerts,
   getMonthlySubscriptionTotal,
+  getUserSubscriptionMonthlyTotal,
   getPartTimeJobEarnings,
   formatCurrency,
 } from "@/lib/finance-utils";
@@ -82,6 +83,7 @@ export function FinanceTrackerClient() {
   const [investments, setInvestments, investConnected] = useSupabaseRealtimeSync<Investment>("pj-investments", "investments", []);
   const [netWorthEntries, setNetWorthEntries, nwConnected] = useSupabaseRealtimeSync<NetWorthEntry>("pj-net-worth", "net_worth_entries", []);
   const [subscriptions, setSubscriptions, subsConnected] = useSupabaseRealtimeSync<Subscription>("pj-subscriptions", "subscriptions", []);
+  const [userSubscriptions, setUserSubscriptions, userSubsConnected] = useSupabaseRealtimeSync<UserSubscription>("pj-user-subscriptions", "user_subscriptions", []);
   // Realtime-synced payroll data
   const [payStubs, setPayStubs, payStubsConnected] = useSupabaseRealtimeSync<PayStub>("pj-pay-stubs", "pay_stubs", []);
   const [partTimeJobs, setPartTimeJobs, ptJobsConnected] = useSupabaseRealtimeSync<PartTimeJob>("pj-part-time-jobs", "part_time_jobs", []);
@@ -118,7 +120,7 @@ export function FinanceTrackerClient() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddForm, setShowAddForm] = useState(false);
   const [filters, setFilters] = useState<FilterState>({ type: "all", category: "all", dateFrom: "", dateTo: "" });
-  const isRealtimeConnected = txConnected || budgetsConnected || savingsConnected || investConnected || nwConnected || subsConnected || payStubsConnected || ptJobsConnected;
+  const isRealtimeConnected = txConnected || budgetsConnected || savingsConnected || investConnected || nwConnected || subsConnected || userSubsConnected || payStubsConnected || ptJobsConnected;
 
   const allCategories = useMemo(() => {
     return Array.from(new Set([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES, ...customCategories]));
@@ -132,6 +134,7 @@ export function FinanceTrackerClient() {
   const { netWorth } = useMemo(() => calculateNetWorth(netWorthEntries), [netWorthEntries]);
   const subscriptionAlerts = useMemo(() => getSubscriptionAlerts(subscriptions), [subscriptions]);
   const monthlySubTotal = useMemo(() => getMonthlySubscriptionTotal(subscriptions), [subscriptions]);
+  const userSubMonthlyTotal = useMemo(() => getUserSubscriptionMonthlyTotal(userSubscriptions), [userSubscriptions]);
 
   const txIncome = monthlyTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const txExpenses = monthlyTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
@@ -292,6 +295,33 @@ export function FinanceTrackerClient() {
     }
   }
 
+  // User Subscription handlers (normalized architecture)
+  function addUserSubscription(sub: UserSubscription, serviceName: string) {
+    setUserSubscriptions((prev) => [sub, ...prev]);
+    if (sub.active && sub.price > 0) {
+      const tx: Transaction = {
+        id: crypto.randomUUID(),
+        type: "expense",
+        amount: sub.price,
+        category: "Subscriptions",
+        description: `Subscription: ${serviceName}`,
+        date: sub.next_billing_date || new Date().toISOString().slice(0, 10),
+        created_at: new Date().toISOString(),
+      };
+      setTransactions((prev) => [tx, ...prev]);
+    }
+  }
+
+  function toggleUserSubscription(id: string) {
+    setUserSubscriptions((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, active: !s.active, updated_at: new Date().toISOString() } : s))
+    );
+  }
+
+  function deleteUserSubscription(id: string) {
+    setUserSubscriptions((prev) => prev.filter((s) => s.id !== id));
+  }
+
   // Payroll handlers
   function addPayStub(stub: PayStub) {
     setPayStubs((prev) => [stub, ...prev]);
@@ -377,6 +407,7 @@ export function FinanceTrackerClient() {
       { table: "investments", data: investments },
       { table: "net_worth_entries", data: netWorthEntries },
       { table: "subscriptions", data: subscriptions },
+      { table: "user_subscriptions", data: userSubscriptions },
       { table: "pay_stubs", data: payStubs },
       { table: "part_time_jobs", data: partTimeJobs },
       { table: "part_time_hours", data: partTimeHours },
@@ -409,7 +440,7 @@ export function FinanceTrackerClient() {
     });
 
     return { synced: toSync.length - failed.length, failed };
-  }, [transactions, budgets, savingsGoals, investments, netWorthEntries, subscriptions, payStubs, partTimeJobs, partTimeHours, employers, workSchedules, enhancedSchedules]);
+  }, [transactions, budgets, savingsGoals, investments, netWorthEntries, subscriptions, userSubscriptions, payStubs, partTimeJobs, partTimeHours, employers, workSchedules, enhancedSchedules]);
 
   // Budget integration: when adding pay stub with auto_send_to_income
   function addPayStubWithIntegration(stub: PayStub) {
@@ -660,10 +691,10 @@ export function FinanceTrackerClient() {
         <FadeIn>
           <ErrorBoundary module="Subscriptions">
             <SubscriptionManager
-            subscriptions={subscriptions}
-            onAdd={addSubscriptionWithIntegration}
-            onToggle={toggleSubscription}
-            onDelete={deleteSubscription}
+            userSubscriptions={userSubscriptions}
+            onAdd={addUserSubscription}
+            onToggle={toggleUserSubscription}
+            onDelete={deleteUserSubscription}
           />
           </ErrorBoundary>
         </FadeIn>
@@ -707,7 +738,7 @@ export function FinanceTrackerClient() {
       {activeTab === "analysis" && (
         <FadeIn>
           <ErrorBoundary module="AI Analysis">
-            <AIAnalysis transactions={transactions} budgets={budgets} subscriptions={subscriptions} />
+            <AIAnalysis transactions={transactions} budgets={budgets} userSubscriptions={userSubscriptions} />
           </ErrorBoundary>
         </FadeIn>
       )}

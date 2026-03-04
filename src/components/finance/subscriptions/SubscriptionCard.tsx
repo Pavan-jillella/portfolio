@@ -1,10 +1,10 @@
 "use client";
-import { Subscription } from "@/types";
+import { EnrichedSubscription } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
 
 interface SubscriptionCardProps {
-  subscription: Subscription;
+  subscription: EnrichedSubscription;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   index: number;
@@ -27,7 +27,9 @@ export function SubscriptionCard({ subscription: sub, onToggle, onDelete, index 
     daysUntil === 1 ? "Tomorrow" :
     `${daysUntil}d`;
 
-  const logoUrl = sub.logo_url || (sub.website ? `https://logo.clearbit.com/${sub.website}` : null);
+  const logoUrl = sub.service.logo_url || `https://logo.clearbit.com/${sub.service.domain}`;
+  const serviceName = sub.service.name;
+  const planName = sub.plan?.name;
 
   return (
     <motion.div
@@ -40,31 +42,30 @@ export function SubscriptionCard({ subscription: sub, onToggle, onDelete, index 
       <div className="flex items-center gap-3">
         {/* Logo */}
         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center shrink-0 overflow-hidden">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt=""
-              className="w-6 h-6 rounded-md object-contain"
-              onError={(e) => {
-                const el = e.target as HTMLImageElement;
-                el.style.display = "none";
-                const fallback = document.createElement("span");
-                fallback.className = "font-display text-sm text-white/40";
-                fallback.textContent = sub.name.charAt(0).toUpperCase();
-                el.parentElement?.appendChild(fallback);
-              }}
-            />
-          ) : (
-            <span className="font-display text-sm text-white/40">
-              {sub.name.charAt(0).toUpperCase()}
-            </span>
-          )}
+          <img
+            src={logoUrl}
+            alt=""
+            className="w-6 h-6 rounded-md object-contain"
+            onError={(e) => {
+              const el = e.target as HTMLImageElement;
+              el.style.display = "none";
+              const fallback = document.createElement("span");
+              fallback.className = "font-display text-sm text-white/40";
+              fallback.textContent = serviceName.charAt(0).toUpperCase();
+              el.parentElement?.appendChild(fallback);
+            }}
+          />
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-body text-sm text-white truncate">{sub.name}</p>
+            <p className="font-body text-sm text-white truncate">{serviceName}</p>
+            {planName && (
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-full bg-white/5 text-white/30">
+                {planName}
+              </span>
+            )}
             {sub.active && (
               <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full ${renewalColor}`}>
                 {renewalLabel}
@@ -72,9 +73,9 @@ export function SubscriptionCard({ subscription: sub, onToggle, onDelete, index 
             )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="font-body text-xs text-white/30 capitalize">{sub.frequency}</span>
+            <span className="font-body text-xs text-white/30 capitalize">{sub.billing_cycle}</span>
             <span className="text-white/10">|</span>
-            <span className="font-body text-xs text-white/30">{sub.category}</span>
+            <span className="font-body text-xs text-white/30">{sub.service.category}</span>
             {sub.card_last4 && (
               <>
                 <span className="text-white/10">|</span>
@@ -86,7 +87,19 @@ export function SubscriptionCard({ subscription: sub, onToggle, onDelete, index 
 
         {/* Amount + Actions */}
         <div className="flex items-center gap-3 shrink-0">
-          <span className="font-mono text-sm text-white">{formatCurrency(sub.amount)}</span>
+          <span className="font-mono text-sm text-white">{formatCurrency(sub.price)}</span>
+          {sub.service.website && (
+            <a
+              href={sub.service.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-blue-400 transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          )}
           <button
             onClick={() => onToggle(sub.id)}
             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${

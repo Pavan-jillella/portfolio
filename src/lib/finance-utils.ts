@@ -215,6 +215,30 @@ export function getMonthlySubscriptionTotal(subscriptions: Subscription[]): numb
     }, 0);
 }
 
+// New: Works with UserSubscription[] (normalized architecture)
+export function getUserSubscriptionAlerts(subscriptions: { next_billing_date: string; reminder_days: number; active: boolean }[]): typeof subscriptions {
+  const now = new Date();
+  return subscriptions
+    .filter((s) => s.active)
+    .filter((s) => {
+      const billing = new Date(s.next_billing_date);
+      const diffDays = Math.ceil((billing.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= s.reminder_days;
+    })
+    .sort((a, b) => a.next_billing_date.localeCompare(b.next_billing_date));
+}
+
+export function getUserSubscriptionMonthlyTotal(subscriptions: { price: number; billing_cycle: string; active: boolean }[]): number {
+  return subscriptions
+    .filter((s) => s.active)
+    .reduce((total, s) => {
+      if (s.billing_cycle === "monthly") return total + s.price;
+      if (s.billing_cycle === "yearly") return total + s.price / 12;
+      if (s.billing_cycle === "weekly") return total + s.price * 4.33;
+      return total;
+    }, 0);
+}
+
 // ===== Payroll Utils =====
 
 export function getPayrollSummary(payStubs: PayStub[], year?: number | "all") {

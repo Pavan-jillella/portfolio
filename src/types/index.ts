@@ -265,6 +265,7 @@ export interface NetWorthEntry {
 
 export type SubscriptionFrequency = "weekly" | "monthly" | "yearly";
 
+// Legacy flat subscription type (kept for backward compat during migration)
 export interface Subscription {
   id: string;
   name: string;
@@ -283,13 +284,51 @@ export interface Subscription {
   service_id?: string;
 }
 
-export interface SubscriptionCatalogEntry {
+// ===== Normalized Subscription Architecture =====
+
+export interface SubscriptionService {
   id: string;
   name: string;
+  slug: string;
   domain: string;
   category: string;
-  default_amount?: number;
-  default_frequency?: SubscriptionFrequency;
+  website: string | null;
+  logo_url: string | null;
+  created_at: string;
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  service_id: string;
+  name: string;
+  price: number;
+  currency: string;
+  billing_cycle: SubscriptionFrequency;
+  description: string | null;
+  created_at: string;
+}
+
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  service_id: string;
+  plan_id: string | null;
+  price: number;
+  currency: string;
+  billing_cycle: SubscriptionFrequency;
+  next_billing_date: string;
+  card_last4: string | null;
+  reminder_days: number;
+  active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Enriched type for UI (user subscription + joined service + plan data)
+export interface EnrichedSubscription extends UserSubscription {
+  service: SubscriptionService;
+  plan: SubscriptionPlan | null;
 }
 
 // ===== Currency Types =====

@@ -1,4 +1,4 @@
-import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, SubscriptionCatalogEntry, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
+import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
 
 export const DEFAULT_EXPENSE_CATEGORIES: string[] = [
   "Rent", "Groceries", "Dining", "Travel", "Subscriptions",
@@ -177,51 +177,10 @@ export const SUBSCRIPTION_FREQUENCIES: { value: SubscriptionFrequency; label: st
   { value: "yearly", label: "Yearly" },
 ];
 
-export const SUBSCRIPTION_CATALOG: SubscriptionCatalogEntry[] = [
-  // Streaming
-  { id: "netflix", name: "Netflix", domain: "netflix.com", category: "Entertainment", default_amount: 15.49, default_frequency: "monthly" },
-  { id: "hulu", name: "Hulu", domain: "hulu.com", category: "Entertainment", default_amount: 17.99, default_frequency: "monthly" },
-  { id: "disney-plus", name: "Disney+", domain: "disneyplus.com", category: "Entertainment", default_amount: 13.99, default_frequency: "monthly" },
-  { id: "hbo-max", name: "Max", domain: "max.com", category: "Entertainment", default_amount: 15.99, default_frequency: "monthly" },
-  { id: "prime-video", name: "Prime Video", domain: "primevideo.com", category: "Entertainment", default_amount: 8.99, default_frequency: "monthly" },
-  { id: "apple-tv", name: "Apple TV+", domain: "tv.apple.com", category: "Entertainment", default_amount: 9.99, default_frequency: "monthly" },
-  { id: "peacock", name: "Peacock", domain: "peacocktv.com", category: "Entertainment", default_amount: 7.99, default_frequency: "monthly" },
-  { id: "paramount-plus", name: "Paramount+", domain: "paramountplus.com", category: "Entertainment", default_amount: 11.99, default_frequency: "monthly" },
-  { id: "crunchyroll", name: "Crunchyroll", domain: "crunchyroll.com", category: "Entertainment", default_amount: 7.99, default_frequency: "monthly" },
-  // Music
-  { id: "spotify", name: "Spotify", domain: "spotify.com", category: "Entertainment", default_amount: 11.99, default_frequency: "monthly" },
-  { id: "apple-music", name: "Apple Music", domain: "music.apple.com", category: "Entertainment", default_amount: 10.99, default_frequency: "monthly" },
-  { id: "youtube-music", name: "YouTube Premium", domain: "youtube.com", category: "Entertainment", default_amount: 13.99, default_frequency: "monthly" },
-  // Cloud & Productivity
-  { id: "icloud", name: "iCloud+", domain: "apple.com", category: "Subscriptions", default_amount: 2.99, default_frequency: "monthly" },
-  { id: "google-one", name: "Google One", domain: "one.google.com", category: "Subscriptions", default_amount: 2.99, default_frequency: "monthly" },
-  { id: "dropbox", name: "Dropbox", domain: "dropbox.com", category: "Subscriptions", default_amount: 11.99, default_frequency: "monthly" },
-  { id: "microsoft-365", name: "Microsoft 365", domain: "microsoft.com", category: "Subscriptions", default_amount: 99.99, default_frequency: "yearly" },
-  { id: "notion", name: "Notion", domain: "notion.so", category: "Subscriptions", default_amount: 10, default_frequency: "monthly" },
-  // Gaming
-  { id: "xbox-game-pass", name: "Xbox Game Pass", domain: "xbox.com", category: "Entertainment", default_amount: 16.99, default_frequency: "monthly" },
-  { id: "ps-plus", name: "PlayStation Plus", domain: "playstation.com", category: "Entertainment", default_amount: 59.99, default_frequency: "yearly" },
-  { id: "nintendo-online", name: "Nintendo Switch Online", domain: "nintendo.com", category: "Entertainment", default_amount: 19.99, default_frequency: "yearly" },
-  // Developer
-  { id: "github-pro", name: "GitHub Pro", domain: "github.com", category: "Subscriptions", default_amount: 4, default_frequency: "monthly" },
-  { id: "vercel-pro", name: "Vercel Pro", domain: "vercel.com", category: "Subscriptions", default_amount: 20, default_frequency: "monthly" },
-  { id: "chatgpt-plus", name: "ChatGPT Plus", domain: "openai.com", category: "Subscriptions", default_amount: 20, default_frequency: "monthly" },
-  { id: "claude-pro", name: "Claude Pro", domain: "claude.ai", category: "Subscriptions", default_amount: 20, default_frequency: "monthly" },
-  // Fitness
-  { id: "peloton", name: "Peloton", domain: "onepeloton.com", category: "Health", default_amount: 13.99, default_frequency: "monthly" },
-  { id: "strava", name: "Strava", domain: "strava.com", category: "Health", default_amount: 11.99, default_frequency: "monthly" },
-  // News & Education
-  { id: "nyt", name: "NY Times", domain: "nytimes.com", category: "Education", default_amount: 25, default_frequency: "monthly" },
-  { id: "medium", name: "Medium", domain: "medium.com", category: "Education", default_amount: 5, default_frequency: "monthly" },
-  { id: "coursera-plus", name: "Coursera Plus", domain: "coursera.org", category: "Education", default_amount: 59, default_frequency: "monthly" },
-  // Design
-  { id: "figma", name: "Figma", domain: "figma.com", category: "Subscriptions", default_amount: 12, default_frequency: "monthly" },
-  { id: "canva-pro", name: "Canva Pro", domain: "canva.com", category: "Subscriptions", default_amount: 12.99, default_frequency: "monthly" },
-  { id: "adobe-cc", name: "Adobe Creative Cloud", domain: "adobe.com", category: "Subscriptions", default_amount: 59.99, default_frequency: "monthly" },
-];
-
 export const SUBSCRIPTION_CATEGORY_OPTIONS: string[] = [
-  "Subscriptions", "Entertainment", "Health", "Education", "Utilities", "Shopping", "Other",
+  "Streaming", "Music", "Gaming", "Software", "AI Tools", "Cloud",
+  "Education", "Fitness", "News", "Storage", "VPN", "Developer Tools",
+  "Design Tools", "Business SaaS", "Productivity", "Other",
 ];
 
 // ===== Currency Constants =====

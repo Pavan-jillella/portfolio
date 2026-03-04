@@ -9,6 +9,7 @@ const ALLOWED_TABLES = new Set([
   "savings_goals",
   "investments",
   "subscriptions",
+  "user_subscriptions",
   "net_worth_entries",
   "study_sessions",
   "edu_notes",
@@ -103,6 +104,10 @@ export async function POST(req: NextRequest) {
     }
     if (table === "subscriptions") {
       dataWithUserId = dataWithUserId.map(({ website: _w, logo_url: _l, card_last4: _c, notes: _n, service_id: _s, ...rest }) => rest);
+    }
+    if (table === "user_subscriptions") {
+      // Strip enriched fields (service/plan objects) that come from client-side JOINs
+      dataWithUserId = dataWithUserId.map(({ service: _svc, plan: _plan, ...rest }) => rest);
     }
 
     const { error } = await supabase.from(table).upsert(dataWithUserId, { onConflict: "id" });

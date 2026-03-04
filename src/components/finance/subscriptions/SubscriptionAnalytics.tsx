@@ -1,28 +1,28 @@
 "use client";
 import { useMemo } from "react";
-import { Subscription, MonthlySpending } from "@/types";
-import { formatCurrency, getMonthlySubscriptionTotal } from "@/lib/finance-utils";
+import { EnrichedSubscription, MonthlySpending } from "@/types";
+import { formatCurrency, getUserSubscriptionMonthlyTotal } from "@/lib/finance-utils";
 import { CATEGORY_HEX_COLORS } from "@/lib/constants";
 import { motion } from "framer-motion";
 
 interface SubscriptionAnalyticsProps {
-  subscriptions: Subscription[];
+  subscriptions: EnrichedSubscription[];
 }
 
 export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsProps) {
   const active = useMemo(() => subscriptions.filter((s) => s.active), [subscriptions]);
-  const monthlyTotal = getMonthlySubscriptionTotal(subscriptions);
+  const monthlyTotal = getUserSubscriptionMonthlyTotal(active);
   const yearlyTotal = monthlyTotal * 12;
 
-  // Category breakdown
+  // Category breakdown (from service.category)
   const categoryBreakdown = useMemo((): MonthlySpending[] => {
     const map = new Map<string, number>();
     active.forEach((s) => {
       const monthly =
-        s.frequency === "monthly" ? s.amount :
-        s.frequency === "yearly" ? s.amount / 12 :
-        s.amount * 4.33;
-      map.set(s.category, (map.get(s.category) || 0) + monthly);
+        s.billing_cycle === "monthly" ? s.price :
+        s.billing_cycle === "yearly" ? s.price / 12 :
+        s.price * 4.33;
+      map.set(s.service.category, (map.get(s.service.category) || 0) + monthly);
     });
     return Array.from(map.entries())
       .map(([category, total]) => ({ category, total }))
@@ -30,7 +30,7 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
   }, [active]);
 
   // Most / least expensive
-  const sorted = [...active].sort((a, b) => b.amount - a.amount);
+  const sorted = [...active].sort((a, b) => b.price - a.price);
   const mostExpensive = sorted[0] || null;
   const leastExpensive = sorted[sorted.length - 1] || null;
 
@@ -165,18 +165,24 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-mono text-[10px] text-white/30 uppercase">Most Expensive</p>
-                    <p className="font-body text-sm text-white">{mostExpensive.name}</p>
+                    <p className="font-body text-sm text-white">
+                      {mostExpensive.service.name}
+                      {mostExpensive.plan && <span className="text-white/30 ml-1">({mostExpensive.plan.name})</span>}
+                    </p>
                   </div>
-                  <span className="font-mono text-sm text-red-400">{formatCurrency(mostExpensive.amount)}/{mostExpensive.frequency === "yearly" ? "yr" : "mo"}</span>
+                  <span className="font-mono text-sm text-red-400">{formatCurrency(mostExpensive.price)}/{mostExpensive.billing_cycle === "yearly" ? "yr" : "mo"}</span>
                 </div>
               )}
               {leastExpensive && leastExpensive.id !== mostExpensive?.id && (
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-mono text-[10px] text-white/30 uppercase">Least Expensive</p>
-                    <p className="font-body text-sm text-white">{leastExpensive.name}</p>
+                    <p className="font-body text-sm text-white">
+                      {leastExpensive.service.name}
+                      {leastExpensive.plan && <span className="text-white/30 ml-1">({leastExpensive.plan.name})</span>}
+                    </p>
                   </div>
-                  <span className="font-mono text-sm text-emerald-400">{formatCurrency(leastExpensive.amount)}/{leastExpensive.frequency === "yearly" ? "yr" : "mo"}</span>
+                  <span className="font-mono text-sm text-emerald-400">{formatCurrency(leastExpensive.price)}/{leastExpensive.billing_cycle === "yearly" ? "yr" : "mo"}</span>
                 </div>
               )}
             </div>
@@ -193,9 +199,9 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
                   const days = Math.ceil((new Date(sub.next_billing_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                   return (
                     <div key={sub.id} className="flex items-center justify-between">
-                      <span className="font-body text-sm text-white">{sub.name}</span>
+                      <span className="font-body text-sm text-white">{sub.service.name}</span>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-white/40">{formatCurrency(sub.amount)}</span>
+                        <span className="font-mono text-xs text-white/40">{formatCurrency(sub.price)}</span>
                         <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-full ${
                           days <= 1 ? "bg-red-500/20 text-red-400" : "bg-amber-500/20 text-amber-400"
                         }`}>

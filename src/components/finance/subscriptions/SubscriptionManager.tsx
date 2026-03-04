@@ -1,64 +1,123 @@
 "use client";
-import { useState, useMemo } from "react";
-import { Subscription, SubscriptionFrequency, SubscriptionCatalogEntry } from "@/types";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { SubscriptionService, SubscriptionPlan, UserSubscription, EnrichedSubscription, SubscriptionFrequency } from "@/types";
 import { SUBSCRIPTION_FREQUENCIES, SUBSCRIPTION_CATEGORY_OPTIONS } from "@/lib/constants";
-import { generateId, formatCurrency, getMonthlySubscriptionTotal } from "@/lib/finance-utils";
+import { generateId, formatCurrency, getUserSubscriptionMonthlyTotal } from "@/lib/finance-utils";
 import { SubscriptionSearch } from "./SubscriptionSearch";
+import { SubscriptionPlanSelector } from "./SubscriptionPlanSelector";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { SubscriptionAnalytics } from "./SubscriptionAnalytics";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SubscriptionManagerProps {
-  subscriptions: Subscription[];
-  onAdd: (sub: Subscription) => void;
+  userSubscriptions: UserSubscription[];
+  onAdd: (sub: UserSubscription, serviceName: string) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
 type SubTab = "subscriptions" | "analytics";
 
-export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }: SubscriptionManagerProps) {
+export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDelete }: SubscriptionManagerProps) {
   const [subTab, setSubTab] = useState<SubTab>("subscriptions");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
   const [filterFrequency, setFilterFrequency] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [showForm, setShowForm] = useState(false);
 
+  // Catalog state (fetched from API)
+  const [services, setServices] = useState<SubscriptionService[]>([]);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
   // Form state
-  const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [frequency, setFrequency] = useState<SubscriptionFrequency>("monthly");
-  const [category, setCategory] = useState("Subscriptions");
+  const [selectedService, setSelectedService] = useState<SubscriptionService | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [customMode, setCustomMode] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [price, setPrice] = useState("");
+  const [billingCycle, setBillingCycle] = useState<SubscriptionFrequency>("monthly");
   const [nextDate, setNextDate] = useState("");
   const [reminderDays, setReminderDays] = useState("3");
-  const [website, setWebsite] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
   const [cardLast4, setCardLast4] = useState("");
   const [notes, setNotes] = useState("");
-  const [serviceId, setServiceId] = useState("");
 
-  const monthlyTotal = getMonthlySubscriptionTotal(subscriptions);
+  // Fetch catalog on mount
+  useEffect(() => {
+    async function fetchCatalog() {
+      try {
+        const res = await fetch("/api/finance/subscription-catalog");
+        if (res.ok) {
+          const data = await res.json();
+          setServices(data.services || []);
+          setPlans(data.plans || []);
+        }
+      } catch {
+        // Catalog unavailable — user can still add custom subscriptions
+      } finally {
+        setCatalogLoading(false);
+      }
+    }
+    fetchCatalog();
+  }, []);
+
+  // Plans for selected service
+  const servicePlans = useMemo(() => {
+    if (!selectedService) return [];
+    return plans.filter((p) => p.service_id === selectedService.id);
+  }, [plans, selectedService]);
+
+  // Enrich user subscriptions with service + plan data (client-side join)
+  const enriched: EnrichedSubscription[] = useMemo(() => {
+    const serviceMap = new Map(services.map((s) => [s.id, s]));
+    const planMap = new Map(plans.map((p) => [p.id, p]));
+
+    return userSubscriptions.map((us) => {
+      const service = serviceMap.get(us.service_id) || {
+        id: us.service_id,
+        name: us.service_id,
+        slug: us.service_id,
+        domain: "",
+        category: "Other",
+        website: null,
+        logo_url: null,
+        created_at: "",
+      };
+      const plan = us.plan_id ? planMap.get(us.plan_id) || null : null;
+      return { ...us, service, plan };
+    });
+  }, [userSubscriptions, services, plans]);
+
+  const monthlyTotal = getUserSubscriptionMonthlyTotal(enriched);
   const yearlyTotal = monthlyTotal * 12;
 
+  // Available categories from enriched subscriptions
+  const categoryOptions = useMemo(() => {
+    const cats = new Set(enriched.map((s) => s.service.category));
+    return Array.from(cats).sort();
+  }, [enriched]);
+
   const frequencyOptions = useMemo(
-    () => Array.from(new Set(subscriptions.map((s) => s.frequency))).sort(),
-    [subscriptions]
+    () => Array.from(new Set(userSubscriptions.map((s) => s.billing_cycle))).sort(),
+    [userSubscriptions]
   );
 
   const filteredSubs = useMemo(() => {
-    return subscriptions.filter((s) => {
+    return enriched.filter((s) => {
       if (filterStatus === "active" && !s.active) return false;
       if (filterStatus === "inactive" && s.active) return false;
-      if (filterFrequency !== "all" && s.frequency !== filterFrequency) return false;
+      if (filterFrequency !== "all" && s.billing_cycle !== filterFrequency) return false;
+      if (filterCategory !== "all" && s.service.category !== filterCategory) return false;
       return true;
     });
-  }, [subscriptions, filterStatus, filterFrequency]);
+  }, [enriched, filterStatus, filterFrequency, filterCategory]);
 
   // Upcoming renewal alerts
-  const now = useMemo(() => new Date(), [subscriptions]);
   const alerts = useMemo(() => {
-    return subscriptions
+    const now = new Date();
+    return enriched
       .filter((s) => s.active)
       .filter((s) => {
         const billing = new Date(s.next_billing_date);
@@ -66,61 +125,87 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
         return diffDays >= 0 && diffDays <= s.reminder_days;
       })
       .sort((a, b) => a.next_billing_date.localeCompare(b.next_billing_date));
-  }, [subscriptions, now]);
+  }, [enriched]);
 
-  function resetForm() {
-    setName("");
-    setAmount("");
-    setFrequency("monthly");
-    setCategory("Subscriptions");
+  const resetForm = useCallback(() => {
+    setSelectedService(null);
+    setSelectedPlan(null);
+    setCustomMode(false);
+    setCustomName("");
+    setPrice("");
+    setBillingCycle("monthly");
     setNextDate("");
     setReminderDays("3");
-    setWebsite("");
-    setLogoUrl("");
     setCardLast4("");
     setNotes("");
-    setServiceId("");
+  }, []);
+
+  function handleServiceSelect(service: SubscriptionService) {
+    setSelectedService(service);
+    setSelectedPlan(null);
+    setCustomMode(false);
+    setCustomName("");
   }
 
-  function handleCatalogSelect(entry: SubscriptionCatalogEntry) {
-    setName(entry.name);
-    setCategory(entry.category);
-    setWebsite(entry.domain);
-    setLogoUrl(`https://logo.clearbit.com/${entry.domain}`);
-    setServiceId(entry.id);
-    if (entry.default_amount) setAmount(String(entry.default_amount));
-    if (entry.default_frequency) setFrequency(entry.default_frequency);
+  function handleCustomService(name: string) {
+    setCustomMode(true);
+    setCustomName(name);
+    setSelectedService(null);
+    setSelectedPlan(null);
   }
 
-  function handleCustomName(customName: string) {
-    setName(customName);
-    setServiceId("");
-    setWebsite("");
-    setLogoUrl("");
+  function handlePlanSelect(plan: SubscriptionPlan) {
+    setSelectedPlan(plan);
+    setPrice(String(plan.price));
+    setBillingCycle(plan.billing_cycle);
+  }
+
+  function handleCustomPlan() {
+    setSelectedPlan(null);
+    setPrice("");
   }
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !amount || !nextDate) return;
+    if (!price || !nextDate) return;
+    if (!selectedService && !customName.trim()) return;
 
-    onAdd({
+    const serviceId = selectedService?.id || `custom-${generateId()}`;
+    const serviceName = selectedService?.name || customName.trim();
+
+    // If custom service, add a temporary service record
+    if (!selectedService && customName.trim()) {
+      const tempService: SubscriptionService = {
+        id: serviceId,
+        name: customName.trim(),
+        slug: customName.trim().toLowerCase().replace(/\s+/g, "-"),
+        domain: "",
+        category: "Other",
+        website: null,
+        logo_url: null,
+        created_at: new Date().toISOString(),
+      };
+      setServices((prev) => [...prev, tempService]);
+    }
+
+    const sub: UserSubscription = {
       id: generateId(),
-      name: name.trim(),
-      amount: parseFloat(amount),
+      user_id: "", // Will be set by sync API
+      service_id: serviceId,
+      plan_id: selectedPlan?.id || null,
+      price: parseFloat(price),
       currency: "USD",
-      frequency,
-      category,
+      billing_cycle: billingCycle,
       next_billing_date: nextDate,
+      card_last4: cardLast4 || null,
       reminder_days: parseInt(reminderDays) || 3,
       active: true,
+      notes: notes || null,
       created_at: new Date().toISOString(),
-      website: website || undefined,
-      logo_url: logoUrl || undefined,
-      card_last4: cardLast4 || undefined,
-      notes: notes || undefined,
-      service_id: serviceId || undefined,
-    });
+      updated_at: new Date().toISOString(),
+    };
 
+    onAdd(sub, serviceName);
     resetForm();
     setShowForm(false);
   }
@@ -159,7 +244,7 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
 
       {/* Analytics Tab */}
       {subTab === "analytics" && (
-        <SubscriptionAnalytics subscriptions={subscriptions} />
+        <SubscriptionAnalytics subscriptions={enriched} />
       )}
 
       {/* Subscriptions Tab */}
@@ -177,7 +262,7 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
             </div>
             <div className="glass-card rounded-2xl p-4 text-center">
               <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Active</p>
-              <p className="font-mono text-xl text-blue-400">{subscriptions.filter((s) => s.active).length}</p>
+              <p className="font-mono text-xl text-blue-400">{userSubscriptions.filter((s) => s.active).length}</p>
             </div>
           </div>
 
@@ -189,17 +274,19 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
               </h4>
               <div className="space-y-2">
                 {alerts.map((sub) => {
+                  const now = new Date();
                   const days = Math.ceil((new Date(sub.next_billing_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                   return (
                     <div key={sub.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {sub.logo_url && (
-                          <img src={sub.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        {sub.service.logo_url && (
+                          <img src={sub.service.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                         )}
-                        <span className="font-body text-sm text-white">{sub.name}</span>
+                        <span className="font-body text-sm text-white">{sub.service.name}</span>
+                        {sub.plan && <span className="font-mono text-[10px] text-white/20">{sub.plan.name}</span>}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm text-white/60">{formatCurrency(sub.amount)}</span>
+                        <span className="font-mono text-sm text-white/60">{formatCurrency(sub.price)}</span>
                         <span className={`font-mono text-xs px-2 py-0.5 rounded-full ${
                           days <= 1 ? "bg-red-500/20 text-red-400" :
                           days <= 3 ? "bg-yellow-500/20 text-yellow-400" :
@@ -226,115 +313,150 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                 className="glass-card rounded-2xl p-5 space-y-4 overflow-hidden"
               >
                 <h4 className="font-display font-semibold text-sm text-white">Add Subscription</h4>
+
+                {/* Step 1: Search service */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Catalog Search */}
                   <SubscriptionSearch
-                    onSelect={handleCatalogSelect}
-                    onCustom={handleCustomName}
+                    services={services}
+                    onSelect={handleServiceSelect}
+                    onCustom={handleCustomService}
                   />
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Name</label>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Service name"
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Amount</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="15.99"
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Frequency</label>
-                    <select
-                      value={frequency}
-                      onChange={(e) => setFrequency(e.target.value as SubscriptionFrequency)}
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
-                    >
-                      {SUBSCRIPTION_FREQUENCIES.map((f) => (
-                        <option key={f.value} value={f.value} className="bg-[#0a0c12]">{f.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Category</label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
-                    >
-                      {SUBSCRIPTION_CATEGORY_OPTIONS.map((c) => (
-                        <option key={c} value={c} className="bg-[#0a0c12]">{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Next Billing</label>
-                    <input
-                      type="date"
-                      value={nextDate}
-                      onChange={(e) => setNextDate(e.target.value)}
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Remind (days)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="30"
-                      value={reminderDays}
-                      onChange={(e) => setReminderDays(e.target.value)}
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Card Last 4</label>
-                    <input
-                      type="text"
-                      maxLength={4}
-                      value={cardLast4}
-                      onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, ""))}
-                      placeholder="1234"
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Notes</label>
-                    <input
-                      type="text"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Family plan, shared with..."
-                      className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
-                    />
-                  </div>
+
+                  {/* Show selected service info */}
+                  {selectedService && (
+                    <div className="sm:col-span-2 flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/8">
+                      <img
+                        src={selectedService.logo_url || `https://logo.clearbit.com/${selectedService.domain}`}
+                        alt=""
+                        className="w-8 h-8 rounded-lg bg-white/10"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                      <div>
+                        <p className="font-body text-sm text-white">{selectedService.name}</p>
+                        <p className="font-mono text-[10px] text-white/30">{selectedService.category} &middot; {selectedService.domain}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {customMode && (
+                    <div className="sm:col-span-2">
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Custom Service Name</label>
+                      <input
+                        type="text"
+                        value={customName}
+                        onChange={(e) => setCustomName(e.target.value)}
+                        placeholder="My Custom Service"
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                      />
+                    </div>
+                  )}
                 </div>
-                <button
-                  type="submit"
-                  disabled={!name.trim() || !amount || !nextDate}
-                  className="glass-card px-5 py-2.5 rounded-xl text-sm font-body text-white/60 hover:text-white transition-all hover:border-blue-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  + Add Subscription
-                </button>
+
+                {/* Step 2: Select plan (if service has plans) */}
+                {selectedService && servicePlans.length > 0 && (
+                  <SubscriptionPlanSelector
+                    plans={servicePlans}
+                    selectedPlanId={selectedPlan?.id || null}
+                    onSelect={handlePlanSelect}
+                    onCustom={handleCustomPlan}
+                  />
+                )}
+
+                {/* Step 3: Billing details */}
+                {(selectedService || customMode) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Price</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="15.99"
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Billing Cycle</label>
+                      <select
+                        value={billingCycle}
+                        onChange={(e) => setBillingCycle(e.target.value as SubscriptionFrequency)}
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all appearance-none"
+                      >
+                        {SUBSCRIPTION_FREQUENCIES.map((f) => (
+                          <option key={f.value} value={f.value} className="bg-[#0a0c12]">{f.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Next Billing</label>
+                      <input
+                        type="date"
+                        value={nextDate}
+                        onChange={(e) => setNextDate(e.target.value)}
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white focus:outline-none focus:border-blue-500/40 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Remind (days)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="30"
+                        value={reminderDays}
+                        onChange={(e) => setReminderDays(e.target.value)}
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Card Last 4</label>
+                      <input
+                        type="text"
+                        maxLength={4}
+                        value={cardLast4}
+                        onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, ""))}
+                        placeholder="1234"
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-mono text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-mono text-xs text-white/40 uppercase tracking-widest mb-1">Notes</label>
+                      <input
+                        type="text"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Family plan, shared with..."
+                        className="w-full bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/40 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {(selectedService || customMode) && (
+                  <button
+                    type="submit"
+                    disabled={!price || !nextDate || (!selectedService && !customName.trim())}
+                    className="glass-card px-5 py-2.5 rounded-xl text-sm font-body text-white/60 hover:text-white transition-all hover:border-blue-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    + Add Subscription
+                  </button>
+                )}
+
+                {catalogLoading && (
+                  <p className="font-body text-xs text-white/20">Loading catalog...</p>
+                )}
               </motion.form>
             )}
           </AnimatePresence>
 
           {/* Subscription List */}
-          {subscriptions.length === 0 ? (
+          {enriched.length === 0 ? (
             <div className="glass-card rounded-2xl p-8 text-center">
               <p className="font-body text-sm text-white/30">No subscriptions tracked yet</p>
+              <p className="font-body text-xs text-white/20 mt-1">
+                {services.length > 0 ? `${services.length} services available in catalog` : ""}
+              </p>
               <button
                 onClick={() => setShowForm(true)}
                 className="mt-3 glass-card px-4 py-2 rounded-xl text-sm font-body text-blue-400 hover:text-white transition-all hover:border-blue-500/30"
@@ -396,9 +518,37 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                     ))}
                   </>
                 )}
+                {categoryOptions.length > 1 && (
+                  <>
+                    <span className="text-white/10">|</span>
+                    <button
+                      onClick={() => setFilterCategory("all")}
+                      className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+                        filterCategory === "all"
+                          ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                          : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                      }`}
+                    >
+                      All cats
+                    </button>
+                    {categoryOptions.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setFilterCategory(cat)}
+                        className={`px-3 py-1.5 rounded-full border font-mono text-xs transition-all ${
+                          filterCategory === cat
+                            ? "border-blue-500/30 bg-blue-500/[0.12] text-blue-400"
+                            : "border-white/8 bg-white/4 text-white/40 hover:border-white/15"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
 
-              {/* List View - enhanced SubscriptionCards */}
+              {/* List View */}
               {viewMode === "list" && (
                 <AnimatePresence>
                   {filteredSubs.map((sub, i) => (
@@ -417,7 +567,7 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
               {viewMode === "grid" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredSubs.map((sub, i) => {
-                    const logoSrc = sub.logo_url || (sub.website ? `https://logo.clearbit.com/${sub.website}` : null);
+                    const logoUrl = sub.service.logo_url || `https://logo.clearbit.com/${sub.service.domain}`;
                     return (
                       <motion.div
                         key={sub.id}
@@ -429,15 +579,13 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                         <div>
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              {logoSrc && (
-                                <img
-                                  src={logoSrc}
-                                  alt=""
-                                  className="w-5 h-5 rounded-md"
-                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                                />
-                              )}
-                              <span className="font-body text-sm text-white font-medium">{sub.name}</span>
+                              <img
+                                src={logoUrl}
+                                alt=""
+                                className="w-5 h-5 rounded-md"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              />
+                              <span className="font-body text-sm text-white font-medium">{sub.service.name}</span>
                             </div>
                             <button
                               onClick={() => onToggle(sub.id)}
@@ -452,11 +600,14 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                               )}
                             </button>
                           </div>
-                          <p className="font-mono text-xl text-white mb-2">{formatCurrency(sub.amount)}</p>
+                          {sub.plan && (
+                            <p className="font-mono text-[10px] text-white/25 mb-1">{sub.plan.name} Plan</p>
+                          )}
+                          <p className="font-mono text-xl text-white mb-2">{formatCurrency(sub.price)}</p>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-body text-xs text-white/30 capitalize">{sub.frequency}</span>
+                            <span className="font-body text-xs text-white/30 capitalize">{sub.billing_cycle}</span>
                             <span className="text-white/10">|</span>
-                            <span className="font-body text-xs text-white/30">{sub.category}</span>
+                            <span className="font-body text-xs text-white/30">{sub.service.category}</span>
                           </div>
                           {sub.card_last4 && (
                             <p className="font-mono text-[10px] text-white/15 mt-1">****{sub.card_last4}</p>
@@ -464,6 +615,16 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                           <p className="font-mono text-[10px] text-white/20 mt-1">Next: {sub.next_billing_date}</p>
                         </div>
                         <div className="flex items-center pt-3 border-t border-white/5 mt-3">
+                          {sub.service.website && (
+                            <a
+                              href={sub.service.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2 py-1 rounded-lg text-[10px] font-body text-white/30 hover:text-blue-400 hover:bg-white/5 transition-all opacity-0 group-hover:opacity-100"
+                            >
+                              Website
+                            </a>
+                          )}
                           <button
                             onClick={() => onDelete(sub.id)}
                             className="px-2 py-1 rounded-lg text-[10px] font-body text-white/30 hover:text-red-400 hover:bg-white/5 transition-all ml-auto opacity-0 group-hover:opacity-100"
@@ -485,9 +646,10 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                       <thead>
                         <tr className="border-b border-white/5">
                           <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Status</th>
-                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Name</th>
-                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Amount</th>
-                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Frequency</th>
+                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Service</th>
+                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Plan</th>
+                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Price</th>
+                          <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Cycle</th>
                           <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Category</th>
                           <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Next Billing</th>
                           <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Card</th>
@@ -513,20 +675,23 @@ export function SubscriptionManager({ subscriptions, onAdd, onToggle, onDelete }
                             </td>
                             <td className="px-4 py-2.5">
                               <div className="flex items-center gap-2">
-                                {sub.logo_url && (
-                                  <img src={sub.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                {sub.service.logo_url && (
+                                  <img src={sub.service.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                                 )}
-                                <span className="font-body text-xs text-white/70">{sub.name}</span>
+                                <span className="font-body text-xs text-white/70">{sub.service.name}</span>
                               </div>
                             </td>
+                            <td className="px-4 py-2.5">
+                              <span className="font-mono text-[10px] text-white/30">{sub.plan?.name || "—"}</span>
+                            </td>
                             <td className="px-4 py-2.5 text-right">
-                              <span className="font-mono text-xs text-white">{formatCurrency(sub.amount)}</span>
+                              <span className="font-mono text-xs text-white">{formatCurrency(sub.price)}</span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <span className="font-body text-xs text-white/40 capitalize">{sub.frequency}</span>
+                              <span className="font-body text-xs text-white/40 capitalize">{sub.billing_cycle}</span>
                             </td>
                             <td className="px-4 py-2.5">
-                              <span className="font-body text-xs text-white/40">{sub.category}</span>
+                              <span className="font-body text-xs text-white/40">{sub.service.category}</span>
                             </td>
                             <td className="px-4 py-2.5">
                               <span className="font-mono text-xs text-white/40">{sub.next_billing_date}</span>

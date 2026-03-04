@@ -5,13 +5,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 interface SubscriptionRow {
   id: string;
   user_id: string;
-  name: string;
-  amount: number;
+  price: number;
   currency: string;
-  frequency: string;
+  billing_cycle: string;
   next_billing_date: string;
   reminder_days: number;
   active: boolean;
+  service_name: string;
+  plan_name: string | null;
 }
 
 interface UserEmail {
@@ -60,15 +61,29 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Query all active subscriptions
-    const { data: subscriptions, error: subError } = await supabase
-      .from("subscriptions")
-      .select("id, user_id, name, amount, currency, frequency, next_billing_date, reminder_days, active")
+    // Query all active user subscriptions with service/plan names via JOIN
+    const { data: rawSubs, error: subError } = await supabase
+      .from("user_subscriptions")
+      .select("id, user_id, price, currency, billing_cycle, next_billing_date, reminder_days, active, subscription_services(name), subscription_plans(name)")
       .eq("active", true);
 
-    if (subError || !subscriptions) {
+    if (subError || !rawSubs) {
       return NextResponse.json({ error: "Failed to fetch subscriptions" }, { status: 500 });
     }
+
+    // Flatten joined data
+    const subscriptions: SubscriptionRow[] = (rawSubs as Record<string, unknown>[]).map((row) => ({
+      id: row.id as string,
+      user_id: row.user_id as string,
+      price: row.price as number,
+      currency: row.currency as string,
+      billing_cycle: row.billing_cycle as string,
+      next_billing_date: row.next_billing_date as string,
+      reminder_days: row.reminder_days as number,
+      active: row.active as boolean,
+      service_name: (row.subscription_services as { name: string } | null)?.name || "Unknown",
+      plan_name: (row.subscription_plans as { name: string } | null)?.name || null,
+    }));
 
     // Filter subscriptions due within reminder_days
     const now = new Date();
@@ -145,16 +160,17 @@ export async function POST(req: NextRequest) {
           const billing = new Date(s.next_billing_date);
           const diffDays = Math.ceil((billing.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
           const dueLabel = diffDays === 0 ? "Today" : diffDays === 1 ? "Tomorrow" : `In ${diffDays} days`;
+          const displayName = s.plan_name ? `${escapeHtml(s.service_name)} — ${escapeHtml(s.plan_name)}` : escapeHtml(s.service_name);
           return `<tr>
-            <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#f1f5f9;">${escapeHtml(s.name)}</td>
-            <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#60a5fa;text-align:right;">${formatCurrency(s.amount)}</td>
-            <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#94a3b8;">${s.frequency}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#f1f5f9;">${displayName}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#60a5fa;text-align:right;">${formatCurrency(s.price)}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#94a3b8;">${s.billing_cycle}</td>
             <td style="padding:10px 16px;border-bottom:1px solid #1e293b;color:#fbbf24;">${dueLabel}</td>
           </tr>`;
         })
         .join("");
 
-      const totalDue = subs.reduce((sum, s) => sum + s.amount, 0);
+      const totalDue = subs.reduce((sum, s) => sum + s.price, 0);
 
       const html = `
         <div style="max-width:600px;margin:0 auto;background:#0f172a;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;border-radius:16px;overflow:hidden;">
