@@ -1,4 +1,4 @@
-import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
+import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, SubscriptionService, SubscriptionPlan, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
 
 export const DEFAULT_EXPENSE_CATEGORIES: string[] = [
   "Rent", "Groceries", "Dining", "Travel", "Subscriptions",
@@ -181,6 +181,96 @@ export const SUBSCRIPTION_CATEGORY_OPTIONS: string[] = [
   "Streaming", "Music", "Gaming", "Software", "AI Tools", "Cloud",
   "Education", "Fitness", "News", "Storage", "VPN", "Developer Tools",
   "Design Tools", "Business SaaS", "Productivity", "Other",
+];
+
+// ===== Fallback Subscription Catalog =====
+// Used when the Supabase catalog tables are unavailable
+
+export const FALLBACK_SUBSCRIPTION_SERVICES: SubscriptionService[] = [
+  { id: "fb-netflix", name: "Netflix", slug: "netflix", domain: "netflix.com", category: "Streaming", website: "https://netflix.com", logo_url: null, created_at: "" },
+  { id: "fb-spotify", name: "Spotify", slug: "spotify", domain: "spotify.com", category: "Music", website: "https://spotify.com", logo_url: null, created_at: "" },
+  { id: "fb-youtube-premium", name: "YouTube Premium", slug: "youtube-premium", domain: "youtube.com", category: "Streaming", website: "https://youtube.com/premium", logo_url: null, created_at: "" },
+  { id: "fb-disney-plus", name: "Disney+", slug: "disney-plus", domain: "disneyplus.com", category: "Streaming", website: "https://disneyplus.com", logo_url: null, created_at: "" },
+  { id: "fb-hulu", name: "Hulu", slug: "hulu", domain: "hulu.com", category: "Streaming", website: "https://hulu.com", logo_url: null, created_at: "" },
+  { id: "fb-hbo-max", name: "Max (HBO)", slug: "hbo-max", domain: "max.com", category: "Streaming", website: "https://max.com", logo_url: null, created_at: "" },
+  { id: "fb-apple-tv", name: "Apple TV+", slug: "apple-tv", domain: "tv.apple.com", category: "Streaming", website: "https://tv.apple.com", logo_url: null, created_at: "" },
+  { id: "fb-amazon-prime", name: "Amazon Prime", slug: "amazon-prime", domain: "amazon.com", category: "Streaming", website: "https://amazon.com/prime", logo_url: null, created_at: "" },
+  { id: "fb-peacock", name: "Peacock", slug: "peacock", domain: "peacocktv.com", category: "Streaming", website: "https://peacocktv.com", logo_url: null, created_at: "" },
+  { id: "fb-paramount-plus", name: "Paramount+", slug: "paramount-plus", domain: "paramountplus.com", category: "Streaming", website: "https://paramountplus.com", logo_url: null, created_at: "" },
+  { id: "fb-apple-music", name: "Apple Music", slug: "apple-music", domain: "music.apple.com", category: "Music", website: "https://music.apple.com", logo_url: null, created_at: "" },
+  { id: "fb-tidal", name: "Tidal", slug: "tidal", domain: "tidal.com", category: "Music", website: "https://tidal.com", logo_url: null, created_at: "" },
+  { id: "fb-chatgpt", name: "ChatGPT Plus", slug: "chatgpt", domain: "openai.com", category: "AI Tools", website: "https://chat.openai.com", logo_url: null, created_at: "" },
+  { id: "fb-claude", name: "Claude Pro", slug: "claude", domain: "anthropic.com", category: "AI Tools", website: "https://claude.ai", logo_url: null, created_at: "" },
+  { id: "fb-midjourney", name: "Midjourney", slug: "midjourney", domain: "midjourney.com", category: "AI Tools", website: "https://midjourney.com", logo_url: null, created_at: "" },
+  { id: "fb-github-copilot", name: "GitHub Copilot", slug: "github-copilot", domain: "github.com", category: "Developer Tools", website: "https://github.com/features/copilot", logo_url: null, created_at: "" },
+  { id: "fb-notion", name: "Notion", slug: "notion", domain: "notion.so", category: "Productivity", website: "https://notion.so", logo_url: null, created_at: "" },
+  { id: "fb-figma", name: "Figma", slug: "figma", domain: "figma.com", category: "Design Tools", website: "https://figma.com", logo_url: null, created_at: "" },
+  { id: "fb-adobe-cc", name: "Adobe Creative Cloud", slug: "adobe-cc", domain: "adobe.com", category: "Design Tools", website: "https://adobe.com/creativecloud", logo_url: null, created_at: "" },
+  { id: "fb-canva", name: "Canva Pro", slug: "canva", domain: "canva.com", category: "Design Tools", website: "https://canva.com", logo_url: null, created_at: "" },
+  { id: "fb-dropbox", name: "Dropbox", slug: "dropbox", domain: "dropbox.com", category: "Storage", website: "https://dropbox.com", logo_url: null, created_at: "" },
+  { id: "fb-google-one", name: "Google One", slug: "google-one", domain: "one.google.com", category: "Cloud", website: "https://one.google.com", logo_url: null, created_at: "" },
+  { id: "fb-icloud", name: "iCloud+", slug: "icloud", domain: "icloud.com", category: "Cloud", website: "https://icloud.com", logo_url: null, created_at: "" },
+  { id: "fb-microsoft-365", name: "Microsoft 365", slug: "microsoft-365", domain: "microsoft.com", category: "Productivity", website: "https://microsoft.com/microsoft-365", logo_url: null, created_at: "" },
+  { id: "fb-xbox-gamepass", name: "Xbox Game Pass", slug: "xbox-gamepass", domain: "xbox.com", category: "Gaming", website: "https://xbox.com/gamepass", logo_url: null, created_at: "" },
+  { id: "fb-playstation-plus", name: "PlayStation Plus", slug: "playstation-plus", domain: "playstation.com", category: "Gaming", website: "https://playstation.com", logo_url: null, created_at: "" },
+  { id: "fb-nintendo-online", name: "Nintendo Switch Online", slug: "nintendo-online", domain: "nintendo.com", category: "Gaming", website: "https://nintendo.com/switch/online", logo_url: null, created_at: "" },
+  { id: "fb-nordvpn", name: "NordVPN", slug: "nordvpn", domain: "nordvpn.com", category: "VPN", website: "https://nordvpn.com", logo_url: null, created_at: "" },
+  { id: "fb-expressvpn", name: "ExpressVPN", slug: "expressvpn", domain: "expressvpn.com", category: "VPN", website: "https://expressvpn.com", logo_url: null, created_at: "" },
+  { id: "fb-nyt", name: "New York Times", slug: "nyt", domain: "nytimes.com", category: "News", website: "https://nytimes.com", logo_url: null, created_at: "" },
+  { id: "fb-wsj", name: "Wall Street Journal", slug: "wsj", domain: "wsj.com", category: "News", website: "https://wsj.com", logo_url: null, created_at: "" },
+  { id: "fb-linkedin-premium", name: "LinkedIn Premium", slug: "linkedin-premium", domain: "linkedin.com", category: "Business SaaS", website: "https://linkedin.com/premium", logo_url: null, created_at: "" },
+  { id: "fb-slack", name: "Slack", slug: "slack", domain: "slack.com", category: "Productivity", website: "https://slack.com", logo_url: null, created_at: "" },
+  { id: "fb-zoom", name: "Zoom", slug: "zoom", domain: "zoom.us", category: "Productivity", website: "https://zoom.us", logo_url: null, created_at: "" },
+  { id: "fb-crunchyroll", name: "Crunchyroll", slug: "crunchyroll", domain: "crunchyroll.com", category: "Streaming", website: "https://crunchyroll.com", logo_url: null, created_at: "" },
+  { id: "fb-audible", name: "Audible", slug: "audible", domain: "audible.com", category: "Education", website: "https://audible.com", logo_url: null, created_at: "" },
+  { id: "fb-duolingo", name: "Duolingo Plus", slug: "duolingo", domain: "duolingo.com", category: "Education", website: "https://duolingo.com", logo_url: null, created_at: "" },
+  { id: "fb-peloton", name: "Peloton", slug: "peloton", domain: "onepeloton.com", category: "Fitness", website: "https://onepeloton.com", logo_url: null, created_at: "" },
+  { id: "fb-strava", name: "Strava", slug: "strava", domain: "strava.com", category: "Fitness", website: "https://strava.com", logo_url: null, created_at: "" },
+  { id: "fb-github-pro", name: "GitHub Pro", slug: "github-pro", domain: "github.com", category: "Developer Tools", website: "https://github.com", logo_url: null, created_at: "" },
+  { id: "fb-vercel", name: "Vercel Pro", slug: "vercel", domain: "vercel.com", category: "Developer Tools", website: "https://vercel.com", logo_url: null, created_at: "" },
+  { id: "fb-1password", name: "1Password", slug: "1password", domain: "1password.com", category: "Software", website: "https://1password.com", logo_url: null, created_at: "" },
+  { id: "fb-grammarly", name: "Grammarly", slug: "grammarly", domain: "grammarly.com", category: "Productivity", website: "https://grammarly.com", logo_url: null, created_at: "" },
+];
+
+export const FALLBACK_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  // Netflix
+  { id: "fp-netflix-ads", service_id: "fb-netflix", name: "Standard with Ads", price: 6.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-netflix-standard", service_id: "fb-netflix", name: "Standard", price: 15.49, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-netflix-premium", service_id: "fb-netflix", name: "Premium", price: 22.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Spotify
+  { id: "fp-spotify-individual", service_id: "fb-spotify", name: "Individual", price: 11.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-spotify-duo", service_id: "fb-spotify", name: "Duo", price: 16.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-spotify-family", service_id: "fb-spotify", name: "Family", price: 19.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // YouTube Premium
+  { id: "fp-youtube-individual", service_id: "fb-youtube-premium", name: "Individual", price: 13.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-youtube-family", service_id: "fb-youtube-premium", name: "Family", price: 22.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Disney+
+  { id: "fp-disney-basic", service_id: "fb-disney-plus", name: "Basic", price: 7.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-disney-premium", service_id: "fb-disney-plus", name: "Premium", price: 13.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // ChatGPT
+  { id: "fp-chatgpt-plus", service_id: "fb-chatgpt", name: "Plus", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-chatgpt-pro", service_id: "fb-chatgpt", name: "Pro", price: 200.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Claude
+  { id: "fp-claude-pro", service_id: "fb-claude", name: "Pro", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // GitHub Copilot
+  { id: "fp-copilot-ind", service_id: "fb-github-copilot", name: "Individual", price: 10.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Apple Music
+  { id: "fp-apple-music-ind", service_id: "fb-apple-music", name: "Individual", price: 10.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-apple-music-family", service_id: "fb-apple-music", name: "Family", price: 16.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Amazon Prime
+  { id: "fp-prime-monthly", service_id: "fb-amazon-prime", name: "Monthly", price: 14.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-prime-yearly", service_id: "fb-amazon-prime", name: "Annual", price: 139.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Xbox Game Pass
+  { id: "fp-xbox-core", service_id: "fb-xbox-gamepass", name: "Core", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-xbox-ultimate", service_id: "fb-xbox-gamepass", name: "Ultimate", price: 19.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Notion
+  { id: "fp-notion-plus", service_id: "fb-notion", name: "Plus", price: 10.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Microsoft 365
+  { id: "fp-ms365-personal", service_id: "fb-microsoft-365", name: "Personal", price: 6.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-ms365-family", service_id: "fb-microsoft-365", name: "Family", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Adobe CC
+  { id: "fp-adobe-all-apps", service_id: "fb-adobe-cc", name: "All Apps", price: 59.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-adobe-photography", service_id: "fb-adobe-cc", name: "Photography", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
 ];
 
 // ===== Currency Constants =====

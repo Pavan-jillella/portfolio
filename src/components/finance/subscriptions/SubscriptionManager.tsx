@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { SubscriptionService, SubscriptionPlan, UserSubscription, EnrichedSubscription, SubscriptionFrequency } from "@/types";
-import { SUBSCRIPTION_FREQUENCIES, SUBSCRIPTION_CATEGORY_OPTIONS } from "@/lib/constants";
+import { SUBSCRIPTION_FREQUENCIES, SUBSCRIPTION_CATEGORY_OPTIONS, FALLBACK_SUBSCRIPTION_SERVICES, FALLBACK_SUBSCRIPTION_PLANS } from "@/lib/constants";
 import { generateId, formatCurrency, getUserSubscriptionMonthlyTotal } from "@/lib/finance-utils";
 import { SubscriptionSearch } from "./SubscriptionSearch";
 import { SubscriptionPlanSelector } from "./SubscriptionPlanSelector";
@@ -45,18 +45,30 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
   const [cardLast4, setCardLast4] = useState("");
   const [notes, setNotes] = useState("");
 
-  // Fetch catalog on mount
+  // Fetch catalog on mount, fall back to static catalog if API unavailable
   useEffect(() => {
     async function fetchCatalog() {
       try {
         const res = await fetch("/api/finance/subscription-catalog");
         if (res.ok) {
           const data = await res.json();
-          setServices(data.services || []);
-          setPlans(data.plans || []);
+          const apiServices = data.services || [];
+          const apiPlans = data.plans || [];
+          if (apiServices.length > 0) {
+            setServices(apiServices);
+            setPlans(apiPlans);
+          } else {
+            setServices(FALLBACK_SUBSCRIPTION_SERVICES);
+            setPlans(FALLBACK_SUBSCRIPTION_PLANS);
+          }
+        } else {
+          setServices(FALLBACK_SUBSCRIPTION_SERVICES);
+          setPlans(FALLBACK_SUBSCRIPTION_PLANS);
         }
       } catch {
-        // Catalog unavailable — user can still add custom subscriptions
+        // Catalog API unavailable — use fallback static catalog
+        setServices(FALLBACK_SUBSCRIPTION_SERVICES);
+        setPlans(FALLBACK_SUBSCRIPTION_PLANS);
       } finally {
         setCatalogLoading(false);
       }
