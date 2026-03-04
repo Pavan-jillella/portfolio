@@ -5,7 +5,10 @@ import {
   Note,
   DashboardProject,
   RecentActivity,
+  Skill,
+  Course,
 } from "@/types";
+import { SUBJECT_TO_SKILL_CATEGORY, XP_PER_LEVEL } from "@/lib/constants";
 
 /** Format a Date as YYYY-MM-DD in local timezone (not UTC) */
 function toLocalDateStr(d: Date): string {
@@ -199,4 +202,104 @@ export function formatFileSize(bytes: number): string {
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+// ===== Skill Tree Utilities =====
+
+export function generateSkillsFromData(
+  sessions: StudySession[],
+  courses: Course[],
+  projects: DashboardProject[]
+): Skill[] {
+  const skillMap = new Map<string, { xp: number; category: string }>();
+
+  // XP from study sessions: 10 XP per hour
+  sessions.forEach((s) => {
+    const subject = s.subject;
+    const category = SUBJECT_TO_SKILL_CATEGORY[subject] || "Domain";
+    const current = skillMap.get(subject) || { xp: 0, category };
+    current.xp += Math.round((s.duration_minutes / 60) * 10);
+    skillMap.set(subject, current);
+  });
+
+  // XP from courses: 50 XP per completed course, 20 XP per in-progress
+  courses.forEach((c) => {
+    const name = c.category || c.name;
+    const category = SUBJECT_TO_SKILL_CATEGORY[name] || "Domain";
+    const current = skillMap.get(name) || { xp: 0, category };
+    if (c.status === "completed") {
+      current.xp += 50;
+    } else if (c.status === "in-progress") {
+      current.xp += Math.round((c.progress / 100) * 20);
+    }
+    skillMap.set(name, current);
+  });
+
+  // XP from projects: 30 XP per completed, 15 per in-progress
+  projects.forEach((p) => {
+    const name = "Projects";
+    const current = skillMap.get(name) || { xp: 0, category: "Programming" };
+    if (p.status === "completed") {
+      current.xp += 30;
+    } else if (p.status === "in-progress") {
+      current.xp += 15;
+    }
+    skillMap.set(name, current);
+  });
+
+  return Array.from(skillMap.entries()).map(([name, data]) => {
+    let level = 1;
+    for (let i = XP_PER_LEVEL.length - 1; i >= 0; i--) {
+      if (data.xp >= XP_PER_LEVEL[i]) {
+        level = i + 1;
+        break;
+      }
+    }
+    const maxXp = XP_PER_LEVEL[Math.min(level, XP_PER_LEVEL.length - 1)] || 1000;
+    return {
+      id: name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+      name,
+      category: data.category,
+      level: Math.min(level, 5),
+      xp: data.xp,
+      max_xp: maxXp,
+      created_at: new Date().toISOString(),
+    };
+  }).sort((a, b) => b.xp - a.xp);
+}
+
+export function getStudyVelocity(
+  sessions: StudySession[],
+  weeks: number = 8
+): { weekLabel: string; subjects: number }[] {
+  const result: { weekLabel: string; subjects: number }[] = [];
+  const now = new Date();
+  for (let i = weeks - 1; i >= 0; i--) {
+    const weekEnd = new Date(now);
+    weekEnd.setDate(weekEnd.getDate() - i * 7);
+    const weekStart = new Date(weekEnd);
+    weekStart.setDate(weekStart.getDate() - 6);
+    const startStr = toLocalDateStr(weekStart);
+    const endStr = toLocalDateStr(weekEnd);
+    const weekSessions = sessions.filter((s) => s.date >= startStr && s.date <= endStr);
+    const uniqueSubjects = new Set(weekSessions.map((s) => s.subject)).size;
+    result.push({
+      weekLabel: weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      subjects: uniqueSubjects,
+    });
+  }
+  return result;
+}
+
+export function getStudyHeatmap(
+  sessions: StudySession[],
+  days: number = 28
+): { date: string; minutes: number }[] {
+  return getDailyStudyData(sessions, days);
+}
+
+export function getCompletionRate(courses: Course[]): { completed: number; total: number; rate: number } {
+  const total = courses.length;
+  const completed = courses.filter((c) => c.status === "completed").length;
+  return { completed, total, rate: total > 0 ? Math.round((completed / total) * 100) : 0 };
 }

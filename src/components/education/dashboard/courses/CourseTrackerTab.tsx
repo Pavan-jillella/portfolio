@@ -1,16 +1,18 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Course, CourseModule, CourseNote, CourseFile } from "@/types";
+import { Course, CourseModule, CourseNote, CourseFile, StudySession } from "@/types";
 import { calculateModuleProgress } from "@/lib/education-utils";
 import { COURSE_STATUS_CONFIG } from "@/lib/constants";
 import { CourseModuleList } from "./CourseModuleList";
 import { CourseNotesEditor } from "./CourseNotesEditor";
 import { CourseFileUpload } from "./CourseFileUpload";
 import { CourseForm } from "@/components/education/CourseForm";
+import { CourseRecommendations } from "../ai/CourseRecommendations";
 import { motion } from "framer-motion";
 
 interface CourseTrackerTabProps {
   courses: Course[];
+  sessions: StudySession[];
   modules: CourseModule[];
   courseNotes: CourseNote[];
   courseFiles: CourseFile[];
@@ -25,6 +27,7 @@ interface CourseTrackerTabProps {
 
 export function CourseTrackerTab({
   courses,
+  sessions,
   modules,
   courseNotes,
   courseFiles,
@@ -176,6 +179,9 @@ export function CourseTrackerTab({
           </div>
         </motion.div>
       )}
+
+      {/* AI Course Recommendations */}
+      <CourseRecommendations courses={courses} sessions={sessions} onAddCourse={onAddCourse} />
     </div>
   );
 }

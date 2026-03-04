@@ -254,10 +254,61 @@ export const DASHBOARD_TABS = [
   { id: "courses", label: "Courses" },
   { id: "notes", label: "Notes" },
   { id: "projects", label: "Projects" },
+  { id: "skills", label: "Skills" },
+  { id: "quiz", label: "Quiz" },
+  { id: "planner", label: "Planner" },
   { id: "github", label: "GitHub" },
   { id: "leetcode", label: "LeetCode" },
   { id: "files", label: "Files" },
 ] as const;
+
+// ===== Skill Tree Constants =====
+
+export const SKILL_CATEGORIES: string[] = [
+  "Programming", "Data", "AI/ML", "DevOps", "Design", "Math", "Domain",
+];
+
+export const SKILL_LEVELS: string[] = [
+  "Beginner", "Elementary", "Intermediate", "Advanced", "Expert",
+];
+
+export const XP_PER_LEVEL: number[] = [0, 100, 300, 600, 1000];
+
+export const SKILL_CATEGORY_COLORS: Record<string, string> = {
+  Programming: "#3b82f6",
+  Data: "#06b6d4",
+  "AI/ML": "#a855f7",
+  DevOps: "#f97316",
+  Design: "#ec4899",
+  Math: "#22c55e",
+  Domain: "#eab308",
+};
+
+export const SUBJECT_TO_SKILL_CATEGORY: Record<string, string> = {
+  Python: "Programming",
+  JavaScript: "Programming",
+  TypeScript: "Programming",
+  React: "Programming",
+  "Next.js": "Programming",
+  "Data Science": "Data",
+  "Machine Learning": "AI/ML",
+  "System Design": "Programming",
+  DSA: "Programming",
+  DevOps: "DevOps",
+  Databases: "Data",
+  Math: "Math",
+  Finance: "Domain",
+  Other: "Domain",
+};
+
+export const RESOURCE_TYPE_ICONS: Record<string, string> = {
+  video: "V",
+  article: "A",
+  code: "C",
+  dataset: "D",
+  pdf: "P",
+  other: "O",
+};
 
 export type DashboardTabId = (typeof DASHBOARD_TABS)[number]["id"];
 

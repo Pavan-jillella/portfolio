@@ -9,6 +9,8 @@ const PUBLIC_PATHS = [
   "/api/contact",
   "/api/comments",
   "/api/analytics",
+  "/api/education/profile/",
+  "/education/profile/",
 ];
 
 /** Files at the root that should be publicly accessible */

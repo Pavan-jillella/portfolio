@@ -1,12 +1,11 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   StudySession,
   Course,
   Note,
   DashboardProject,
   DashboardOverviewStats,
-  RecentActivity,
 } from "@/types";
 import {
   getStudyStreak,
@@ -14,9 +13,13 @@ import {
   getRecentActivity,
   formatDuration,
   getWeekStart,
+  generateSkillsFromData,
 } from "@/lib/education-utils";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { motion } from "framer-motion";
+import { AIInsightsPanel } from "../ai/AIInsightsPanel";
+import { LearningAnalyticsPanel } from "../analytics/LearningAnalyticsPanel";
+import { LearningResumeTab } from "../resume/LearningResumeTab";
 
 interface OverviewTabProps {
   sessions: StudySession[];
@@ -26,9 +29,11 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ sessions, courses, notes, projects }: OverviewTabProps) {
+  const [showResume, setShowResume] = useState(false);
   const streak = useMemo(() => getStudyStreak(sessions), [sessions]);
   const dailyData = useMemo(() => getDailyStudyData(sessions, 7), [sessions]);
   const recentActivity = useMemo(() => getRecentActivity(sessions, notes, projects), [sessions, notes, projects]);
+  const skills = useMemo(() => generateSkillsFromData(sessions, courses, projects), [sessions, courses, projects]);
 
   const stats: DashboardOverviewStats = useMemo(() => {
     const weekStart = getWeekStart(new Date());
@@ -144,6 +149,31 @@ export function OverviewTab({ sessions, courses, notes, projects }: OverviewTabP
           </div>
         )}
       </motion.div>
+
+      {/* AI Insights */}
+      <AIInsightsPanel sessions={sessions} courses={courses} notes={notes} projects={projects} />
+
+      {/* Learning Analytics */}
+      <LearningAnalyticsPanel sessions={sessions} courses={courses} />
+
+      {/* Learning Resume */}
+      <div>
+        <button
+          onClick={() => setShowResume(!showResume)}
+          className="glass-card px-5 py-2.5 rounded-xl text-sm font-body text-white/60 hover:text-white transition-all hover:border-blue-500/30"
+        >
+          {showResume ? "Hide Resume" : "Export Learning Resume"}
+        </button>
+        {showResume && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-4"
+          >
+            <LearningResumeTab sessions={sessions} courses={courses} projects={projects} skills={skills} />
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

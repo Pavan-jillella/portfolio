@@ -5,6 +5,7 @@ import { searchNotes } from "@/lib/education-utils";
 import { NoteSearch } from "./NoteSearch";
 import { NoteCard } from "./NoteCard";
 import { NoteEditor } from "./NoteEditor";
+import { NoteAITools } from "./NoteAITools";
 
 interface NotesTabProps {
   notes: Note[];
@@ -81,22 +82,25 @@ export function NotesTab({
         </div>
 
         {/* Right panel - editor */}
-        <div className="glass-card rounded-2xl p-6">
-          {selectedNote ? (
-            <NoteEditor
-              note={selectedNote}
-              versions={versions}
-              courses={courses}
-              projects={projects}
-              onUpdate={onUpdateNote}
-              onSaveVersion={onSaveVersion}
-              onRestoreVersion={onRestoreVersion}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-[400px]">
-              <p className="font-body text-sm text-white/20">Select a note to edit</p>
-            </div>
-          )}
+        <div className="flex flex-col gap-4">
+          {selectedNote && <NoteAITools note={selectedNote} />}
+          <div className="glass-card rounded-2xl p-6">
+            {selectedNote ? (
+              <NoteEditor
+                note={selectedNote}
+                versions={versions}
+                courses={courses}
+                projects={projects}
+                onUpdate={onUpdateNote}
+                onSaveVersion={onSaveVersion}
+                onRestoreVersion={onRestoreVersion}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-[400px]">
+                <p className="font-body text-sm text-white/20">Select a note to edit</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

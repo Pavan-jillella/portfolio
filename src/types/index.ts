@@ -707,6 +707,89 @@ export interface ActivityItem {
   metadata?: Record<string, unknown>;
 }
 
+// ===== AI Education Types =====
+
+export interface Skill {
+  id: string;
+  name: string;
+  category: string;
+  level: number; // 1-5
+  xp: number;
+  max_xp: number;
+  created_at: string;
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+}
+
+export interface Quiz {
+  id: string;
+  source_type: "course" | "note" | "subject";
+  source_id: string;
+  source_label: string;
+  questions: QuizQuestion[];
+  answers?: number[];
+  score?: number;
+  total?: number;
+  completed_at?: string;
+  created_at: string;
+}
+
+export interface PlanWeek {
+  week: number;
+  topic: string;
+  tasks: string[];
+  completed: boolean;
+}
+
+export interface LearningPlan {
+  id: string;
+  goal: string;
+  duration_weeks: number;
+  level: string;
+  weeks: PlanWeek[];
+  created_at: string;
+}
+
+export interface AIInsight {
+  id: string;
+  type: "insights" | "mentor" | "recommendations";
+  content: string;
+  created_at: string;
+}
+
+export interface CourseRecommendation {
+  name: string;
+  reason: string;
+  category: string;
+  difficulty: string;
+}
+
+export interface CourseResource {
+  id: string;
+  course_id: string;
+  title: string;
+  url: string;
+  type: "video" | "article" | "code" | "dataset" | "pdf" | "other";
+  created_at: string;
+}
+
+export interface Flashcard {
+  question: string;
+  answer: string;
+}
+
+export interface NoteAIResult {
+  summary?: string;
+  flashcards?: Flashcard[];
+  key_concepts?: { term: string; definition: string }[];
+  generated_at: string;
+}
+
 // ===== Analytics Types =====
 
 export interface CommitDay {

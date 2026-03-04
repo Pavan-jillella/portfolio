@@ -1,8 +1,9 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { generateId } from "@/lib/finance-utils";
 import {
   StudySession,
@@ -34,6 +35,11 @@ import { ProjectsTab } from "./projects/ProjectsTab";
 import { GitHubDashboardTab } from "./github/GitHubDashboardTab";
 import { LeetCodeDashboardTab } from "./leetcode/LeetCodeDashboardTab";
 import { FilesTab } from "./files/FilesTab";
+import { SkillTreeTab } from "./skills/SkillTreeTab";
+import { QuizTab } from "./quiz/QuizTab";
+import { LearningPlannerTab } from "./planner/LearningPlannerTab";
+import { StudyAssistantChat } from "./ai/StudyAssistantChat";
+import { CourseRoadmap } from "./ai/CourseRoadmap";
 
 export function EducationDashboardClient() {
   // ===== State (Realtime-synced) =====
@@ -54,8 +60,19 @@ export function EducationDashboardClient() {
   const [projectNotes, setProjectNotes] = useLocalStorage<ProjectNote[]>("pj-project-notes", []);
 
   const [activeTab, setActiveTab] = useState<DashboardTabId>("overview");
+  const [profileCopied, setProfileCopied] = useState(false);
   const { isAvailable: isStorageAvailable, upload: uploadFile } = useSupabaseStorage();
+  const { user } = useAuth();
   const isRealtimeConnected = sessionsConnected || notesConnected || coursesConnected || projectsConnected;
+
+  function copyProfileLink() {
+    if (!user?.id) return;
+    const url = `${window.location.origin}/education/profile/${user.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setProfileCopied(true);
+      setTimeout(() => setProfileCopied(false), 2000);
+    });
+  }
 
   // ===== Study Session Handlers =====
   function addStudySession(session: Omit<StudySession, "id" | "created_at">) {
@@ -216,6 +233,15 @@ export function EducationDashboardClient() {
             ))}
           </div>
           <RealtimeStatus isConnected={isRealtimeConnected} />
+          <button
+            onClick={copyProfileLink}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono text-white/30 bg-white/4 border border-white/5 hover:border-white/10 hover:text-white/50 transition-all"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            {profileCopied ? "Copied!" : "Profile"}
+          </button>
           <ShareLink />
           <VisibilityToggle />
         </div>
@@ -256,6 +282,7 @@ export function EducationDashboardClient() {
           <ErrorBoundary module="Course Tracker">
             <CourseTrackerTab
               courses={courses}
+              sessions={studySessions}
               modules={courseModules}
               courseNotes={courseNotes}
               courseFiles={courseFiles}
@@ -344,6 +371,53 @@ export function EducationDashboardClient() {
           </ErrorBoundary>
         </FadeIn>
       )}
+
+      {activeTab === "skills" && (
+        <FadeIn>
+          <ErrorBoundary module="Skills">
+            <div className="space-y-8">
+              <SkillTreeTab
+                sessions={studySessions}
+                courses={courses}
+                projects={projects}
+              />
+              <CourseRoadmap courses={courses} />
+            </div>
+          </ErrorBoundary>
+        </FadeIn>
+      )}
+
+      {activeTab === "quiz" && (
+        <FadeIn>
+          <ErrorBoundary module="Quiz">
+            <QuizTab
+              courses={courses}
+              notes={notes}
+              sessions={studySessions}
+            />
+          </ErrorBoundary>
+        </FadeIn>
+      )}
+
+      {activeTab === "planner" && (
+        <FadeIn>
+          <ErrorBoundary module="Planner">
+            <LearningPlannerTab
+              sessions={studySessions}
+              courses={courses}
+            />
+          </ErrorBoundary>
+        </FadeIn>
+      )}
+
+      {/* AI Study Assistant - floating panel */}
+      <StudyAssistantChat
+        sessions={studySessions}
+        courses={courses}
+        notes={notes}
+        projects={projects}
+        activeTab={activeTab}
+      />
     </div>
   );
 }

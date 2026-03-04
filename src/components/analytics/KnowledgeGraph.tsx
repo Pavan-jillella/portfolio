@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useKnowledgeGraph } from "@/hooks/queries/useKnowledgeGraph";
 import { KnowledgeGraphNode } from "./KnowledgeGraphNode";
 import { KnowledgeGraphEdge } from "./KnowledgeGraphEdge";
@@ -16,14 +16,60 @@ interface NodePosition {
   tags: string[];
 }
 
+const ENTITY_TYPES = [
+  { type: "course", color: "#06b6d4", label: "Courses" },
+  { type: "note", color: "#a855f7", label: "Notes" },
+  { type: "project", color: "#10b981", label: "Projects" },
+  { type: "blog", color: "#3b82f6", label: "Blogs" },
+];
+
 export function KnowledgeGraph() {
   const { data, isLoading, error } = useKnowledgeGraph();
   const [positions, setPositions] = useState<NodePosition[]>([]);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
   const animRef = useRef<number>(0);
   const svgRef = useRef<SVGSVGElement>(null);
   const WIDTH = 800;
   const HEIGHT = 500;
+
+  // Filter nodes and edges by visible types
+  const filteredNodeIds = useMemo(() => {
+    if (!data?.nodes) return new Set<string>();
+    return new Set(
+      data.nodes.filter((n) => !hiddenTypes.has(n.entityType)).map((n) => n.id)
+    );
+  }, [data, hiddenTypes]);
+
+  const filteredEdges = useMemo(() => {
+    if (!data?.edges) return [];
+    return data.edges.filter(
+      (e) => filteredNodeIds.has(e.source) && filteredNodeIds.has(e.target)
+    );
+  }, [data, filteredNodeIds]);
+
+  function toggleType(type: string) {
+    setHiddenTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  }
+
+  function handleNodeClick(entityType: string, entityId: string) {
+    const routes: Record<string, string> = {
+      course: "/education/dashboard",
+      note: "/education/dashboard",
+      project: "/education/dashboard",
+      blog: "/blog",
+    };
+    const route = routes[entityType] || "/education/dashboard";
+    window.location.href = route;
+  }
 
   // Initialize positions randomly
   useEffect(() => {
@@ -140,6 +186,7 @@ export function KnowledgeGraph() {
   }
 
   const posMap = new Map(positions.map((p) => [p.id, p]));
+  const visiblePositions = positions.filter((p) => filteredNodeIds.has(p.id));
 
   return (
     <div className="glass-card rounded-2xl p-6">
@@ -147,21 +194,26 @@ export function KnowledgeGraph() {
         <div>
           <h3 className="font-display font-semibold text-sm text-white">Knowledge Graph</h3>
           <p className="font-mono text-[10px] text-white/20 mt-0.5">
-            {data.nodes.length} nodes, {data.edges.length} connections
+            {visiblePositions.length} nodes, {filteredEdges.length} connections
           </p>
         </div>
         <div className="flex gap-3">
-          {[
-            { type: "course", color: "#06b6d4", label: "Courses" },
-            { type: "note", color: "#a855f7", label: "Notes" },
-            { type: "project", color: "#10b981", label: "Projects" },
-            { type: "blog", color: "#3b82f6", label: "Blogs" },
-          ].map((item) => (
-            <div key={item.type} className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="font-mono text-[9px] text-white/30">{item.label}</span>
-            </div>
-          ))}
+          {ENTITY_TYPES.map((item) => {
+            const isHidden = hiddenTypes.has(item.type);
+            return (
+              <button
+                key={item.type}
+                onClick={() => toggleType(item.type)}
+                className={`flex items-center gap-1.5 transition-opacity ${isHidden ? "opacity-30" : "opacity-100"}`}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="font-mono text-[9px] text-white/30">{item.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -172,7 +224,7 @@ export function KnowledgeGraph() {
         style={{ maxHeight: "500px" }}
       >
         {/* Edges */}
-        {data.edges.map((edge, i) => {
+        {filteredEdges.map((edge, i) => {
           const source = posMap.get(edge.source);
           const target = posMap.get(edge.target);
           if (!source || !target) return null;
@@ -189,7 +241,7 @@ export function KnowledgeGraph() {
         })}
 
         {/* Nodes */}
-        {positions.map((node) => (
+        {visiblePositions.map((node) => (
           <KnowledgeGraphNode
             key={node.id}
             x={node.x}
@@ -199,9 +251,7 @@ export function KnowledgeGraph() {
             isHovered={hoveredNode === node.id}
             onMouseEnter={() => setHoveredNode(node.id)}
             onMouseLeave={() => setHoveredNode(null)}
-            onClick={() => {
-              // Could navigate to entity in future
-            }}
+            onClick={() => handleNodeClick(node.entityType, node.entityId)}
           />
         ))}
       </svg>
