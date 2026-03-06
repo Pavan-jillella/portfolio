@@ -18,6 +18,13 @@ export const metadata: Metadata = {
     "Personal brand platform at the intersection of education, finance, and technology. Sharing systems, stories, and software.",
   keywords: ["developer", "finance", "education", "technology", "portfolio"],
   authors: [{ name: "Pavan Jillella" }],
+  manifest: "/manifest.json",
+  themeColor: "#0a0c12",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PJ",
+  },
   openGraph: {
     title: "Pavan Jillella — Building. Thinking. Documenting.",
     description:
@@ -30,6 +37,13 @@ export const metadata: Metadata = {
     title: "Pavan Jillella — Building. Thinking. Documenting.",
     description:
       "Personal brand platform at the intersection of education, finance, and technology.",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 
