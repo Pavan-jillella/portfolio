@@ -67,8 +67,15 @@ export function SavingsGoals({ goals, onAddGoal, onUpdateGoal, onDeleteGoal }: S
           >
             <div className="flex items-start gap-6">
               {/* Progress ring */}
-              <div className="shrink-0">
-                <svg width="96" height="96" className="-rotate-90">
+              <div className="shrink-0" style={{ perspective: "600px" }}>
+                <svg width="96" height="96" className="-rotate-90" style={{ transform: "rotateX(12deg) rotate(-90deg)" }}>
+                  <defs>
+                    <filter id={`savingsRingGlow-${goal.id}`}>
+                      <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="rgba(0,0,0,0.4)" />
+                    </filter>
+                  </defs>
+                  {/* Shadow ring */}
+                  <circle cx="48" cy="48" r={radius} fill="none" stroke="rgba(0,0,0,0.2)" strokeWidth="5" transform="translate(0, 2)" />
                   <circle cx="48" cy="48" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
                   <motion.circle
                     cx="48" cy="48" r={radius} fill="none"
@@ -78,6 +85,7 @@ export function SavingsGoals({ goals, onAddGoal, onUpdateGoal, onDeleteGoal }: S
                     initial={{ strokeDashoffset: circumference }}
                     animate={{ strokeDashoffset: offset }}
                     transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                    filter={`url(#savingsRingGlow-${goal.id})`}
                   />
                 </svg>
                 <p className="text-center -mt-[62px] font-mono text-sm text-white">{Math.round(pct)}%</p>

@@ -4,6 +4,7 @@ import { Habit, HabitLog } from "@/types";
 import { getHabitHeatmapData } from "@/lib/habit-utils";
 import { HABIT_CATEGORY_COLORS } from "@/lib/constants";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface HabitCalendarTabProps {
   habits: Habit[];
@@ -110,7 +111,13 @@ export function HabitCalendarTab({ habits, logs }: HabitCalendarTabProps) {
             Habit Completions — Last 365 Days
           </p>
 
+          <Chart3DWrapper tiltX={6} tiltY={-2}>
           <svg width={width} height={height} className="block">
+            <defs>
+              <filter id="habitHeatmapShadow">
+                <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.3)" />
+              </filter>
+            </defs>
             {/* Month labels */}
             {monthLabels.map((m, i) => (
               <text
@@ -154,6 +161,7 @@ export function HabitCalendarTab({ habits, logs }: HabitCalendarTabProps) {
                   rx={2}
                   fill={getCellColor(day.completions, day.total)}
                   className="cursor-pointer"
+                  style={day.completions > 0 ? { filter: "url(#habitHeatmapShadow)" } : undefined}
                   onMouseEnter={(e) => {
                     setTooltip({
                       x: x,
@@ -188,8 +196,7 @@ export function HabitCalendarTab({ habits, logs }: HabitCalendarTabProps) {
               </g>
             )}
           </svg>
-
-          {/* Legend */}
+          </Chart3DWrapper>
           <div className="flex items-center gap-2 mt-4">
             <span className="font-mono text-[9px] text-white/20">Less</span>
             {[0.03, 0.12, 0.25, 0.45, 0.7].map((opacity, i) => (

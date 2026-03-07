@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface CorrelationChartProps {
   sessions: { date?: string; created_at?: string; duration_minutes: number }[];
@@ -38,7 +39,17 @@ export function CorrelationChart({ sessions, leetcodeSolved = 0 }: CorrelationCh
       {weeklyData.length === 0 ? (
         <p className="font-body text-sm text-white/20 text-center py-8">No study data yet</p>
       ) : (
+        <Chart3DWrapper tiltX={8} tiltY={-4}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
+          <defs>
+            <filter id="correlationGlow">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
           {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
             const y = padding + (height - 2 * padding) * (1 - frac);
             const val = Math.round(maxHours * frac);
@@ -57,7 +68,7 @@ export function CorrelationChart({ sessions, leetcodeSolved = 0 }: CorrelationCh
             const y = padding + (height - 2 * padding) * (1 - d.hours / maxHours);
             return (
               <g key={d.week}>
-                <circle cx={x} cy={y} r={4} className="fill-blue-400" />
+                <circle cx={x} cy={y} r={4} className="fill-blue-400" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }} />
                 <text x={x} y={height - 8} textAnchor="middle" className="fill-white/15 font-mono" fontSize={7}>
                   W{i + 1}
                 </text>
@@ -84,9 +95,10 @@ export function CorrelationChart({ sessions, leetcodeSolved = 0 }: CorrelationCh
             const ex = width - padding;
             const ey = padding + (height - 2 * padding) * (1 - y2 / maxHours);
 
-            return <line x1={sx} y1={sy} x2={ex} y2={ey} className="stroke-blue-400/30" strokeWidth={1.5} strokeDasharray="4 4" />;
+            return <line x1={sx} y1={sy} x2={ex} y2={ey} className="stroke-blue-400/30" strokeWidth={1.5} strokeDasharray="4 4" filter="url(#correlationGlow)" />;
           })()}
         </svg>
+        </Chart3DWrapper>
       )}
 
       <div className="flex items-center gap-4 mt-3">

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface ContributionHeatmapProps {
   sessions: { date?: string; created_at?: string; duration_minutes: number }[];
@@ -48,11 +49,17 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
     <div className="glass-card rounded-2xl p-6">
       <h3 className="font-display font-semibold text-sm text-white mb-4">Study Contribution Heatmap</h3>
       <div className="overflow-x-auto">
+        <Chart3DWrapper tiltX={6} tiltY={-2}>
         <svg
           width={weeks.length * (cellSize + gap) + 30}
           height={7 * (cellSize + gap) + 20}
           className="block"
         >
+          <defs>
+            <filter id="heatmapCellShadow">
+              <feDropShadow dx="1" dy="1" stdDeviation="1" floodColor="rgba(0,0,0,0.3)" />
+            </filter>
+          </defs>
           {["", "Mon", "", "Wed", "", "Fri", ""].map((label, i) => (
             <text
               key={i}
@@ -79,6 +86,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
                   height={cellSize}
                   rx={2}
                   className={`${getColor(minutes)} transition-colors cursor-pointer hover:stroke-white/20 hover:stroke-1`}
+                  style={minutes > 0 ? { filter: "url(#heatmapCellShadow)" } : undefined}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     setTooltip({
@@ -93,6 +101,7 @@ export function ContributionHeatmap({ sessions }: ContributionHeatmapProps) {
             })
           )}
         </svg>
+        </Chart3DWrapper>
       </div>
 
       <div className="flex items-center gap-1.5 mt-3">

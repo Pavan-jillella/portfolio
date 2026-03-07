@@ -54,13 +54,13 @@ export function NetWorthCalculator({ entries, onAdd, onDelete }: NetWorthCalcula
             initial={{ width: 0 }}
             animate={{ width: `${ratio}%` }}
             transition={{ duration: 0.8 }}
-            className="h-full bg-emerald-500/60 rounded-l-full"
+            className="h-full bg-emerald-500/60 rounded-l-full bar-3d-horizontal"
           />
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${100 - ratio}%` }}
             transition={{ duration: 0.8 }}
-            className="h-full bg-red-500/60 rounded-r-full"
+            className="h-full bg-red-500/60 rounded-r-full bar-3d-horizontal"
           />
         </div>
         <div className="flex justify-between mt-2">

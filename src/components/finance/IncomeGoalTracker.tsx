@@ -46,7 +46,7 @@ export function IncomeGoalTracker({ goals, payStubs }: IncomeGoalTrackerProps) {
       {/* Progress bar */}
       <div className="relative h-3 bg-white/5 rounded-full overflow-hidden">
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full"
+          className="absolute inset-y-0 left-0 rounded-full bar-3d-horizontal"
           style={{
             background: progress >= 100
               ? "linear-gradient(90deg, #10b981, #34d399)"

@@ -3,6 +3,8 @@ import { useMemo } from "react";
 import { EnrichedSubscription, MonthlySpending } from "@/types";
 import { formatCurrency, getUserSubscriptionMonthlyTotal } from "@/lib/finance-utils";
 import { SUBSCRIPTION_CATEGORY_COLORS } from "@/lib/constants";
+import { darkenColor } from "@/lib/chart-3d-utils";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 import { motion } from "framer-motion";
 
 interface SubscriptionAnalyticsProps {
@@ -129,6 +131,7 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
   const cy = size / 2;
   const outerR = 72;
   const innerR = 45;
+  const depthOffset = 4;
 
   function buildSegments(data: { label: string; value: number; color: string }[]) {
     const total = data.reduce((s, d) => s + d.value, 0);
@@ -193,30 +196,55 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
         <motion.div className="glass-card rounded-2xl p-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <h3 className="font-display font-semibold text-sm text-white mb-4">Spending by Category</h3>
           <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                {categorySegments.map((seg, i) => {
-                  const end = seg.start + Math.max(seg.sweep - 1, 0.5);
-                  return (
-                    <motion.path
-                      key={seg.label}
-                      d={describeArc(cx, cy, outerR, innerR, seg.start, end)}
-                      fill={seg.color}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.05, duration: 0.4 }}
-                      style={{ transformOrigin: `${cx}px ${cy}px` }}
-                    />
-                  );
-                })}
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <p className="font-mono text-[10px] text-white/30">Monthly</p>
-                  <p className="font-display font-bold text-sm text-white">{formatCurrency(monthlyTotal)}</p>
+            <Chart3DWrapper tiltX={10} tiltY={-3}>
+              <div className="relative">
+                <svg width={size} height={size + depthOffset} viewBox={`0 0 ${size} ${size + depthOffset}`}>
+                  <defs>
+                    <filter id="subCatDonutShadow">
+                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,0.5)" />
+                    </filter>
+                  </defs>
+
+                  {/* Depth ring — offset down, darkened */}
+                  <g transform={`translate(0, ${depthOffset})`}>
+                    {categorySegments.map((seg) => {
+                      const end = seg.start + Math.max(seg.sweep - 1, 0.5);
+                      return (
+                        <path
+                          key={`depth-${seg.label}`}
+                          d={describeArc(cx, cy, outerR, innerR, seg.start, end)}
+                          fill={darkenColor(seg.color, 0.5)}
+                        />
+                      );
+                    })}
+                  </g>
+
+                  {/* Main ring */}
+                  <g filter="url(#subCatDonutShadow)">
+                    {categorySegments.map((seg, i) => {
+                      const end = seg.start + Math.max(seg.sweep - 1, 0.5);
+                      return (
+                        <motion.path
+                          key={seg.label}
+                          d={describeArc(cx, cy, outerR, innerR, seg.start, end)}
+                          fill={seg.color}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.05, duration: 0.4 }}
+                          style={{ transformOrigin: `${cx}px ${cy}px` }}
+                        />
+                      );
+                    })}
+                  </g>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="font-mono text-[10px] text-white/30">Monthly</p>
+                    <p className="font-display font-bold text-sm text-white">{formatCurrency(monthlyTotal)}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Chart3DWrapper>
             <div className="w-full grid grid-cols-2 gap-x-4 gap-y-2">
               {categorySegments.map((seg) => (
                 <div key={seg.label} className="flex items-center gap-2">
@@ -233,30 +261,55 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
         <motion.div className="glass-card rounded-2xl p-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <h3 className="font-display font-semibold text-sm text-white mb-4">Billing Cycle Split</h3>
           <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                {cycleSegments.map((seg, i) => {
-                  const end = seg.start + Math.max(seg.sweep - 1, 0.5);
-                  return (
-                    <motion.path
-                      key={seg.label}
-                      d={describeArc(cx, cy, outerR, innerR, seg.start, end)}
-                      fill={seg.color}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.06, duration: 0.4 }}
-                      style={{ transformOrigin: `${cx}px ${cy}px` }}
-                    />
-                  );
-                })}
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <p className="font-mono text-[10px] text-white/30">Active</p>
-                  <p className="font-display font-bold text-lg text-white">{active.length}</p>
+            <Chart3DWrapper tiltX={10} tiltY={-3}>
+              <div className="relative">
+                <svg width={size} height={size + depthOffset} viewBox={`0 0 ${size} ${size + depthOffset}`}>
+                  <defs>
+                    <filter id="subCycleDonutShadow">
+                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,0.5)" />
+                    </filter>
+                  </defs>
+
+                  {/* Depth ring — offset down, darkened */}
+                  <g transform={`translate(0, ${depthOffset})`}>
+                    {cycleSegments.map((seg) => {
+                      const end = seg.start + Math.max(seg.sweep - 1, 0.5);
+                      return (
+                        <path
+                          key={`depth-${seg.label}`}
+                          d={describeArc(cx, cy, outerR, innerR, seg.start, end)}
+                          fill={darkenColor(seg.color, 0.5)}
+                        />
+                      );
+                    })}
+                  </g>
+
+                  {/* Main ring */}
+                  <g filter="url(#subCycleDonutShadow)">
+                    {cycleSegments.map((seg, i) => {
+                      const end = seg.start + Math.max(seg.sweep - 1, 0.5);
+                      return (
+                        <motion.path
+                          key={seg.label}
+                          d={describeArc(cx, cy, outerR, innerR, seg.start, end)}
+                          fill={seg.color}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.06, duration: 0.4 }}
+                          style={{ transformOrigin: `${cx}px ${cy}px` }}
+                        />
+                      );
+                    })}
+                  </g>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <p className="font-mono text-[10px] text-white/30">Active</p>
+                    <p className="font-display font-bold text-lg text-white">{active.length}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Chart3DWrapper>
             <div className="w-full space-y-2">
               {cycleBreakdown.map((c) => (
                 <div key={c.cycle} className="flex items-center justify-between">
@@ -290,7 +343,7 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
               <span className="font-body text-xs text-white/60 w-28 truncate shrink-0">{sub.name}</span>
               <div className="flex-1 h-5 bg-white/[0.03] rounded-full overflow-hidden relative">
                 <motion.div
-                  className="h-full rounded-full"
+                  className="h-full rounded-full bar-3d-horizontal"
                   style={{ backgroundColor: SUBSCRIPTION_CATEGORY_COLORS[sub.category] || "#6b7280" }}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max((sub.monthly / maxMonthlyCost) * 100, 4)}%` }}
@@ -316,7 +369,7 @@ export function SubscriptionAnalytics({ subscriptions }: SubscriptionAnalyticsPr
                 <span className="font-mono text-[10px] text-white/40 w-10 shrink-0">{range.label}</span>
                 <div className="flex-1 h-4 bg-white/[0.03] rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full rounded-full"
+                    className="h-full rounded-full bar-3d-horizontal"
                     style={{ backgroundColor: range.color }}
                     initial={{ width: 0 }}
                     animate={{ width: `${range.count > 0 ? Math.max((range.count / maxRangeCount) * 100, 8) : 0}%` }}

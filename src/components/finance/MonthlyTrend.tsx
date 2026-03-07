@@ -34,7 +34,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                     initial={{ height: 0 }}
                     animate={{ height: `${incomeH}%` }}
                     transition={{ duration: 0.5, delay: i * 0.05 }}
-                    className="w-full bg-green-500/60 rounded-t-md min-h-[2px]"
+                    className="w-full bg-green-500/60 rounded-t-md min-h-[2px] bar-3d"
                   />
                 </div>
                 <div className="flex-1 flex flex-col items-center">
@@ -47,7 +47,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                     initial={{ height: 0 }}
                     animate={{ height: `${expenseH}%` }}
                     transition={{ duration: 0.5, delay: i * 0.05 + 0.05 }}
-                    className="w-full bg-red-500/60 rounded-t-md min-h-[2px]"
+                    className="w-full bg-red-500/60 rounded-t-md min-h-[2px] bar-3d"
                   />
                 </div>
               </div>

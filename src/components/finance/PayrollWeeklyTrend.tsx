@@ -2,6 +2,7 @@
 import { WeeklyTrendEntry } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
+import { bar3DPaths, darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 
 interface PayrollWeeklyTrendProps {
   data: WeeklyTrendEntry[];
@@ -93,6 +94,16 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
 
           return (
             <g key={entry.week_label}>
+              {/* 3D extrusion faces for gross bar */}
+              {(() => {
+                const { rightFace, topFace } = bar3DPaths(groupX, baseY - grossHeight, barWidth, grossHeight, 6, -6);
+                return (
+                  <>
+                    <path d={rightFace} fill={darkenColor("#3b82f6", 0.6)} />
+                    <path d={topFace} fill={lightenColor("#3b82f6", 0.2)} />
+                  </>
+                );
+              })()}
               {/* Gross bar */}
               <motion.rect
                 x={groupX}
@@ -107,6 +118,16 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                 transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
               />
 
+              {/* 3D extrusion faces for net bar */}
+              {(() => {
+                const { rightFace, topFace } = bar3DPaths(groupX + barWidth + barGap, baseY - netHeight, barWidth, netHeight, 6, -6);
+                return (
+                  <>
+                    <path d={rightFace} fill={darkenColor("#10b981", 0.6)} />
+                    <path d={topFace} fill={lightenColor("#10b981", 0.2)} />
+                  </>
+                );
+              })()}
               {/* Net bar */}
               <motion.rect
                 x={groupX + barWidth + barGap}

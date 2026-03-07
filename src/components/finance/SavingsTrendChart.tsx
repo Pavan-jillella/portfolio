@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { getMonthLabel, formatCurrency } from "@/lib/finance-utils";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface SavingsTrendChartProps {
   data: { month: string; savings: number }[];
@@ -46,12 +47,20 @@ export function SavingsTrendChart({ data }: SavingsTrendChartProps) {
   return (
     <div className="glass-card rounded-2xl p-6">
       <h3 className="font-display font-semibold text-lg text-white mb-4">Savings Trend</h3>
+      <Chart3DWrapper tiltX={8} tiltY={-4}>
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="savingsGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
           </linearGradient>
+          <filter id="savingsGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
         {/* Zero line */}
@@ -83,6 +92,7 @@ export function SavingsTrendChart({ data }: SavingsTrendChartProps) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          filter="url(#savingsGlow)"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -98,6 +108,7 @@ export function SavingsTrendChart({ data }: SavingsTrendChartProps) {
                 cy={p.y}
                 r="4"
                 fill={p.savings >= 0 ? "#3b82f6" : "#ef4444"}
+                style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
@@ -126,6 +137,7 @@ export function SavingsTrendChart({ data }: SavingsTrendChartProps) {
           );
         })}
       </svg>
+      </Chart3DWrapper>
     </div>
   );
 }

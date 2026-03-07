@@ -48,9 +48,16 @@ export function Sparkline({
           <stop offset="0%" stopColor={strokeColor} stopOpacity={fillOpacity} />
           <stop offset="100%" stopColor={strokeColor} stopOpacity={0} />
         </linearGradient>
+        <filter id={`${gradId}-glow`}>
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
       </defs>
       <path d={fillPath} fill={`url(#${gradId})`} />
-      <path d={linePath} fill="none" stroke={strokeColor} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={linePath} fill="none" stroke={strokeColor} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" filter={`url(#${gradId}-glow)`} />
     </svg>
   );
 }

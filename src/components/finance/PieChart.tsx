@@ -2,6 +2,8 @@
 import { MonthlySpending } from "@/types";
 import { CATEGORY_HEX_COLORS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/finance-utils";
+import { darkenColor } from "@/lib/chart-3d-utils";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 import { motion } from "framer-motion";
 
 interface PieChartProps {
@@ -24,6 +26,7 @@ export function PieChart({ data }: PieChartProps) {
   const cy = size / 2;
   const radius = 80;
   const innerRadius = 50;
+  const depthOffset = 4;
 
   let cumulativeAngle = -90;
   const segments = data.map((d) => {
@@ -58,31 +61,55 @@ export function PieChart({ data }: PieChartProps) {
     <div className="glass-card rounded-2xl p-6">
       <h3 className="font-display font-semibold text-lg text-white mb-4">Expense Breakdown</h3>
       <div className="flex flex-col items-center gap-6">
-        <div className="relative">
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            {segments.map((seg, i) => {
-              const endAngle = seg.startAngle + Math.max(seg.angle - 1, 0.5);
-              const color = CATEGORY_HEX_COLORS[seg.category] || "#6b7280";
-              return (
-                <motion.path
-                  key={seg.category}
-                  d={describeArc(cx, cy, radius, innerRadius, seg.startAngle, endAngle)}
-                  fill={color}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05, duration: 0.4 }}
-                  style={{ transformOrigin: `${cx}px ${cy}px` }}
-                />
-              );
-            })}
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <p className="font-mono text-xs text-white/30">Total</p>
-              <p className="font-display font-bold text-lg text-white">{formatCurrency(total)}</p>
+        <Chart3DWrapper tiltX={10} tiltY={-3}>
+          <div className="relative">
+            <svg width={size} height={size + depthOffset} viewBox={`0 0 ${size} ${size + depthOffset}`}>
+              <defs>
+                <filter id="pieDropShadow">
+                  <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,0.5)" />
+                </filter>
+              </defs>
+              {/* Depth ring — offset down, darkened */}
+              <g transform={`translate(0, ${depthOffset})`}>
+                {segments.map((seg) => {
+                  const endAngle = seg.startAngle + Math.max(seg.angle - 1, 0.5);
+                  const color = CATEGORY_HEX_COLORS[seg.category] || "#6b7280";
+                  return (
+                    <path
+                      key={`depth-${seg.category}`}
+                      d={describeArc(cx, cy, radius, innerRadius, seg.startAngle, endAngle)}
+                      fill={darkenColor(color, 0.5)}
+                    />
+                  );
+                })}
+              </g>
+              {/* Main ring */}
+              <g filter="url(#pieDropShadow)">
+                {segments.map((seg, i) => {
+                  const endAngle = seg.startAngle + Math.max(seg.angle - 1, 0.5);
+                  const color = CATEGORY_HEX_COLORS[seg.category] || "#6b7280";
+                  return (
+                    <motion.path
+                      key={seg.category}
+                      d={describeArc(cx, cy, radius, innerRadius, seg.startAngle, endAngle)}
+                      fill={color}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05, duration: 0.4 }}
+                      style={{ transformOrigin: `${cx}px ${cy}px` }}
+                    />
+                  );
+                })}
+              </g>
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <p className="font-mono text-xs text-white/30">Total</p>
+                <p className="font-display font-bold text-lg text-white">{formatCurrency(total)}</p>
+              </div>
             </div>
           </div>
-        </div>
+        </Chart3DWrapper>
 
         <div className="w-full grid grid-cols-2 gap-x-4 gap-y-2">
           {segments.map((seg) => (

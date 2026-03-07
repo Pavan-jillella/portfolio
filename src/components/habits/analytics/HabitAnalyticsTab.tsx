@@ -5,6 +5,7 @@ import { Habit, HabitLog } from "@/types";
 import { getCategoryScores, getWeeklyScore, calculateLongestStreak } from "@/lib/habit-utils";
 import { HABIT_CATEGORY_COLORS } from "@/lib/constants";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface HabitAnalyticsTabProps {
   habits: Habit[];
@@ -153,7 +154,21 @@ export function HabitAnalyticsTab({ habits, logs }: HabitAnalyticsTabProps) {
           <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-4">
             Daily Completion Rate — Last 30 Days
           </p>
+          <Chart3DWrapper tiltX={8} tiltY={-4}>
           <svg width="100%" viewBox={`0 0 ${chartW} ${chartH + 20}`} className="overflow-visible">
+            <defs>
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </linearGradient>
+              <filter id="habitCompletionGlow">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
             {/* Grid lines */}
             {[0, 25, 50, 75, 100].map((pct) => {
               const y = chartH - (pct / 100) * chartH;
@@ -172,15 +187,10 @@ export function HabitAnalyticsTab({ habits, logs }: HabitAnalyticsTabProps) {
             )}
             {/* Line */}
             {areaPath && (
-              <path d={areaPath} fill="none" stroke="#10b981" strokeWidth={2} />
+              <path d={areaPath} fill="none" stroke="#10b981" strokeWidth={2} filter="url(#habitCompletionGlow)" />
             )}
-            <defs>
-              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-              </linearGradient>
-            </defs>
           </svg>
+          </Chart3DWrapper>
         </div>
       </FadeIn>
 
@@ -207,6 +217,7 @@ export function HabitAnalyticsTab({ habits, logs }: HabitAnalyticsTabProps) {
                       x={x}
                       width={barW}
                       rx={3}
+                      className="bar-3d"
                       fill={week.score >= 70 ? "#10b981" : week.score >= 40 ? "#f59e0b" : "rgba(255,255,255,0.1)"}
                     />
                     <text

@@ -2,6 +2,7 @@
 import { MonthlyTrendEntry } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface PayrollMonthlyTrendProps {
   data: MonthlyTrendEntry[];
@@ -75,12 +76,20 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
         </div>
       </div>
 
+      <Chart3DWrapper tiltX={8} tiltY={-4}>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
         <defs>
           <linearGradient id="grossGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
           </linearGradient>
+          <filter id="payrollTrendGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
         {/* Horizontal grid lines */}
@@ -131,6 +140,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          filter="url(#payrollTrendGlow)"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
@@ -144,6 +154,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          filter="url(#payrollTrendGlow)"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
@@ -158,6 +169,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
               cy={scaleY(d.gross)}
               r={3}
               fill="#3b82f6"
+              style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }}
               initial={{ opacity: 0, r: 0 }}
               animate={{ opacity: 1, r: 3 }}
               transition={{ duration: 0.3, delay: 0.6 + i * 0.1 }}
@@ -169,6 +181,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
               cy={scaleY(d.net)}
               r={3}
               fill="#10b981"
+              style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }}
               initial={{ opacity: 0, r: 0 }}
               animate={{ opacity: 1, r: 3 }}
               transition={{ duration: 0.3, delay: 0.7 + i * 0.1 }}
@@ -202,6 +215,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
           </g>
         ))}
       </svg>
+      </Chart3DWrapper>
     </div>
   );
 }

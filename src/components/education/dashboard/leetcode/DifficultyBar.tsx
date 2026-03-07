@@ -19,7 +19,7 @@ export function DifficultyBar({ easy, medium, hard }: DifficultyBarProps) {
       <h3 className="font-display font-semibold text-lg text-white mb-4">Difficulty Breakdown</h3>
 
       {/* Stacked bar */}
-      <div className="flex rounded-full overflow-hidden h-4 mb-4">
+      <div className="flex rounded-full overflow-hidden h-4 mb-4 bar-3d-horizontal">
         <div className="bg-emerald-500 h-full transition-all duration-700" style={{ width: `${easyPct}%` }} />
         <div className="bg-amber-500 h-full transition-all duration-700" style={{ width: `${mediumPct}%` }} />
         <div className="bg-red-500 h-full transition-all duration-700" style={{ width: `${hardPct}%` }} />

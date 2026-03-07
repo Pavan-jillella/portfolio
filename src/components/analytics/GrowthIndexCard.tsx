@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface GrowthIndexCardProps {
   sessions: { date?: string; created_at?: string; duration_minutes: number }[];
@@ -67,12 +68,23 @@ export function GrowthIndexCard({ sessions, commitDays, leetcodeSolved }: Growth
       </div>
 
       {monthlyScores.length > 1 ? (
+        <Chart3DWrapper tiltX={6} tiltY={-2}>
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-16">
-          <path d={path} fill="none" className="stroke-blue-400" strokeWidth={2} />
+          <defs>
+            <filter id="growthGlow">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <path d={path} fill="none" className="stroke-blue-400" strokeWidth={2} filter="url(#growthGlow)" />
           {points.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r={2} className="fill-blue-400" />
+            <circle key={i} cx={p.x} cy={p.y} r={2} className="fill-blue-400" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }} />
           ))}
         </svg>
+        </Chart3DWrapper>
       ) : (
         <p className="font-body text-xs text-white/20 text-center py-4">Need more data</p>
       )}

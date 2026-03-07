@@ -18,6 +18,7 @@ import {
 } from "@/types";
 import { getCurrentMonth, getMonthlyTransactions } from "@/lib/finance-utils";
 import { getOverallHabitScore } from "@/lib/habit-utils";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface LifeIndexDashboardProps {
   blogCount: number;
@@ -38,8 +39,8 @@ function ScoreRing({ score, size = 160 }: { score: number; size?: number }) {
   const offset = circ * (1 - score / 100);
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div className="relative" style={{ width: size, height: size, perspective: "600px" }}>
+      <svg width={size} height={size} className="-rotate-90" style={{ transform: "rotateX(12deg)" }}>
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -81,7 +82,7 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
   return (
     <div className="h-1.5 rounded-full bg-white/[0.06] w-full">
       <div
-        className="h-full rounded-full transition-all duration-700"
+        className="h-full rounded-full transition-all duration-700 bar-3d-horizontal"
         style={{ width: `${pct}%`, background: color }}
       />
     </div>
@@ -135,19 +136,28 @@ function TrendChart({ data }: { data: { month: string; score: number }[] }) {
 
   return (
     <div>
+      <Chart3DWrapper tiltX={8} tiltY={-4}>
       <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-20">
         <defs>
           <linearGradient id="area-grad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
           </linearGradient>
+          <filter id="trendGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
         <path d={area} fill="url(#area-grad)" />
-        <path d={path} fill="none" className="stroke-blue-400" strokeWidth={2} />
+        <path d={path} fill="none" className="stroke-blue-400" strokeWidth={2} filter="url(#trendGlow)" />
         {pts.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={2.5} className="fill-blue-400" />
+          <circle key={i} cx={p.x} cy={p.y} r={2.5} className="fill-blue-400" style={{ filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.4))" }} />
         ))}
       </svg>
+      </Chart3DWrapper>
       <div className="flex justify-between mt-1">
         {data.map((d) => (
           <span key={d.month} className="font-mono text-[9px] text-white/20">

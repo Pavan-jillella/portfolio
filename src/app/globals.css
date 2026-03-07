@@ -275,3 +275,74 @@ html.light .neon-text {
 .prose-custom table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
 .prose-custom th { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--prose-border); color: var(--prose-heading); font-weight: 600; }
 .prose-custom td { padding: 0.75rem; border-bottom: 1px solid var(--prose-border-light); color: var(--prose-body); }
+
+/* ===== 3D bar extrusion (CSS div bars) ===== */
+.bar-3d {
+  position: relative;
+}
+.bar-3d::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -6px;
+  width: 6px;
+  height: 100%;
+  background: inherit;
+  filter: brightness(0.6);
+  transform: skewY(-45deg);
+  transform-origin: top left;
+  border-radius: 0 2px 2px 0;
+}
+.bar-3d::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: inherit;
+  filter: brightness(1.2);
+  transform: skewX(-45deg);
+  transform-origin: bottom left;
+  border-radius: 2px 2px 0 0;
+}
+
+.bar-3d-horizontal {
+  position: relative;
+}
+.bar-3d-horizontal::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: inherit;
+  filter: brightness(1.2);
+  transform: skewX(-45deg);
+  transform-origin: bottom left;
+  border-radius: 2px 2px 0 0;
+}
+.bar-3d-horizontal::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 5px;
+  height: calc(100% + 5px);
+  background: inherit;
+  filter: brightness(0.6);
+  transform: skewY(-45deg);
+  transform-origin: top left;
+  border-radius: 0 2px 2px 0;
+}
+
+/* 3D chart glow filter for SVG lines */
+.chart-3d-glow {
+  filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* 3D chart shadow for data points */
+.chart-3d-dot-shadow {
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+}

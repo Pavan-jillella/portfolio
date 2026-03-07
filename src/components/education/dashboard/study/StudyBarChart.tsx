@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { bar3DPaths, darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 
 interface StudyBarChartProps {
   data: { date: string; minutes: number }[];
@@ -95,6 +96,16 @@ export function StudyBarChart({ data }: StudyBarChartProps) {
               onMouseLeave={() => setHoveredIndex(null)}
               className="cursor-pointer"
             >
+              {/* 3D extrusion faces */}
+              {(() => {
+                const { rightFace, topFace } = bar3DPaths(x, y, barWidth, barHeight, 6, -6);
+                return (
+                  <>
+                    <path d={rightFace} fill={darkenColor("#3b82f6", 0.6)} />
+                    <path d={topFace} fill={lightenColor("#3b82f6", 0.2)} />
+                  </>
+                );
+              })()}
               {/* Bar */}
               <motion.rect
                 x={x}

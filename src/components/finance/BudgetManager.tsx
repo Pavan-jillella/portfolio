@@ -85,7 +85,7 @@ export function BudgetManager({ budgets, spending, selectedMonth, onAddBudget, o
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6 }}
-                className={`h-full rounded-full ${
+                className={`h-full rounded-full bar-3d-horizontal ${
                   pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-yellow-500" : "bg-blue-500"
                 }`}
               />
