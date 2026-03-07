@@ -9,6 +9,8 @@ interface BudgetPlannerProps {
   transactions: Transaction[];
   budgets: Budget[];
   selectedMonth: string;
+  payrollIncome?: number;
+  partTimeIncome?: number;
 }
 
 const TEMPLATES: { name: string; allocations: Record<string, number> }[] = [
@@ -33,11 +35,12 @@ const TEMPLATES: { name: string; allocations: Record<string, number> }[] = [
 const NEEDS_CATEGORIES = ["Rent", "Groceries", "Utilities", "Health", "Education"];
 const WANTS_CATEGORIES = ["Dining", "Travel", "Subscriptions", "Shopping", "Entertainment"];
 
-export function BudgetPlanner({ transactions, budgets, selectedMonth }: BudgetPlannerProps) {
+export function BudgetPlanner({ transactions, budgets, selectedMonth, payrollIncome = 0, partTimeIncome = 0 }: BudgetPlannerProps) {
   const [incomeTarget, setIncomeTarget] = useState("");
 
   const monthlyTx = useMemo(() => getMonthlyTransactions(transactions, selectedMonth), [transactions, selectedMonth]);
-  const actualIncome = monthlyTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const txIncome = monthlyTx.filter((t) => t.type === "income" && !t.description?.startsWith("Payroll:")).reduce((s, t) => s + t.amount, 0);
+  const actualIncome = txIncome + payrollIncome + partTimeIncome;
   const actualExpenses = monthlyTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const breakdown = useMemo(() => getCategoryBreakdown(monthlyTx), [monthlyTx]);
 

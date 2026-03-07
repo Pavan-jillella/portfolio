@@ -169,18 +169,22 @@ export function calculateNetWorth(entries: NetWorthEntry[]): { assets: number; l
 export function generateMonthlyReport(
   transactions: Transaction[],
   budgets: Budget[],
-  month: string
+  month: string,
+  extraIncome: number = 0,
+  extraExpenses: number = 0
 ): MonthlyReport {
   const monthTx = getMonthlyTransactions(transactions, month);
-  const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const expenses = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const txIncome = monthTx.filter((t) => t.type === "income" && !t.description?.startsWith("Payroll:")).reduce((s, t) => s + t.amount, 0);
+  const txExpenses = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const income = txIncome + extraIncome;
+  const expenses = txExpenses + extraExpenses;
   const savings = income - expenses;
   const savingsRate = income > 0 ? (savings / income) * 100 : 0;
   const breakdown = getCategoryBreakdown(monthTx);
   const topCategories = breakdown.slice(0, 5);
 
   const recs: string[] = [];
-  const currentRecs = getRecommendations(transactions, budgets);
+  const currentRecs = getRecommendations(transactions, budgets, month);
   currentRecs.forEach((r) => recs.push(r.message));
 
   if (savingsRate < 20 && income > 0) {

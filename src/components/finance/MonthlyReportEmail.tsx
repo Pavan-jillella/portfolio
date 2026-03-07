@@ -7,15 +7,18 @@ interface MonthlyReportEmailProps {
   transactions: Transaction[];
   budgets: Budget[];
   selectedMonth: string;
+  payrollIncome?: number;
+  partTimeIncome?: number;
+  subscriptionExpenses?: number;
 }
 
-export function MonthlyReportEmail({ transactions, budgets, selectedMonth }: MonthlyReportEmailProps) {
+export function MonthlyReportEmail({ transactions, budgets, selectedMonth, payrollIncome = 0, partTimeIncome = 0, subscriptionExpenses = 0 }: MonthlyReportEmailProps) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const report: MonthlyReport = generateMonthlyReport(transactions, budgets, selectedMonth);
+  const report: MonthlyReport = generateMonthlyReport(transactions, budgets, selectedMonth, payrollIncome + partTimeIncome, subscriptionExpenses);
   const monthLabel = getMonthLabel(selectedMonth);
 
   async function handleSend(e: React.FormEvent) {

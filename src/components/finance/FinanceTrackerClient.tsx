@@ -10,7 +10,6 @@ import {
   getCategoryBreakdown,
   getMonthlyTrend,
   getRecommendations,
-  getSavingsTrend,
   calculateNetWorth,
   getSubscriptionAlerts,
   getMonthlySubscriptionTotal,
@@ -128,10 +127,21 @@ export function FinanceTrackerClient() {
   const monthlyTx = useMemo(() => getMonthlyTransactions(transactions, selectedMonth), [transactions, selectedMonth]);
   const categoryBreakdown = useMemo(() => getCategoryBreakdown(monthlyTx), [monthlyTx]);
   const trend = useMemo(() => getMonthlyTrend(transactions), [transactions]);
-  const savingsTrend = useMemo(() => getSavingsTrend(transactions), [transactions]);
   const recommendations = useMemo(() => getRecommendations(transactions, budgets, selectedMonth), [transactions, budgets, selectedMonth]);
   const { netWorth } = useMemo(() => calculateNetWorth(netWorthEntries), [netWorthEntries]);
-  const subscriptionAlerts = useMemo(() => getSubscriptionAlerts(subscriptions), [subscriptions]);
+  const subscriptionAlerts = useMemo(() => {
+    const legacyAlerts = getSubscriptionAlerts(subscriptions);
+    const userAlerts = userSubscriptions.filter((s) => {
+      if (!s.active || !s.next_billing_date) return false;
+      const billing = new Date(s.next_billing_date);
+      const diffDays = Math.ceil((billing.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= (s.reminder_days || 7);
+    });
+    return [
+      ...legacyAlerts.map((s) => ({ id: s.id, name: s.name, amount: s.amount, next_billing_date: s.next_billing_date })),
+      ...userAlerts.map((s) => ({ id: s.id, name: s.service_id, amount: s.price, next_billing_date: s.next_billing_date })),
+    ];
+  }, [subscriptions, userSubscriptions]);
   const monthlySubTotal = useMemo(() => getMonthlySubscriptionTotal(subscriptions), [subscriptions]);
   const userSubMonthlyTotal = useMemo(() => getUserSubscriptionMonthlyTotal(userSubscriptions), [userSubscriptions]);
 
@@ -176,6 +186,8 @@ export function FinanceTrackerClient() {
       return { month: t.month, income: totalInc, expenses: totalExp, net: totalInc - totalExp };
     });
   }, [trend, payStubs, partTimeJobs, partTimeHours, monthlySubTotal, userSubMonthlyTotal, transactions]);
+
+  const savingsTrend = useMemo(() => enhancedTrend.map((t) => ({ month: t.month, savings: t.net })), [enhancedTrend]);
 
   // Apply filters to ALL transactions (not just monthly) for Transactions tab
   const filteredTx = useMemo(() => {
@@ -625,6 +637,8 @@ export function FinanceTrackerClient() {
               transactions={transactions}
               budgets={budgets}
               selectedMonth={selectedMonth}
+              payrollIncome={monthlyPayrollIncome}
+              partTimeIncome={monthlyPartTimeIncome}
             />
           </FadeIn>
         </div>
@@ -718,7 +732,7 @@ export function FinanceTrackerClient() {
       {activeTab === "analysis" && (
         <FadeIn>
           <ErrorBoundary module="AI Analysis">
-            <AIAnalysis transactions={transactions} budgets={budgets} userSubscriptions={userSubscriptions} />
+            <AIAnalysis transactions={transactions} budgets={budgets} userSubscriptions={userSubscriptions} payStubs={payStubs} payrollIncome={monthlyPayrollIncome} partTimeIncome={monthlyPartTimeIncome} />
           </ErrorBoundary>
         </FadeIn>
       )}
@@ -731,6 +745,9 @@ export function FinanceTrackerClient() {
               transactions={transactions}
               budgets={budgets}
               selectedMonth={selectedMonth}
+              payrollIncome={monthlyPayrollIncome}
+              partTimeIncome={monthlyPartTimeIncome}
+              subscriptionExpenses={monthlySubTotal + userSubMonthlyTotal}
             />
             <div className="glass-card rounded-2xl p-5">
               <h4 className="font-display font-semibold text-sm text-white mb-3">Currency Settings</h4>

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Transaction, Budget, UserSubscription, SubscriptionService, MonthlySpending } from "@/types";
+import { Transaction, Budget, UserSubscription, SubscriptionService, PayStub, MonthlySpending } from "@/types";
 import { formatCurrency, getCategoryBreakdown, getMonthlyTrend, getUserSubscriptionMonthlyTotal } from "@/lib/finance-utils";
 
 interface AIAnalysisProps {
@@ -8,9 +8,12 @@ interface AIAnalysisProps {
   budgets: Budget[];
   userSubscriptions?: UserSubscription[];
   subscriptionServices?: SubscriptionService[];
+  payStubs?: PayStub[];
+  payrollIncome?: number;
+  partTimeIncome?: number;
 }
 
-export function AIAnalysis({ transactions, budgets, userSubscriptions = [], subscriptionServices = [] }: AIAnalysisProps) {
+export function AIAnalysis({ transactions, budgets, userSubscriptions = [], subscriptionServices = [], payStubs = [], payrollIncome = 0, partTimeIncome = 0 }: AIAnalysisProps) {
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -54,6 +57,18 @@ export function AIAnalysis({ transactions, budgets, userSubscriptions = [], subs
           const category = service?.category || "Other";
           return `  ${name}: ${formatCurrency(s.price)}/${s.billing_cycle} (${category})`;
         }),
+      );
+    }
+
+    // Add payroll context
+    if (payStubs.length > 0 || payrollIncome > 0 || partTimeIncome > 0) {
+      const totalGross = payStubs.reduce((s, p) => s + p.gross_pay, 0);
+      const totalNet = payStubs.reduce((s, p) => s + p.net_pay, 0);
+      summaryLines.push(
+        "",
+        `Payroll summary: ${payStubs.length} pay stubs, Gross: ${formatCurrency(totalGross)}, Net: ${formatCurrency(totalNet)}`,
+        `Current month payroll income: ${formatCurrency(payrollIncome)}`,
+        `Current month part-time income: ${formatCurrency(partTimeIncome)}`,
       );
     }
 

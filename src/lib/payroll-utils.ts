@@ -132,11 +132,11 @@ export function getPayrollDashboardStats(
 ): PayrollDashboardStats {
   const employerMap = new Map(employers.map((e) => [e.id, e]));
 
-  // Filter stubs for selected month
+  // Filter stubs for selected month (use pay_date only to avoid double-counting across months)
   const monthStubs = paystubs.filter(
-    (s) => s.pay_date.startsWith(month) || s.pay_period_start.startsWith(month)
+    (s) => s.pay_date.startsWith(month)
   );
-  const monthSchedules = schedules.filter((s) => s.start_date.startsWith(month) || s.created_at.startsWith(month));
+  const monthSchedules = schedules.filter((s) => s.start_date.startsWith(month));
 
   // Totals for month
   const gross_month = monthStubs.reduce((s, p) => s + p.gross_pay, 0);
@@ -199,10 +199,10 @@ export function getPayrollDashboardStats(
     const d = new Date(selYear, selMon - 1 - i, 1);
     const m = d.toISOString().slice(0, 7);
     const mStubs = paystubs.filter(
-      (s) => s.pay_date.startsWith(m) || s.pay_period_start.startsWith(m)
+      (s) => s.pay_date.startsWith(m)
     );
     const mSchedules = schedules.filter(
-      (s) => s.start_date.startsWith(m) || s.created_at.startsWith(m)
+      (s) => s.start_date.startsWith(m)
     );
     monthly_trend.push({
       month: m,
