@@ -192,7 +192,69 @@ INSERT INTO subscription_services (id, name, slug, domain, category, website, lo
 ('intercom', 'Intercom', 'intercom', 'intercom.com', 'Business SaaS', 'https://intercom.com', 'https://logo.clearbit.com/intercom.com', '2024-03-12'),
 ('zendesk', 'Zendesk', 'zendesk', 'zendesk.com', 'Business SaaS', 'https://zendesk.com', 'https://logo.clearbit.com/zendesk.com', '2024-03-12'),
 ('mailchimp', 'Mailchimp', 'mailchimp', 'mailchimp.com', 'Business SaaS', 'https://mailchimp.com', 'https://logo.clearbit.com/mailchimp.com', '2024-03-12'),
-('freshdesk', 'Freshdesk', 'freshdesk', 'freshdesk.com', 'Business SaaS', 'https://freshdesk.com', 'https://logo.clearbit.com/freshdesk.com', '2024-03-12')
+('freshdesk', 'Freshdesk', 'freshdesk', 'freshdesk.com', 'Business SaaS', 'https://freshdesk.com', 'https://logo.clearbit.com/freshdesk.com', '2024-03-12'),
+
+-- Food & Delivery (8)
+('doordash', 'DoorDash DashPass', 'doordash', 'doordash.com', 'Food & Delivery', 'https://doordash.com', 'https://logo.clearbit.com/doordash.com', '2024-03-12'),
+('uber-one', 'Uber One', 'uber-one', 'uber.com', 'Food & Delivery', 'https://uber.com/one', 'https://logo.clearbit.com/uber.com', '2024-03-12'),
+('grubhub', 'Grubhub+', 'grubhub', 'grubhub.com', 'Food & Delivery', 'https://grubhub.com', 'https://logo.clearbit.com/grubhub.com', '2024-03-12'),
+('instacart', 'Instacart+', 'instacart', 'instacart.com', 'Food & Delivery', 'https://instacart.com', 'https://logo.clearbit.com/instacart.com', '2024-03-12'),
+('postmates', 'Postmates', 'postmates', 'postmates.com', 'Food & Delivery', 'https://postmates.com', 'https://logo.clearbit.com/postmates.com', '2024-03-12'),
+('gopuff', 'GoPuff Fam', 'gopuff', 'gopuff.com', 'Food & Delivery', 'https://gopuff.com', 'https://logo.clearbit.com/gopuff.com', '2024-03-12'),
+('hellofresh', 'HelloFresh', 'hellofresh', 'hellofresh.com', 'Food & Delivery', 'https://hellofresh.com', 'https://logo.clearbit.com/hellofresh.com', '2024-03-12'),
+('blue-apron', 'Blue Apron', 'blue-apron', 'blueapron.com', 'Food & Delivery', 'https://blueapron.com', 'https://logo.clearbit.com/blueapron.com', '2024-03-12'),
+
+-- Transportation (3)
+('lyft-pink', 'Lyft Pink', 'lyft-pink', 'lyft.com', 'Transportation', 'https://lyft.com', 'https://logo.clearbit.com/lyft.com', '2024-03-12'),
+('uber-pass', 'Uber Pass', 'uber-pass', 'uber.com', 'Transportation', 'https://uber.com', 'https://logo.clearbit.com/uber.com', '2024-03-12'),
+('citibike', 'Citi Bike', 'citibike', 'citibikenyc.com', 'Transportation', 'https://citibikenyc.com', 'https://logo.clearbit.com/citibikenyc.com', '2024-03-12'),
+
+-- Shopping (6)
+('walmart-plus', 'Walmart+', 'walmart-plus', 'walmart.com', 'Shopping', 'https://walmart.com/plus', 'https://logo.clearbit.com/walmart.com', '2024-03-12'),
+('costco', 'Costco Membership', 'costco', 'costco.com', 'Shopping', 'https://costco.com', 'https://logo.clearbit.com/costco.com', '2024-03-12'),
+('sams-club', 'Sam''s Club', 'sams-club', 'samsclub.com', 'Shopping', 'https://samsclub.com', 'https://logo.clearbit.com/samsclub.com', '2024-03-12'),
+('target-circle', 'Target Circle 360', 'target-circle', 'target.com', 'Shopping', 'https://target.com', 'https://logo.clearbit.com/target.com', '2024-03-12'),
+('ebay-plus', 'eBay Plus', 'ebay-plus', 'ebay.com', 'Shopping', 'https://ebay.com', 'https://logo.clearbit.com/ebay.com', '2024-03-12'),
+('bestbuy-totaltech', 'Best Buy Totaltech', 'bestbuy-totaltech', 'bestbuy.com', 'Shopping', 'https://bestbuy.com', 'https://logo.clearbit.com/bestbuy.com', '2024-03-12'),
+
+-- Dating (4)
+('tinder', 'Tinder', 'tinder', 'tinder.com', 'Dating', 'https://tinder.com', 'https://logo.clearbit.com/tinder.com', '2024-03-12'),
+('bumble', 'Bumble Premium', 'bumble', 'bumble.com', 'Dating', 'https://bumble.com', 'https://logo.clearbit.com/bumble.com', '2024-03-12'),
+('hinge', 'Hinge', 'hinge', 'hinge.co', 'Dating', 'https://hinge.co', 'https://logo.clearbit.com/hinge.co', '2024-03-12'),
+('match', 'Match.com', 'match', 'match.com', 'Dating', 'https://match.com', 'https://logo.clearbit.com/match.com', '2024-03-12'),
+
+-- Social Media (6)
+('x-premium', 'X Premium', 'x-premium', 'x.com', 'Social Media', 'https://x.com', 'https://logo.clearbit.com/x.com', '2024-03-12'),
+('snapchat-plus', 'Snapchat+', 'snapchat-plus', 'snapchat.com', 'Social Media', 'https://snapchat.com', 'https://logo.clearbit.com/snapchat.com', '2024-03-12'),
+('reddit-premium', 'Reddit Premium', 'reddit-premium', 'reddit.com', 'Social Media', 'https://reddit.com', 'https://logo.clearbit.com/reddit.com', '2024-03-12'),
+('discord-nitro', 'Discord Nitro', 'discord-nitro', 'discord.com', 'Social Media', 'https://discord.com', 'https://logo.clearbit.com/discord.com', '2024-03-12'),
+('telegram-premium', 'Telegram Premium', 'telegram-premium', 'telegram.org', 'Social Media', 'https://telegram.org', 'https://logo.clearbit.com/telegram.org', '2024-03-12'),
+('youtube-tv', 'YouTube TV', 'youtube-tv', 'tv.youtube.com', 'Streaming', 'https://tv.youtube.com', 'https://logo.clearbit.com/tv.youtube.com', '2024-03-12'),
+
+-- Health & Wellness (4)
+('betterhelp', 'BetterHelp', 'betterhelp', 'betterhelp.com', 'Health & Wellness', 'https://betterhelp.com', 'https://logo.clearbit.com/betterhelp.com', '2024-03-12'),
+('calm', 'Calm', 'calm', 'calm.com', 'Health & Wellness', 'https://calm.com', 'https://logo.clearbit.com/calm.com', '2024-03-12'),
+('noom', 'Noom', 'noom', 'noom.com', 'Health & Wellness', 'https://noom.com', 'https://logo.clearbit.com/noom.com', '2024-03-12'),
+('talkspace', 'Talkspace', 'talkspace', 'talkspace.com', 'Health & Wellness', 'https://talkspace.com', 'https://logo.clearbit.com/talkspace.com', '2024-03-12'),
+
+-- Finance (4)
+('robinhood-gold', 'Robinhood Gold', 'robinhood-gold', 'robinhood.com', 'Finance', 'https://robinhood.com', 'https://logo.clearbit.com/robinhood.com', '2024-03-12'),
+('ynab', 'YNAB', 'ynab', 'ynab.com', 'Finance', 'https://ynab.com', 'https://logo.clearbit.com/ynab.com', '2024-03-12'),
+('credit-karma', 'Credit Karma', 'credit-karma', 'creditkarma.com', 'Finance', 'https://creditkarma.com', 'https://logo.clearbit.com/creditkarma.com', '2024-03-12'),
+('turbotax', 'TurboTax Live', 'turbotax', 'turbotax.com', 'Finance', 'https://turbotax.com', 'https://logo.clearbit.com/turbotax.com', '2024-03-12'),
+
+-- Job Search (5)
+('jobright', 'Jobright', 'jobright', 'jobright.ai', 'Job Search', 'https://jobright.ai', 'https://logo.clearbit.com/jobright.ai', '2024-03-12'),
+('indeed', 'Indeed Resume', 'indeed', 'indeed.com', 'Job Search', 'https://indeed.com', 'https://logo.clearbit.com/indeed.com', '2024-03-12'),
+('ziprecruiter', 'ZipRecruiter', 'ziprecruiter', 'ziprecruiter.com', 'Job Search', 'https://ziprecruiter.com', 'https://logo.clearbit.com/ziprecruiter.com', '2024-03-12'),
+('glassdoor', 'Glassdoor Premium', 'glassdoor', 'glassdoor.com', 'Job Search', 'https://glassdoor.com', 'https://logo.clearbit.com/glassdoor.com', '2024-03-12'),
+('handshake', 'Handshake Premium', 'handshake', 'joinhandshake.com', 'Job Search', 'https://joinhandshake.com', 'https://logo.clearbit.com/joinhandshake.com', '2024-03-12'),
+
+-- Home & Security (4)
+('ring', 'Ring Protect', 'ring', 'ring.com', 'Home & Security', 'https://ring.com', 'https://logo.clearbit.com/ring.com', '2024-03-12'),
+('simplisafe', 'SimpliSafe', 'simplisafe', 'simplisafe.com', 'Home & Security', 'https://simplisafe.com', 'https://logo.clearbit.com/simplisafe.com', '2024-03-12'),
+('adt', 'ADT', 'adt', 'adt.com', 'Home & Security', 'https://adt.com', 'https://logo.clearbit.com/adt.com', '2024-03-12'),
+('nest-aware', 'Nest Aware', 'nest-aware', 'store.google.com', 'Home & Security', 'https://store.google.com/category/nest_aware', 'https://logo.clearbit.com/store.google.com', '2024-03-12')
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -536,5 +598,122 @@ INSERT INTO subscription_plans (id, service_id, name, price, currency, billing_c
 
 -- Mailchimp
 ('mailchimp-essentials', 'mailchimp', 'Essentials', 13.00, 'USD', 'monthly', 'Email campaigns', '2024-03-12'),
-('mailchimp-standard', 'mailchimp', 'Standard', 20.00, 'USD', 'monthly', 'Automation, optimization', '2024-03-12')
+('mailchimp-standard', 'mailchimp', 'Standard', 20.00, 'USD', 'monthly', 'Automation, optimization', '2024-03-12'),
+
+-- DoorDash DashPass
+('doordash-monthly', 'doordash', 'DashPass', 9.99, 'USD', 'monthly', '$0 delivery on $12+ orders', '2024-03-12'),
+('doordash-yearly', 'doordash', 'DashPass Annual', 96.00, 'USD', 'yearly', 'Annual savings', '2024-03-12'),
+
+-- Uber One
+('uber-one-monthly', 'uber-one', 'Monthly', 9.99, 'USD', 'monthly', 'Free delivery, ride discounts', '2024-03-12'),
+('uber-one-yearly', 'uber-one', 'Annual', 99.99, 'USD', 'yearly', 'Annual savings', '2024-03-12'),
+
+-- Grubhub+
+('grubhub-monthly', 'grubhub', 'Monthly', 9.99, 'USD', 'monthly', 'Free delivery on $12+', '2024-03-12'),
+
+-- Instacart+
+('instacart-monthly', 'instacart', 'Monthly', 9.99, 'USD', 'monthly', 'Free delivery on $35+', '2024-03-12'),
+('instacart-yearly', 'instacart', 'Annual', 99.00, 'USD', 'yearly', 'Annual savings', '2024-03-12'),
+
+-- HelloFresh
+('hellofresh-2person', 'hellofresh', '2 Person Plan', 60.00, 'USD', 'weekly', '3 recipes, 2 servings', '2024-03-12'),
+('hellofresh-4person', 'hellofresh', '4 Person Plan', 96.00, 'USD', 'weekly', '3 recipes, 4 servings', '2024-03-12'),
+
+-- Blue Apron
+('blue-apron-2', 'blue-apron', '2 Servings', 48.00, 'USD', 'weekly', '3 recipes, 2 servings', '2024-03-12'),
+
+-- Lyft Pink
+('lyft-pink-monthly', 'lyft-pink', 'Lyft Pink', 9.99, 'USD', 'monthly', '5% off rides, priority pickup', '2024-03-12'),
+('lyft-pink-yearly', 'lyft-pink', 'All Access', 199.00, 'USD', 'yearly', 'Annual all-access plan', '2024-03-12'),
+
+-- Walmart+
+('walmart-monthly', 'walmart-plus', 'Monthly', 12.95, 'USD', 'monthly', 'Free delivery, fuel discounts', '2024-03-12'),
+('walmart-yearly', 'walmart-plus', 'Annual', 98.00, 'USD', 'yearly', 'Annual savings', '2024-03-12'),
+
+-- Costco
+('costco-gold', 'costco', 'Gold Star', 65.00, 'USD', 'yearly', 'Warehouse access', '2024-03-12'),
+('costco-executive', 'costco', 'Executive', 130.00, 'USD', 'yearly', '2% rewards on purchases', '2024-03-12'),
+
+-- Sam's Club
+('sams-club-basic', 'sams-club', 'Club', 50.00, 'USD', 'yearly', 'Warehouse access', '2024-03-12'),
+('sams-club-plus', 'sams-club', 'Plus', 110.00, 'USD', 'yearly', '2% cashback, free shipping', '2024-03-12'),
+
+-- Target Circle 360
+('target-circle-yearly', 'target-circle', 'Annual', 99.00, 'USD', 'yearly', 'Same-day delivery', '2024-03-12'),
+
+-- Best Buy Totaltech
+('bestbuy-totaltech', 'bestbuy-totaltech', 'Totaltech', 179.99, 'USD', 'yearly', 'Extended protection, support', '2024-03-12'),
+
+-- Tinder
+('tinder-plus', 'tinder', 'Plus', 9.99, 'USD', 'monthly', 'Unlimited likes', '2024-03-12'),
+('tinder-gold', 'tinder', 'Gold', 29.99, 'USD', 'monthly', 'See who likes you', '2024-03-12'),
+('tinder-platinum', 'tinder', 'Platinum', 39.99, 'USD', 'monthly', 'Priority likes, message before match', '2024-03-12'),
+
+-- Bumble
+('bumble-boost', 'bumble', 'Boost', 16.99, 'USD', 'monthly', 'Extend matches, backtrack', '2024-03-12'),
+('bumble-premium', 'bumble', 'Premium', 39.99, 'USD', 'monthly', 'Boost + advanced filters', '2024-03-12'),
+
+-- Hinge
+('hinge-plus', 'hinge', 'Plus', 19.99, 'USD', 'monthly', 'Unlimited likes, preferences', '2024-03-12'),
+('hinge-preferred', 'hinge', 'Preferred', 34.99, 'USD', 'monthly', 'Plus + enhanced discovery', '2024-03-12'),
+
+-- Match.com
+('match-standard', 'match', 'Standard', 21.99, 'USD', 'monthly', 'Messaging, likes', '2024-03-12'),
+('match-premium', 'match', 'Premium', 34.99, 'USD', 'monthly', 'Read receipts, boost', '2024-03-12'),
+
+-- X Premium
+('x-basic', 'x-premium', 'Basic', 3.00, 'USD', 'monthly', 'Edit posts, longer posts', '2024-03-12'),
+('x-premium-tier', 'x-premium', 'Premium', 8.00, 'USD', 'monthly', 'Blue check, half ads', '2024-03-12'),
+('x-premium-plus', 'x-premium', 'Premium+', 16.00, 'USD', 'monthly', 'No ads, largest boost', '2024-03-12'),
+
+-- Snapchat+
+('snapchat-plus-monthly', 'snapchat-plus', 'Monthly', 3.99, 'USD', 'monthly', 'Exclusive features', '2024-03-12'),
+
+-- Reddit Premium
+('reddit-premium-monthly', 'reddit-premium', 'Monthly', 5.99, 'USD', 'monthly', 'Ad-free, Reddit coins', '2024-03-12'),
+
+-- Discord Nitro
+('discord-nitro-basic', 'discord-nitro', 'Nitro Basic', 2.99, 'USD', 'monthly', 'Emojis, stickers, uploads', '2024-03-12'),
+('discord-nitro-full', 'discord-nitro', 'Nitro', 9.99, 'USD', 'monthly', 'HD streaming, 500MB uploads', '2024-03-12'),
+
+-- Telegram Premium
+('telegram-premium-monthly', 'telegram-premium', 'Monthly', 4.99, 'USD', 'monthly', 'No ads, 4GB uploads', '2024-03-12'),
+
+-- YouTube TV
+('youtube-tv-base', 'youtube-tv', 'Base Plan', 72.99, 'USD', 'monthly', '100+ live channels', '2024-03-12'),
+
+-- BetterHelp
+('betterhelp-weekly', 'betterhelp', 'Weekly', 65.00, 'USD', 'weekly', 'Unlimited messaging, 1 live session', '2024-03-12'),
+
+-- Calm
+('calm-monthly', 'calm', 'Monthly', 14.99, 'USD', 'monthly', 'Meditation, sleep stories', '2024-03-12'),
+('calm-yearly', 'calm', 'Annual', 69.99, 'USD', 'yearly', 'Annual plan', '2024-03-12'),
+
+-- Noom
+('noom-monthly', 'noom', 'Monthly', 70.00, 'USD', 'monthly', 'Weight management program', '2024-03-12'),
+
+-- Talkspace
+('talkspace-messaging', 'talkspace', 'Messaging Therapy', 69.00, 'USD', 'weekly', 'Unlimited messaging, 1 live session', '2024-03-12'),
+
+-- Robinhood Gold
+('robinhood-gold-monthly', 'robinhood-gold', 'Gold', 5.00, 'USD', 'monthly', 'Research, margin lending', '2024-03-12'),
+
+-- YNAB
+('ynab-monthly', 'ynab', 'Monthly', 14.99, 'USD', 'monthly', 'Budgeting software', '2024-03-12'),
+('ynab-yearly', 'ynab', 'Annual', 109.00, 'USD', 'yearly', 'Annual savings', '2024-03-12'),
+
+-- Jobright
+('jobright-pro', 'jobright', 'Pro', 29.00, 'USD', 'monthly', 'AI job matching', '2024-03-12'),
+
+-- Ring Protect
+('ring-basic', 'ring', 'Basic', 3.99, 'USD', 'monthly', '1 device, 180-day history', '2024-03-12'),
+('ring-plus', 'ring', 'Plus', 10.00, 'USD', 'monthly', 'All devices, extended warranty', '2024-03-12'),
+
+-- SimpliSafe
+('simplisafe-standard', 'simplisafe', 'Standard', 17.99, 'USD', 'monthly', '24/7 monitoring', '2024-03-12'),
+('simplisafe-fast', 'simplisafe', 'Fast Protect', 27.99, 'USD', 'monthly', 'Priority dispatch, camera recording', '2024-03-12'),
+
+-- Nest Aware
+('nest-aware-monthly', 'nest-aware', 'Nest Aware', 8.00, 'USD', 'monthly', '30-day event history', '2024-03-12'),
+('nest-aware-plus', 'nest-aware', 'Nest Aware Plus', 15.00, 'USD', 'monthly', '60-day 24/7 video history', '2024-03-12')
 ON CONFLICT (id) DO NOTHING;

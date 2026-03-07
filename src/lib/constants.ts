@@ -180,7 +180,9 @@ export const SUBSCRIPTION_FREQUENCIES: { value: SubscriptionFrequency; label: st
 export const SUBSCRIPTION_CATEGORY_OPTIONS: string[] = [
   "Streaming", "Music", "Gaming", "Software", "AI Tools", "Cloud",
   "Education", "Fitness", "News", "Storage", "VPN", "Developer Tools",
-  "Design Tools", "Business SaaS", "Productivity", "Other",
+  "Design Tools", "Business SaaS", "Productivity", "Food & Delivery",
+  "Shopping", "Transportation", "Dating", "Social Media",
+  "Health & Wellness", "Finance", "Job Search", "Home & Security", "Other",
 ];
 
 export const SUBSCRIPTION_CATEGORY_COLORS: Record<string, string> = {
@@ -199,6 +201,15 @@ export const SUBSCRIPTION_CATEGORY_COLORS: Record<string, string> = {
   "Design Tools": "#c084fc",
   "Business SaaS": "#f97316",
   Productivity: "#67e8f9",
+  "Food & Delivery": "#ef4444",
+  Shopping: "#f59e0b",
+  Transportation: "#06b6d4",
+  Dating: "#ec4899",
+  "Social Media": "#8b5cf6",
+  "Health & Wellness": "#14b8a6",
+  Finance: "#10b981",
+  "Job Search": "#6366f1",
+  "Home & Security": "#78716c",
   Other: "#6b7280",
 };
 
@@ -318,6 +329,59 @@ export const FALLBACK_SUBSCRIPTION_SERVICES: SubscriptionService[] = [
   { id: "fb-zendesk", name: "Zendesk", slug: "zendesk", domain: "zendesk.com", category: "Business SaaS", website: "https://zendesk.com", logo_url: favicon("zendesk.com"), created_at: "" },
   { id: "fb-mailchimp", name: "Mailchimp", slug: "mailchimp", domain: "mailchimp.com", category: "Business SaaS", website: "https://mailchimp.com", logo_url: favicon("mailchimp.com"), created_at: "" },
   { id: "fb-freshdesk", name: "Freshdesk", slug: "freshdesk", domain: "freshdesk.com", category: "Business SaaS", website: "https://freshdesk.com", logo_url: favicon("freshdesk.com"), created_at: "" },
+  // Food & Delivery
+  { id: "fb-doordash", name: "DoorDash DashPass", slug: "doordash", domain: "doordash.com", category: "Food & Delivery", website: "https://doordash.com", logo_url: favicon("doordash.com"), created_at: "" },
+  { id: "fb-uber-one", name: "Uber One", slug: "uber-one", domain: "uber.com", category: "Food & Delivery", website: "https://uber.com/one", logo_url: favicon("uber.com"), created_at: "" },
+  { id: "fb-grubhub", name: "Grubhub+", slug: "grubhub", domain: "grubhub.com", category: "Food & Delivery", website: "https://grubhub.com", logo_url: favicon("grubhub.com"), created_at: "" },
+  { id: "fb-instacart", name: "Instacart+", slug: "instacart", domain: "instacart.com", category: "Food & Delivery", website: "https://instacart.com", logo_url: favicon("instacart.com"), created_at: "" },
+  { id: "fb-postmates", name: "Postmates", slug: "postmates", domain: "postmates.com", category: "Food & Delivery", website: "https://postmates.com", logo_url: favicon("postmates.com"), created_at: "" },
+  { id: "fb-gopuff", name: "GoPuff Fam", slug: "gopuff", domain: "gopuff.com", category: "Food & Delivery", website: "https://gopuff.com", logo_url: favicon("gopuff.com"), created_at: "" },
+  { id: "fb-hellofresh", name: "HelloFresh", slug: "hellofresh", domain: "hellofresh.com", category: "Food & Delivery", website: "https://hellofresh.com", logo_url: favicon("hellofresh.com"), created_at: "" },
+  { id: "fb-blue-apron", name: "Blue Apron", slug: "blue-apron", domain: "blueapron.com", category: "Food & Delivery", website: "https://blueapron.com", logo_url: favicon("blueapron.com"), created_at: "" },
+  // Transportation
+  { id: "fb-lyft", name: "Lyft Pink", slug: "lyft-pink", domain: "lyft.com", category: "Transportation", website: "https://lyft.com", logo_url: favicon("lyft.com"), created_at: "" },
+  { id: "fb-uber-pass", name: "Uber Pass", slug: "uber-pass", domain: "uber.com", category: "Transportation", website: "https://uber.com", logo_url: favicon("uber.com"), created_at: "" },
+  { id: "fb-citibike", name: "Citi Bike", slug: "citibike", domain: "citibikenyc.com", category: "Transportation", website: "https://citibikenyc.com", logo_url: favicon("citibikenyc.com"), created_at: "" },
+  // Shopping & Membership
+  { id: "fb-walmart-plus", name: "Walmart+", slug: "walmart-plus", domain: "walmart.com", category: "Shopping", website: "https://walmart.com/plus", logo_url: favicon("walmart.com"), created_at: "" },
+  { id: "fb-costco", name: "Costco Membership", slug: "costco", domain: "costco.com", category: "Shopping", website: "https://costco.com", logo_url: favicon("costco.com"), created_at: "" },
+  { id: "fb-sams-club", name: "Sam's Club", slug: "sams-club", domain: "samsclub.com", category: "Shopping", website: "https://samsclub.com", logo_url: favicon("samsclub.com"), created_at: "" },
+  { id: "fb-target-circle", name: "Target Circle 360", slug: "target-circle", domain: "target.com", category: "Shopping", website: "https://target.com", logo_url: favicon("target.com"), created_at: "" },
+  { id: "fb-ebay-plus", name: "eBay Plus", slug: "ebay-plus", domain: "ebay.com", category: "Shopping", website: "https://ebay.com", logo_url: favicon("ebay.com"), created_at: "" },
+  { id: "fb-best-buy-total", name: "Best Buy Totaltech", slug: "best-buy-totaltech", domain: "bestbuy.com", category: "Shopping", website: "https://bestbuy.com", logo_url: favicon("bestbuy.com"), created_at: "" },
+  // Dating
+  { id: "fb-tinder", name: "Tinder", slug: "tinder", domain: "tinder.com", category: "Dating", website: "https://tinder.com", logo_url: favicon("tinder.com"), created_at: "" },
+  { id: "fb-bumble", name: "Bumble Premium", slug: "bumble", domain: "bumble.com", category: "Dating", website: "https://bumble.com", logo_url: favicon("bumble.com"), created_at: "" },
+  { id: "fb-hinge", name: "Hinge", slug: "hinge", domain: "hinge.co", category: "Dating", website: "https://hinge.co", logo_url: favicon("hinge.co"), created_at: "" },
+  { id: "fb-match", name: "Match.com", slug: "match", domain: "match.com", category: "Dating", website: "https://match.com", logo_url: favicon("match.com"), created_at: "" },
+  // Social Media
+  { id: "fb-x-premium", name: "X Premium", slug: "x-premium", domain: "x.com", category: "Social Media", website: "https://x.com", logo_url: favicon("x.com"), created_at: "" },
+  { id: "fb-snapchat-plus", name: "Snapchat+", slug: "snapchat-plus", domain: "snapchat.com", category: "Social Media", website: "https://snapchat.com", logo_url: favicon("snapchat.com"), created_at: "" },
+  { id: "fb-reddit-premium", name: "Reddit Premium", slug: "reddit-premium", domain: "reddit.com", category: "Social Media", website: "https://reddit.com", logo_url: favicon("reddit.com"), created_at: "" },
+  { id: "fb-discord-nitro", name: "Discord Nitro", slug: "discord-nitro", domain: "discord.com", category: "Social Media", website: "https://discord.com", logo_url: favicon("discord.com"), created_at: "" },
+  { id: "fb-telegram-premium", name: "Telegram Premium", slug: "telegram-premium", domain: "telegram.org", category: "Social Media", website: "https://telegram.org", logo_url: favicon("telegram.org"), created_at: "" },
+  { id: "fb-youtube-tv", name: "YouTube TV", slug: "youtube-tv", domain: "tv.youtube.com", category: "Streaming", website: "https://tv.youtube.com", logo_url: favicon("tv.youtube.com"), created_at: "" },
+  // Health & Wellness
+  { id: "fb-betterhelp", name: "BetterHelp", slug: "betterhelp", domain: "betterhelp.com", category: "Health & Wellness", website: "https://betterhelp.com", logo_url: favicon("betterhelp.com"), created_at: "" },
+  { id: "fb-calm", name: "Calm", slug: "calm", domain: "calm.com", category: "Health & Wellness", website: "https://calm.com", logo_url: favicon("calm.com"), created_at: "" },
+  { id: "fb-noom", name: "Noom", slug: "noom", domain: "noom.com", category: "Health & Wellness", website: "https://noom.com", logo_url: favicon("noom.com"), created_at: "" },
+  { id: "fb-talkspace", name: "Talkspace", slug: "talkspace", domain: "talkspace.com", category: "Health & Wellness", website: "https://talkspace.com", logo_url: favicon("talkspace.com"), created_at: "" },
+  // Finance
+  { id: "fb-robinhood-gold", name: "Robinhood Gold", slug: "robinhood-gold", domain: "robinhood.com", category: "Finance", website: "https://robinhood.com", logo_url: favicon("robinhood.com"), created_at: "" },
+  { id: "fb-ynab", name: "YNAB", slug: "ynab", domain: "ynab.com", category: "Finance", website: "https://ynab.com", logo_url: favicon("ynab.com"), created_at: "" },
+  { id: "fb-credit-karma", name: "Credit Karma", slug: "credit-karma", domain: "creditkarma.com", category: "Finance", website: "https://creditkarma.com", logo_url: favicon("creditkarma.com"), created_at: "" },
+  { id: "fb-turbotax", name: "TurboTax Live", slug: "turbotax", domain: "turbotax.com", category: "Finance", website: "https://turbotax.com", logo_url: favicon("turbotax.com"), created_at: "" },
+  // Job Search
+  { id: "fb-jobright", name: "Jobright", slug: "jobright", domain: "jobright.ai", category: "Job Search", website: "https://jobright.ai", logo_url: favicon("jobright.ai"), created_at: "" },
+  { id: "fb-indeed", name: "Indeed Resume", slug: "indeed", domain: "indeed.com", category: "Job Search", website: "https://indeed.com", logo_url: favicon("indeed.com"), created_at: "" },
+  { id: "fb-ziprecruiter", name: "ZipRecruiter", slug: "ziprecruiter", domain: "ziprecruiter.com", category: "Job Search", website: "https://ziprecruiter.com", logo_url: favicon("ziprecruiter.com"), created_at: "" },
+  { id: "fb-glassdoor", name: "Glassdoor Premium", slug: "glassdoor", domain: "glassdoor.com", category: "Job Search", website: "https://glassdoor.com", logo_url: favicon("glassdoor.com"), created_at: "" },
+  { id: "fb-handshake", name: "Handshake Premium", slug: "handshake", domain: "joinhandshake.com", category: "Job Search", website: "https://joinhandshake.com", logo_url: favicon("joinhandshake.com"), created_at: "" },
+  // Home & Security
+  { id: "fb-ring", name: "Ring Protect", slug: "ring", domain: "ring.com", category: "Home & Security", website: "https://ring.com", logo_url: favicon("ring.com"), created_at: "" },
+  { id: "fb-simplisafe", name: "SimpliSafe", slug: "simplisafe", domain: "simplisafe.com", category: "Home & Security", website: "https://simplisafe.com", logo_url: favicon("simplisafe.com"), created_at: "" },
+  { id: "fb-adt", name: "ADT", slug: "adt", domain: "adt.com", category: "Home & Security", website: "https://adt.com", logo_url: favicon("adt.com"), created_at: "" },
+  { id: "fb-nest-aware", name: "Nest Aware", slug: "nest-aware", domain: "store.google.com", category: "Home & Security", website: "https://store.google.com/category/nest_aware", logo_url: favicon("store.google.com"), created_at: "" },
 ];
 
 export const FALLBACK_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -549,6 +613,91 @@ export const FALLBACK_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   // Mailchimp
   { id: "fp-mailchimp-essentials", service_id: "fb-mailchimp", name: "Essentials", price: 13.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
   { id: "fp-mailchimp-standard", service_id: "fb-mailchimp", name: "Standard", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // DoorDash DashPass
+  { id: "fp-doordash-dashpass", service_id: "fb-doordash", name: "DashPass", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-doordash-yearly", service_id: "fb-doordash", name: "DashPass Annual", price: 96.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Uber One
+  { id: "fp-uber-one-monthly", service_id: "fb-uber-one", name: "Monthly", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-uber-one-yearly", service_id: "fb-uber-one", name: "Annual", price: 99.99, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Grubhub+
+  { id: "fp-grubhub-monthly", service_id: "fb-grubhub", name: "Monthly", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Instacart+
+  { id: "fp-instacart-monthly", service_id: "fb-instacart", name: "Monthly", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-instacart-yearly", service_id: "fb-instacart", name: "Annual", price: 99.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // HelloFresh
+  { id: "fp-hellofresh-2person", service_id: "fb-hellofresh", name: "2 Person Plan", price: 60.00, currency: "USD", billing_cycle: "weekly", description: null, created_at: "" },
+  { id: "fp-hellofresh-4person", service_id: "fb-hellofresh", name: "4 Person Plan", price: 96.00, currency: "USD", billing_cycle: "weekly", description: null, created_at: "" },
+  // Blue Apron
+  { id: "fp-blue-apron-2", service_id: "fb-blue-apron", name: "2 Servings", price: 48.00, currency: "USD", billing_cycle: "weekly", description: null, created_at: "" },
+  // Lyft Pink
+  { id: "fp-lyft-pink", service_id: "fb-lyft", name: "Lyft Pink", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-lyft-pink-all", service_id: "fb-lyft", name: "Lyft Pink All Access", price: 199.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Walmart+
+  { id: "fp-walmart-monthly", service_id: "fb-walmart-plus", name: "Monthly", price: 12.95, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-walmart-yearly", service_id: "fb-walmart-plus", name: "Annual", price: 98.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Costco
+  { id: "fp-costco-gold", service_id: "fb-costco", name: "Gold Star", price: 65.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  { id: "fp-costco-exec", service_id: "fb-costco", name: "Executive", price: 130.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Sam's Club
+  { id: "fp-sams-club", service_id: "fb-sams-club", name: "Club", price: 50.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  { id: "fp-sams-plus", service_id: "fb-sams-club", name: "Plus", price: 110.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Target Circle 360
+  { id: "fp-target-circle", service_id: "fb-target-circle", name: "Annual", price: 99.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Best Buy Totaltech
+  { id: "fp-bestbuy-totaltech", service_id: "fb-best-buy-total", name: "Totaltech", price: 179.99, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Tinder
+  { id: "fp-tinder-plus", service_id: "fb-tinder", name: "Plus", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-tinder-gold", service_id: "fb-tinder", name: "Gold", price: 29.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-tinder-platinum", service_id: "fb-tinder", name: "Platinum", price: 39.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Bumble
+  { id: "fp-bumble-premium", service_id: "fb-bumble", name: "Premium", price: 39.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-bumble-boost", service_id: "fb-bumble", name: "Boost", price: 16.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Hinge
+  { id: "fp-hinge-preferred", service_id: "fb-hinge", name: "Preferred", price: 34.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-hinge-plus", service_id: "fb-hinge", name: "Plus", price: 19.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Match.com
+  { id: "fp-match-standard", service_id: "fb-match", name: "Standard", price: 21.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-match-premium", service_id: "fb-match", name: "Premium", price: 34.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // X Premium
+  { id: "fp-x-basic", service_id: "fb-x-premium", name: "Basic", price: 3.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-x-premium", service_id: "fb-x-premium", name: "Premium", price: 8.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-x-premium-plus", service_id: "fb-x-premium", name: "Premium+", price: 16.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Snapchat+
+  { id: "fp-snapchat-plus", service_id: "fb-snapchat-plus", name: "Monthly", price: 3.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Reddit Premium
+  { id: "fp-reddit-premium", service_id: "fb-reddit-premium", name: "Monthly", price: 5.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Discord Nitro
+  { id: "fp-discord-nitro-basic", service_id: "fb-discord-nitro", name: "Nitro Basic", price: 2.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-discord-nitro", service_id: "fb-discord-nitro", name: "Nitro", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Telegram Premium
+  { id: "fp-telegram-premium", service_id: "fb-telegram-premium", name: "Monthly", price: 4.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // YouTube TV
+  { id: "fp-youtube-tv", service_id: "fb-youtube-tv", name: "Base Plan", price: 72.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // BetterHelp
+  { id: "fp-betterhelp-monthly", service_id: "fb-betterhelp", name: "Monthly", price: 65.00, currency: "USD", billing_cycle: "weekly", description: null, created_at: "" },
+  // Calm
+  { id: "fp-calm-monthly", service_id: "fb-calm", name: "Monthly", price: 14.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-calm-yearly", service_id: "fb-calm", name: "Annual", price: 69.99, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Noom
+  { id: "fp-noom-monthly", service_id: "fb-noom", name: "Monthly", price: 70.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Talkspace
+  { id: "fp-talkspace-messaging", service_id: "fb-talkspace", name: "Messaging", price: 69.00, currency: "USD", billing_cycle: "weekly", description: null, created_at: "" },
+  // Robinhood Gold
+  { id: "fp-robinhood-gold", service_id: "fb-robinhood-gold", name: "Gold", price: 5.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // YNAB
+  { id: "fp-ynab-monthly", service_id: "fb-ynab", name: "Monthly", price: 14.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-ynab-yearly", service_id: "fb-ynab", name: "Annual", price: 109.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Jobright
+  { id: "fp-jobright-pro", service_id: "fb-jobright", name: "Pro", price: 29.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Ring Protect
+  { id: "fp-ring-basic", service_id: "fb-ring", name: "Basic", price: 3.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-ring-plus", service_id: "fb-ring", name: "Plus", price: 10.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // SimpliSafe
+  { id: "fp-simplisafe-standard", service_id: "fb-simplisafe", name: "Standard", price: 17.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-simplisafe-fast", service_id: "fb-simplisafe", name: "Fast Protect", price: 27.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Nest Aware
+  { id: "fp-nest-aware", service_id: "fb-nest-aware", name: "Nest Aware", price: 8.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-nest-aware-plus", service_id: "fb-nest-aware", name: "Nest Aware Plus", price: 15.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
 ];
 
 // ===== Currency Constants =====
