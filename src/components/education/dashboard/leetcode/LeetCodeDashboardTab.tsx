@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useLeetCodeData } from "@/hooks/queries/useLeetCodeData";
+import { useLeetCodeSubmissions } from "@/hooks/queries/useLeetCodeSubmissions";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { SkeletonGrid } from "@/components/ui/SkeletonGrid";
 import { DifficultyBar } from "./DifficultyBar";
+import { SolvedQuestionsPanel } from "./SolvedQuestionsPanel";
 import { motion } from "framer-motion";
 
 function ProgressRing({ solved, total, color }: { solved: number; total: number; color: string }) {
@@ -98,6 +100,7 @@ function UsernamePrompt({ onSave }: { onSave: (username: string) => void }) {
 export function LeetCodeDashboardTab() {
   const [username, setUsername] = useLocalStorage<string>("pj-leetcode-username", "");
   const { data, isLoading, error } = useLeetCodeData(username);
+  const { data: submissionsData, isLoading: submissionsLoading } = useLeetCodeSubmissions(username);
 
   if (!username) {
     return <UsernamePrompt onSave={setUsername} />;
@@ -277,6 +280,13 @@ export function LeetCodeDashboardTab() {
           </div>
         </motion.div>
       )}
+
+      {/* Solved Questions */}
+      <SolvedQuestionsPanel
+        submissions={submissionsData?.submissions ?? []}
+        totalCount={submissionsData?.count ?? 0}
+        isLoading={submissionsLoading}
+      />
     </div>
   );
 }

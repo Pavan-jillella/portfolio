@@ -480,6 +480,20 @@ export interface LeetCodeSubmission {
   lang: string;
 }
 
+export interface LeetCodeAcceptedSubmission {
+  id: string;
+  title: string;
+  titleSlug: string;
+  timestamp: string;
+  statusDisplay: string;
+  lang: string;
+}
+
+export interface LeetCodeAcceptedSubmissionsResponse {
+  count: number;
+  submissions: LeetCodeAcceptedSubmission[];
+}
+
 export interface LeetCodeDashboardData {
   solved: number;
   easy: number;
