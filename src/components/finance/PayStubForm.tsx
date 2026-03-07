@@ -38,6 +38,8 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
   const [deductions, setDeductions] = useState<PayStubDeductions>({ ...emptyDeductions });
   const [netPay, setNetPay] = useState(0);
   const [autoTax, setAutoTax] = useState(true);
+  const [includeSocialSecurity, setIncludeSocialSecurity] = useState(true);
+  const [includeMedicare, setIncludeMedicare] = useState(true);
 
   const resetForm = useCallback(() => {
     setEmployer(defaultEmployer || "");
@@ -53,6 +55,8 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
     setNetPay(0);
     setGrossOverride(false);
     setNetOverride(false);
+    setIncludeSocialSecurity(true);
+    setIncludeMedicare(true);
   }, [defaultEmployer]);
 
   useEffect(() => {
@@ -70,6 +74,8 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
       setNetPay(editStub.net_pay);
       setGrossOverride(true);
       setNetOverride(true);
+      setIncludeSocialSecurity(editStub.deductions.social_security > 0);
+      setIncludeMedicare(editStub.deductions.medicare > 0);
     } else {
       resetForm();
     }
@@ -107,12 +113,12 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
     setDeductions({
       federal_tax: breakdown.federal_tax,
       state_tax: breakdown.state_tax,
-      social_security: breakdown.fica,
-      medicare: breakdown.medicare,
+      social_security: includeSocialSecurity ? breakdown.fica : 0,
+      medicare: includeMedicare ? breakdown.medicare : 0,
       other_deductions: 0,
       other_deductions_label: "",
     });
-  }, [grossPay, autoTax, taxConfig]);
+  }, [grossPay, autoTax, taxConfig, includeSocialSecurity, includeMedicare]);
 
   // Auto-calc net from gross - deductions
   const totalDeductions = useMemo(() => {
@@ -294,12 +300,68 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
                 <input type="number" step="0.01" min="0" value={deductions.state_tax || ""} onChange={(e) => updateDeduction("state_tax", e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>Social Security</label>
-                <input type="number" step="0.01" min="0" value={deductions.social_security || ""} onChange={(e) => updateDeduction("social_security", e.target.value)} className={inputCls} />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-mono text-xs text-white/40 uppercase tracking-widest">Social Security</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIncludeSocialSecurity(!includeSocialSecurity);
+                      if (includeSocialSecurity) {
+                        setDeductions((prev) => ({ ...prev, social_security: 0 }));
+                      }
+                    }}
+                    className={`w-8 h-4 rounded-full transition-colors relative ${
+                      includeSocialSecurity ? "bg-blue-500/40" : "bg-white/10"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
+                        includeSocialSecurity ? "left-4 bg-blue-400" : "left-0.5 bg-white/30"
+                      }`}
+                    />
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={deductions.social_security || ""}
+                  onChange={(e) => updateDeduction("social_security", e.target.value)}
+                  className={`${inputCls} ${!includeSocialSecurity ? "opacity-30 pointer-events-none" : ""}`}
+                  disabled={!includeSocialSecurity}
+                />
               </div>
               <div>
-                <label className={labelCls}>Medicare</label>
-                <input type="number" step="0.01" min="0" value={deductions.medicare || ""} onChange={(e) => updateDeduction("medicare", e.target.value)} className={inputCls} />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-mono text-xs text-white/40 uppercase tracking-widest">Medicare</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIncludeMedicare(!includeMedicare);
+                      if (includeMedicare) {
+                        setDeductions((prev) => ({ ...prev, medicare: 0 }));
+                      }
+                    }}
+                    className={`w-8 h-4 rounded-full transition-colors relative ${
+                      includeMedicare ? "bg-blue-500/40" : "bg-white/10"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
+                        includeMedicare ? "left-4 bg-blue-400" : "left-0.5 bg-white/30"
+                      }`}
+                    />
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={deductions.medicare || ""}
+                  onChange={(e) => updateDeduction("medicare", e.target.value)}
+                  className={`${inputCls} ${!includeMedicare ? "opacity-30 pointer-events-none" : ""}`}
+                  disabled={!includeMedicare}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
