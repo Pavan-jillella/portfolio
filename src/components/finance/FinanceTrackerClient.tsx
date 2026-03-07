@@ -156,10 +156,11 @@ export function FinanceTrackerClient() {
 
   // Combined totals across all sources
   const income = txIncome + monthlyPayrollIncome + monthlyPartTimeIncome;
-  const expenses = txExpenses + monthlySubTotal;
+  const expenses = txExpenses + monthlySubTotal + userSubMonthlyTotal;
 
   // Enhanced trend: add payroll + part-time income and subscription expenses to each month
   const enhancedTrend = useMemo(() => {
+    const totalSubMonthly = monthlySubTotal + userSubMonthlyTotal;
     return trend.map((t) => {
       const payroll = payStubs
         .filter((s) => s.pay_date.startsWith(t.month))
@@ -167,10 +168,10 @@ export function FinanceTrackerClient() {
       const partTime = getPartTimeJobEarnings(partTimeJobs, partTimeHours, t.month)
         .reduce((sum, e) => sum + e.earnings, 0);
       const totalInc = t.income + payroll + partTime;
-      const totalExp = t.expenses + monthlySubTotal;
+      const totalExp = t.expenses + totalSubMonthly;
       return { month: t.month, income: totalInc, expenses: totalExp, net: totalInc - totalExp };
     });
-  }, [trend, payStubs, partTimeJobs, partTimeHours, monthlySubTotal]);
+  }, [trend, payStubs, partTimeJobs, partTimeHours, monthlySubTotal, userSubMonthlyTotal]);
 
   // Apply filters to ALL transactions (not just monthly) for Transactions tab
   const filteredTx = useMemo(() => {
@@ -277,38 +278,14 @@ export function FinanceTrackerClient() {
     setSubscriptions((prev) => prev.filter((s) => s.id !== id));
   }
 
-  // Budget integration: auto-create expense transaction when adding subscription
+  // Budget integration: add subscription (tracked separately, not as a transaction)
   function addSubscriptionWithIntegration(sub: Subscription) {
     setSubscriptions((prev) => [sub, ...prev]);
-    if (sub.active && sub.amount > 0) {
-      const tx: Transaction = {
-        id: crypto.randomUUID(),
-        type: "expense",
-        amount: sub.amount,
-        category: sub.category,
-        description: `Subscription: ${sub.name}`,
-        date: sub.next_billing_date || new Date().toISOString().slice(0, 10),
-        created_at: new Date().toISOString(),
-      };
-      setTransactions((prev) => [tx, ...prev]);
-    }
   }
 
-  // User Subscription handlers (normalized architecture)
-  function addUserSubscription(sub: UserSubscription, serviceName: string) {
+  // User Subscription handlers (normalized architecture — tracked separately, not as transactions)
+  function addUserSubscription(sub: UserSubscription) {
     setUserSubscriptions((prev) => [sub, ...prev]);
-    if (sub.active && sub.price > 0) {
-      const tx: Transaction = {
-        id: crypto.randomUUID(),
-        type: "expense",
-        amount: sub.price,
-        category: "Subscriptions",
-        description: `Subscription: ${serviceName}`,
-        date: sub.next_billing_date || new Date().toISOString().slice(0, 10),
-        created_at: new Date().toISOString(),
-      };
-      setTransactions((prev) => [tx, ...prev]);
-    }
   }
 
   function toggleUserSubscription(id: string) {

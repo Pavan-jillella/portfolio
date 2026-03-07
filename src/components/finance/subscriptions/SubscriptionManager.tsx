@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface SubscriptionManagerProps {
   userSubscriptions: UserSubscription[];
-  onAdd: (sub: UserSubscription, serviceName: string) => void;
+  onAdd: (sub: UserSubscription) => void;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
 }
@@ -222,7 +222,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
       updated_at: new Date().toISOString(),
     };
 
-    onAdd(sub, serviceName);
+    onAdd(sub);
     resetForm();
     setShowForm(false);
   }
