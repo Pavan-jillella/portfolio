@@ -114,7 +114,14 @@ export async function POST(req: NextRequest) {
     }
 
     const { error } = await supabase.from(table).upsert(dataWithUserId, { onConflict: "id" });
-    if (error) errors.push(`upsert: ${error.message}`);
+    if (error) {
+      // Skip "relation does not exist" errors — table migration may not have run yet
+      if (error.code === "42P01" || (error.message?.includes("relation") && error.message?.includes("does not exist"))) {
+        console.warn(`[sync] Table "${table}" does not exist yet — skipping`);
+      } else {
+        errors.push(`upsert: ${error.message}`);
+      }
+    }
   }
 
   if (toDelete && Array.isArray(toDelete) && toDelete.length > 0) {
@@ -124,7 +131,13 @@ export async function POST(req: NextRequest) {
       .delete()
       .in("id", toDelete)
       .eq("user_id", userId);
-    if (error) errors.push(`delete: ${error.message}`);
+    if (error) {
+      if (error.code === "42P01" || (error.message?.includes("relation") && error.message?.includes("does not exist"))) {
+        console.warn(`[sync] Table "${table}" does not exist yet — skipping delete`);
+      } else {
+        errors.push(`delete: ${error.message}`);
+      }
+    }
   }
 
   if (errors.length > 0) {
