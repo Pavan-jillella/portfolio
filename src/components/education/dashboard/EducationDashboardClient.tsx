@@ -98,6 +98,13 @@ export function EducationDashboardClient() {
     setCourses((prev) => [...prev, { ...data, id: generateId(), created_at: new Date().toISOString() }]);
   }
 
+  function deleteCourse(id: string) {
+    setCourses((prev) => prev.filter((c) => c.id !== id));
+    setCourseModules((prev) => prev.filter((m) => m.course_id !== id));
+    setCourseNotes((prev) => prev.filter((n) => n.course_id !== id));
+    setCourseFiles((prev) => prev.filter((f) => f.course_id !== id));
+  }
+
   // ===== Course Module Handlers =====
   function addCourseModule(module: Omit<CourseModule, "id" | "created_at">) {
     setCourseModules((prev) => [...prev, { ...module, id: generateId(), created_at: new Date().toISOString() }]);
@@ -287,6 +294,7 @@ export function EducationDashboardClient() {
               courseNotes={courseNotes}
               courseFiles={courseFiles}
               onAddCourse={addCourse}
+              onDeleteCourse={deleteCourse}
               onAddModule={addCourseModule}
               onToggleModule={toggleCourseModule}
               onDeleteModule={deleteCourseModule}
