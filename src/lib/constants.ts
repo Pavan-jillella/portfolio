@@ -252,6 +252,72 @@ export const FALLBACK_SUBSCRIPTION_SERVICES: SubscriptionService[] = [
   { id: "fb-vercel", name: "Vercel Pro", slug: "vercel", domain: "vercel.com", category: "Developer Tools", website: "https://vercel.com", logo_url: favicon("vercel.com"), created_at: "" },
   { id: "fb-1password", name: "1Password", slug: "1password", domain: "1password.com", category: "Software", website: "https://1password.com", logo_url: favicon("1password.com"), created_at: "" },
   { id: "fb-grammarly", name: "Grammarly", slug: "grammarly", domain: "grammarly.com", category: "Productivity", website: "https://grammarly.com", logo_url: favicon("grammarly.com"), created_at: "" },
+  // Streaming (additional)
+  { id: "fb-discovery-plus", name: "Discovery+", slug: "discovery-plus", domain: "discoveryplus.com", category: "Streaming", website: "https://discoveryplus.com", logo_url: favicon("discoveryplus.com"), created_at: "" },
+  { id: "fb-mubi", name: "MUBI", slug: "mubi", domain: "mubi.com", category: "Streaming", website: "https://mubi.com", logo_url: favicon("mubi.com"), created_at: "" },
+  { id: "fb-curiosity-stream", name: "CuriosityStream", slug: "curiosity-stream", domain: "curiositystream.com", category: "Streaming", website: "https://curiositystream.com", logo_url: favicon("curiositystream.com"), created_at: "" },
+  // Music (additional)
+  { id: "fb-amazon-music", name: "Amazon Music", slug: "amazon-music", domain: "music.amazon.com", category: "Music", website: "https://music.amazon.com", logo_url: favicon("music.amazon.com"), created_at: "" },
+  // Gaming (additional)
+  { id: "fb-ea-play", name: "EA Play", slug: "ea-play", domain: "ea.com", category: "Gaming", website: "https://ea.com/ea-play", logo_url: favicon("ea.com"), created_at: "" },
+  { id: "fb-ubisoft-plus", name: "Ubisoft+", slug: "ubisoft-plus", domain: "ubisoft.com", category: "Gaming", website: "https://ubisoft.com", logo_url: favicon("ubisoft.com"), created_at: "" },
+  { id: "fb-humble-choice", name: "Humble Choice", slug: "humble-choice", domain: "humblebundle.com", category: "Gaming", website: "https://humblebundle.com", logo_url: favicon("humblebundle.com"), created_at: "" },
+  // Software (additional)
+  { id: "fb-lastpass", name: "LastPass", slug: "lastpass", domain: "lastpass.com", category: "Software", website: "https://lastpass.com", logo_url: favicon("lastpass.com"), created_at: "" },
+  { id: "fb-dashlane", name: "Dashlane", slug: "dashlane", domain: "dashlane.com", category: "Software", website: "https://dashlane.com", logo_url: favicon("dashlane.com"), created_at: "" },
+  // Productivity (additional)
+  { id: "fb-evernote", name: "Evernote", slug: "evernote", domain: "evernote.com", category: "Productivity", website: "https://evernote.com", logo_url: favicon("evernote.com"), created_at: "" },
+  { id: "fb-todoist", name: "Todoist", slug: "todoist", domain: "todoist.com", category: "Productivity", website: "https://todoist.com", logo_url: favicon("todoist.com"), created_at: "" },
+  // AI Tools (additional)
+  { id: "fb-jasper", name: "Jasper AI", slug: "jasper", domain: "jasper.ai", category: "AI Tools", website: "https://jasper.ai", logo_url: favicon("jasper.ai"), created_at: "" },
+  { id: "fb-perplexity", name: "Perplexity", slug: "perplexity", domain: "perplexity.ai", category: "AI Tools", website: "https://perplexity.ai", logo_url: favicon("perplexity.ai"), created_at: "" },
+  { id: "fb-runway", name: "Runway", slug: "runway", domain: "runwayml.com", category: "AI Tools", website: "https://runwayml.com", logo_url: favicon("runwayml.com"), created_at: "" },
+  { id: "fb-cursor", name: "Cursor", slug: "cursor", domain: "cursor.com", category: "AI Tools", website: "https://cursor.com", logo_url: favicon("cursor.com"), created_at: "" },
+  // Storage (additional)
+  { id: "fb-onedrive", name: "OneDrive", slug: "onedrive", domain: "onedrive.com", category: "Storage", website: "https://onedrive.com", logo_url: favicon("onedrive.com"), created_at: "" },
+  { id: "fb-box", name: "Box", slug: "box", domain: "box.com", category: "Storage", website: "https://box.com", logo_url: favicon("box.com"), created_at: "" },
+  { id: "fb-backblaze", name: "Backblaze", slug: "backblaze", domain: "backblaze.com", category: "Storage", website: "https://backblaze.com", logo_url: favicon("backblaze.com"), created_at: "" },
+  // Education (additional)
+  { id: "fb-coursera", name: "Coursera Plus", slug: "coursera", domain: "coursera.org", category: "Education", website: "https://coursera.org", logo_url: favicon("coursera.org"), created_at: "" },
+  { id: "fb-udemy", name: "Udemy", slug: "udemy", domain: "udemy.com", category: "Education", website: "https://udemy.com", logo_url: favicon("udemy.com"), created_at: "" },
+  { id: "fb-skillshare", name: "Skillshare", slug: "skillshare", domain: "skillshare.com", category: "Education", website: "https://skillshare.com", logo_url: favicon("skillshare.com"), created_at: "" },
+  { id: "fb-masterclass", name: "MasterClass", slug: "masterclass", domain: "masterclass.com", category: "Education", website: "https://masterclass.com", logo_url: favicon("masterclass.com"), created_at: "" },
+  { id: "fb-linkedin-learning", name: "LinkedIn Learning", slug: "linkedin-learning", domain: "linkedin.com", category: "Education", website: "https://linkedin.com/learning", logo_url: favicon("linkedin.com"), created_at: "" },
+  { id: "fb-brilliant", name: "Brilliant", slug: "brilliant", domain: "brilliant.org", category: "Education", website: "https://brilliant.org", logo_url: favicon("brilliant.org"), created_at: "" },
+  // Fitness (additional)
+  { id: "fb-fitbit", name: "Fitbit Premium", slug: "fitbit", domain: "fitbit.com", category: "Fitness", website: "https://fitbit.com", logo_url: favicon("fitbit.com"), created_at: "" },
+  { id: "fb-myfitnesspal", name: "MyFitnessPal", slug: "myfitnesspal", domain: "myfitnesspal.com", category: "Fitness", website: "https://myfitnesspal.com", logo_url: favicon("myfitnesspal.com"), created_at: "" },
+  { id: "fb-apple-fitness", name: "Apple Fitness+", slug: "apple-fitness", domain: "apple.com", category: "Fitness", website: "https://apple.com/apple-fitness-plus", logo_url: favicon("apple.com"), created_at: "" },
+  { id: "fb-headspace", name: "Headspace", slug: "headspace", domain: "headspace.com", category: "Fitness", website: "https://headspace.com", logo_url: favicon("headspace.com"), created_at: "" },
+  // News (additional)
+  { id: "fb-medium", name: "Medium", slug: "medium", domain: "medium.com", category: "News", website: "https://medium.com", logo_url: favicon("medium.com"), created_at: "" },
+  { id: "fb-substack", name: "Substack", slug: "substack", domain: "substack.com", category: "News", website: "https://substack.com", logo_url: favicon("substack.com"), created_at: "" },
+  { id: "fb-washington-post", name: "The Washington Post", slug: "washington-post", domain: "washingtonpost.com", category: "News", website: "https://washingtonpost.com", logo_url: favicon("washingtonpost.com"), created_at: "" },
+  // VPN (additional)
+  { id: "fb-surfshark", name: "Surfshark", slug: "surfshark", domain: "surfshark.com", category: "VPN", website: "https://surfshark.com", logo_url: favicon("surfshark.com"), created_at: "" },
+  { id: "fb-protonvpn", name: "Proton VPN", slug: "protonvpn", domain: "protonvpn.com", category: "VPN", website: "https://protonvpn.com", logo_url: favicon("protonvpn.com"), created_at: "" },
+  // Developer Tools (additional)
+  { id: "fb-netlify", name: "Netlify Pro", slug: "netlify", domain: "netlify.com", category: "Developer Tools", website: "https://netlify.com", logo_url: favicon("netlify.com"), created_at: "" },
+  { id: "fb-aws", name: "AWS", slug: "aws", domain: "aws.amazon.com", category: "Developer Tools", website: "https://aws.amazon.com", logo_url: favicon("aws.amazon.com"), created_at: "" },
+  { id: "fb-gcp", name: "Google Cloud", slug: "gcp", domain: "cloud.google.com", category: "Developer Tools", website: "https://cloud.google.com", logo_url: favicon("cloud.google.com"), created_at: "" },
+  { id: "fb-azure", name: "Microsoft Azure", slug: "azure", domain: "azure.microsoft.com", category: "Developer Tools", website: "https://azure.microsoft.com", logo_url: favicon("azure.microsoft.com"), created_at: "" },
+  { id: "fb-docker", name: "Docker Pro", slug: "docker", domain: "docker.com", category: "Developer Tools", website: "https://docker.com", logo_url: favicon("docker.com"), created_at: "" },
+  { id: "fb-digitalocean", name: "DigitalOcean", slug: "digitalocean", domain: "digitalocean.com", category: "Developer Tools", website: "https://digitalocean.com", logo_url: favicon("digitalocean.com"), created_at: "" },
+  // Design Tools (additional)
+  { id: "fb-sketch", name: "Sketch", slug: "sketch", domain: "sketch.com", category: "Design Tools", website: "https://sketch.com", logo_url: favicon("sketch.com"), created_at: "" },
+  { id: "fb-invision", name: "InVision", slug: "invision", domain: "invisionapp.com", category: "Design Tools", website: "https://invisionapp.com", logo_url: favicon("invisionapp.com"), created_at: "" },
+  { id: "fb-framer", name: "Framer", slug: "framer", domain: "framer.com", category: "Design Tools", website: "https://framer.com", logo_url: favicon("framer.com"), created_at: "" },
+  // Business SaaS (additional)
+  { id: "fb-salesforce", name: "Salesforce", slug: "salesforce", domain: "salesforce.com", category: "Business SaaS", website: "https://salesforce.com", logo_url: favicon("salesforce.com"), created_at: "" },
+  { id: "fb-hubspot", name: "HubSpot", slug: "hubspot", domain: "hubspot.com", category: "Business SaaS", website: "https://hubspot.com", logo_url: favicon("hubspot.com"), created_at: "" },
+  { id: "fb-jira", name: "Jira", slug: "jira", domain: "atlassian.com", category: "Business SaaS", website: "https://atlassian.com/software/jira", logo_url: favicon("atlassian.com"), created_at: "" },
+  { id: "fb-asana", name: "Asana", slug: "asana", domain: "asana.com", category: "Business SaaS", website: "https://asana.com", logo_url: favicon("asana.com"), created_at: "" },
+  { id: "fb-monday", name: "Monday.com", slug: "monday", domain: "monday.com", category: "Business SaaS", website: "https://monday.com", logo_url: favicon("monday.com"), created_at: "" },
+  { id: "fb-linear", name: "Linear", slug: "linear", domain: "linear.app", category: "Business SaaS", website: "https://linear.app", logo_url: favicon("linear.app"), created_at: "" },
+  { id: "fb-intercom", name: "Intercom", slug: "intercom", domain: "intercom.com", category: "Business SaaS", website: "https://intercom.com", logo_url: favicon("intercom.com"), created_at: "" },
+  { id: "fb-zendesk", name: "Zendesk", slug: "zendesk", domain: "zendesk.com", category: "Business SaaS", website: "https://zendesk.com", logo_url: favicon("zendesk.com"), created_at: "" },
+  { id: "fb-mailchimp", name: "Mailchimp", slug: "mailchimp", domain: "mailchimp.com", category: "Business SaaS", website: "https://mailchimp.com", logo_url: favicon("mailchimp.com"), created_at: "" },
+  { id: "fb-freshdesk", name: "Freshdesk", slug: "freshdesk", domain: "freshdesk.com", category: "Business SaaS", website: "https://freshdesk.com", logo_url: favicon("freshdesk.com"), created_at: "" },
 ];
 
 export const FALLBACK_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -293,6 +359,196 @@ export const FALLBACK_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   // Adobe CC
   { id: "fp-adobe-all-apps", service_id: "fb-adobe-cc", name: "All Apps", price: 59.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
   { id: "fp-adobe-photography", service_id: "fb-adobe-cc", name: "Photography", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Hulu
+  { id: "fp-hulu-basic", service_id: "fb-hulu", name: "Basic (with Ads)", price: 7.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-hulu-no-ads", service_id: "fb-hulu", name: "No Ads", price: 17.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Max (HBO)
+  { id: "fp-max-with-ads", service_id: "fb-hbo-max", name: "With Ads", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-max-ad-free", service_id: "fb-hbo-max", name: "Ad-Free", price: 15.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-max-ultimate", service_id: "fb-hbo-max", name: "Ultimate Ad-Free", price: 19.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Apple TV+
+  { id: "fp-apple-tv-monthly", service_id: "fb-apple-tv", name: "Monthly", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Peacock
+  { id: "fp-peacock-plus", service_id: "fb-peacock", name: "Peacock Plus", price: 7.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-peacock-premium", service_id: "fb-peacock", name: "Peacock Premium", price: 13.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Paramount+
+  { id: "fp-paramount-essential", service_id: "fb-paramount-plus", name: "Essential", price: 5.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-paramount-showtime", service_id: "fb-paramount-plus", name: "With Showtime", price: 11.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Crunchyroll
+  { id: "fp-crunchyroll-fan", service_id: "fb-crunchyroll", name: "Fan", price: 7.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-crunchyroll-mega", service_id: "fb-crunchyroll", name: "Mega Fan", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Discovery+
+  { id: "fp-discovery-with-ads", service_id: "fb-discovery-plus", name: "With Ads", price: 4.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-discovery-no-ads", service_id: "fb-discovery-plus", name: "Ad-Free", price: 8.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // MUBI
+  { id: "fp-mubi-monthly", service_id: "fb-mubi", name: "Monthly", price: 14.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // CuriosityStream
+  { id: "fp-curiosity-standard", service_id: "fb-curiosity-stream", name: "Standard", price: 2.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Tidal
+  { id: "fp-tidal-hifi", service_id: "fb-tidal", name: "HiFi", price: 10.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-tidal-hifi-plus", service_id: "fb-tidal", name: "HiFi Plus", price: 19.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Amazon Music
+  { id: "fp-amazon-music-ind", service_id: "fb-amazon-music", name: "Individual", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-amazon-music-family", service_id: "fb-amazon-music", name: "Family", price: 16.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // EA Play
+  { id: "fp-ea-play-monthly", service_id: "fb-ea-play", name: "EA Play", price: 5.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-ea-play-pro", service_id: "fb-ea-play", name: "EA Play Pro", price: 16.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Ubisoft+
+  { id: "fp-ubisoft-classics", service_id: "fb-ubisoft-plus", name: "Classics", price: 7.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-ubisoft-premium", service_id: "fb-ubisoft-plus", name: "Premium", price: 17.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Humble Choice
+  { id: "fp-humble-monthly", service_id: "fb-humble-choice", name: "Monthly", price: 11.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // LastPass
+  { id: "fp-lastpass-premium", service_id: "fb-lastpass", name: "Premium", price: 3.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-lastpass-families", service_id: "fb-lastpass", name: "Families", price: 4.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Dashlane
+  { id: "fp-dashlane-premium", service_id: "fb-dashlane", name: "Premium", price: 4.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-dashlane-family", service_id: "fb-dashlane", name: "Family", price: 7.49, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Evernote
+  { id: "fp-evernote-personal", service_id: "fb-evernote", name: "Personal", price: 14.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-evernote-professional", service_id: "fb-evernote", name: "Professional", price: 17.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Todoist
+  { id: "fp-todoist-pro", service_id: "fb-todoist", name: "Pro", price: 4.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-todoist-business", service_id: "fb-todoist", name: "Business", price: 6.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Midjourney
+  { id: "fp-midjourney-basic", service_id: "fb-midjourney", name: "Basic", price: 10.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-midjourney-standard", service_id: "fb-midjourney", name: "Standard", price: 30.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-midjourney-pro", service_id: "fb-midjourney", name: "Pro", price: 60.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Jasper AI
+  { id: "fp-jasper-creator", service_id: "fb-jasper", name: "Creator", price: 49.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-jasper-pro", service_id: "fb-jasper", name: "Pro", price: 69.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Perplexity
+  { id: "fp-perplexity-pro", service_id: "fb-perplexity", name: "Pro", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Runway
+  { id: "fp-runway-standard", service_id: "fb-runway", name: "Standard", price: 12.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-runway-pro", service_id: "fb-runway", name: "Pro", price: 28.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Cursor
+  { id: "fp-cursor-pro", service_id: "fb-cursor", name: "Pro", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-cursor-business", service_id: "fb-cursor", name: "Business", price: 40.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // iCloud+
+  { id: "fp-icloud-50gb", service_id: "fb-icloud", name: "50GB", price: 0.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-icloud-200gb", service_id: "fb-icloud", name: "200GB", price: 2.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-icloud-2tb", service_id: "fb-icloud", name: "2TB", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Google One
+  { id: "fp-google-100gb", service_id: "fb-google-one", name: "100GB", price: 1.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-google-200gb", service_id: "fb-google-one", name: "200GB", price: 2.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-google-2tb", service_id: "fb-google-one", name: "2TB", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Dropbox
+  { id: "fp-dropbox-plus", service_id: "fb-dropbox", name: "Plus", price: 11.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-dropbox-professional", service_id: "fb-dropbox", name: "Professional", price: 22.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Coursera
+  { id: "fp-coursera-monthly", service_id: "fb-coursera", name: "Plus Monthly", price: 59.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-coursera-yearly", service_id: "fb-coursera", name: "Plus Annual", price: 399.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Skillshare
+  { id: "fp-skillshare-monthly", service_id: "fb-skillshare", name: "Monthly", price: 13.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-skillshare-yearly", service_id: "fb-skillshare", name: "Annual", price: 167.88, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // MasterClass
+  { id: "fp-masterclass-ind", service_id: "fb-masterclass", name: "Individual", price: 10.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-masterclass-duo", service_id: "fb-masterclass", name: "Duo", price: 15.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-masterclass-family", service_id: "fb-masterclass", name: "Family", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // LinkedIn Learning
+  { id: "fp-linkedin-learning", service_id: "fb-linkedin-learning", name: "Monthly", price: 29.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Brilliant
+  { id: "fp-brilliant-monthly", service_id: "fb-brilliant", name: "Monthly", price: 24.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Audible
+  { id: "fp-audible-plus", service_id: "fb-audible", name: "Plus", price: 7.95, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-audible-premium", service_id: "fb-audible", name: "Premium Plus", price: 14.95, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Duolingo
+  { id: "fp-duolingo-monthly", service_id: "fb-duolingo", name: "Monthly", price: 12.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-duolingo-yearly", service_id: "fb-duolingo", name: "Annual", price: 83.99, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Peloton
+  { id: "fp-peloton-app-one", service_id: "fb-peloton", name: "App One", price: 12.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-peloton-app-plus", service_id: "fb-peloton", name: "App+", price: 24.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Strava
+  { id: "fp-strava-monthly", service_id: "fb-strava", name: "Monthly", price: 11.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-strava-yearly", service_id: "fb-strava", name: "Annual", price: 79.99, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Fitbit
+  { id: "fp-fitbit-monthly", service_id: "fb-fitbit", name: "Monthly", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // MyFitnessPal
+  { id: "fp-mfp-monthly", service_id: "fb-myfitnesspal", name: "Monthly", price: 19.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Apple Fitness+
+  { id: "fp-apple-fitness-monthly", service_id: "fb-apple-fitness", name: "Monthly", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Headspace
+  { id: "fp-headspace-monthly", service_id: "fb-headspace", name: "Monthly", price: 12.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-headspace-yearly", service_id: "fb-headspace", name: "Annual", price: 69.99, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // NY Times
+  { id: "fp-nyt-basic", service_id: "fb-nyt", name: "Basic Digital", price: 4.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-nyt-all-access", service_id: "fb-nyt", name: "All Access", price: 25.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // WSJ
+  { id: "fp-wsj-monthly", service_id: "fb-wsj", name: "Monthly", price: 38.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Medium
+  { id: "fp-medium-monthly", service_id: "fb-medium", name: "Monthly", price: 5.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-medium-yearly", service_id: "fb-medium", name: "Annual", price: 50.00, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // NordVPN
+  { id: "fp-nordvpn-monthly", service_id: "fb-nordvpn", name: "Monthly", price: 12.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-nordvpn-yearly", service_id: "fb-nordvpn", name: "Annual", price: 59.88, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // ExpressVPN
+  { id: "fp-expressvpn-monthly", service_id: "fb-expressvpn", name: "Monthly", price: 12.95, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-expressvpn-yearly", service_id: "fb-expressvpn", name: "Annual", price: 99.95, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Surfshark
+  { id: "fp-surfshark-monthly", service_id: "fb-surfshark", name: "Monthly", price: 12.95, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-surfshark-yearly", service_id: "fb-surfshark", name: "Annual", price: 47.88, currency: "USD", billing_cycle: "yearly", description: null, created_at: "" },
+  // Proton VPN
+  { id: "fp-protonvpn-plus", service_id: "fb-protonvpn", name: "Plus", price: 9.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // LinkedIn Premium
+  { id: "fp-linkedin-career", service_id: "fb-linkedin-premium", name: "Career", price: 29.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-linkedin-business", service_id: "fb-linkedin-premium", name: "Business", price: 59.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // GitHub Pro
+  { id: "fp-github-pro", service_id: "fb-github-pro", name: "Pro", price: 4.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Vercel
+  { id: "fp-vercel-pro", service_id: "fb-vercel", name: "Pro", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Netlify
+  { id: "fp-netlify-pro", service_id: "fb-netlify", name: "Pro", price: 19.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Docker
+  { id: "fp-docker-pro", service_id: "fb-docker", name: "Pro", price: 5.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-docker-team", service_id: "fb-docker", name: "Team", price: 9.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // GitHub Copilot
+  { id: "fp-copilot-business", service_id: "fb-github-copilot", name: "Business", price: 19.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // 1Password
+  { id: "fp-1password-ind", service_id: "fb-1password", name: "Individual", price: 2.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-1password-family", service_id: "fb-1password", name: "Families", price: 4.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Grammarly
+  { id: "fp-grammarly-premium", service_id: "fb-grammarly", name: "Premium", price: 12.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Figma
+  { id: "fp-figma-professional", service_id: "fb-figma", name: "Professional", price: 12.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-figma-organization", service_id: "fb-figma", name: "Organization", price: 45.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Canva
+  { id: "fp-canva-pro", service_id: "fb-canva", name: "Pro", price: 12.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Sketch
+  { id: "fp-sketch-standard", service_id: "fb-sketch", name: "Standard", price: 10.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Framer
+  { id: "fp-framer-mini", service_id: "fb-framer", name: "Mini", price: 5.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-framer-basic", service_id: "fb-framer", name: "Basic", price: 15.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-framer-pro", service_id: "fb-framer", name: "Pro", price: 25.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Slack
+  { id: "fp-slack-pro", service_id: "fb-slack", name: "Pro", price: 8.75, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-slack-business", service_id: "fb-slack", name: "Business+", price: 12.50, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Zoom
+  { id: "fp-zoom-pro", service_id: "fb-zoom", name: "Pro", price: 13.33, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-zoom-business", service_id: "fb-zoom", name: "Business", price: 21.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Salesforce
+  { id: "fp-salesforce-starter", service_id: "fb-salesforce", name: "Starter", price: 25.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-salesforce-professional", service_id: "fb-salesforce", name: "Professional", price: 80.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // HubSpot
+  { id: "fp-hubspot-starter", service_id: "fb-hubspot", name: "Starter", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Jira
+  { id: "fp-jira-standard", service_id: "fb-jira", name: "Standard", price: 8.15, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-jira-premium", service_id: "fb-jira", name: "Premium", price: 16.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Asana
+  { id: "fp-asana-premium", service_id: "fb-asana", name: "Premium", price: 10.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-asana-business", service_id: "fb-asana", name: "Business", price: 24.99, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Monday.com
+  { id: "fp-monday-basic", service_id: "fb-monday", name: "Basic", price: 9.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-monday-standard", service_id: "fb-monday", name: "Standard", price: 12.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-monday-pro", service_id: "fb-monday", name: "Pro", price: 19.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Linear
+  { id: "fp-linear-standard", service_id: "fb-linear", name: "Standard", price: 8.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-linear-plus", service_id: "fb-linear", name: "Plus", price: 14.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Zendesk
+  { id: "fp-zendesk-team", service_id: "fb-zendesk", name: "Suite Team", price: 55.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  // Mailchimp
+  { id: "fp-mailchimp-essentials", service_id: "fb-mailchimp", name: "Essentials", price: 13.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
+  { id: "fp-mailchimp-standard", service_id: "fb-mailchimp", name: "Standard", price: 20.00, currency: "USD", billing_cycle: "monthly", description: null, created_at: "" },
 ];
 
 // ===== Currency Constants =====
