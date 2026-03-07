@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { PayStub, PayStubDeductions, Employer, TaxConfig } from "@/types";
 import { generateId } from "@/lib/finance-utils";
 import { calculateTaxBreakdown } from "@/lib/payroll-tax";
@@ -39,6 +39,22 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
   const [netPay, setNetPay] = useState(0);
   const [autoTax, setAutoTax] = useState(true);
 
+  const resetForm = useCallback(() => {
+    setEmployer(defaultEmployer || "");
+    setSelectedEmployerId("");
+    setPeriodStart("");
+    setPeriodEnd("");
+    setPayDate("");
+    setRegularHours(0);
+    setOvertimeHours(0);
+    setHourlyRate(0);
+    setGrossPay(0);
+    setDeductions({ ...emptyDeductions });
+    setNetPay(0);
+    setGrossOverride(false);
+    setNetOverride(false);
+  }, [defaultEmployer]);
+
   useEffect(() => {
     if (editStub) {
       setEmployer(editStub.employer_name);
@@ -57,7 +73,7 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
     } else {
       resetForm();
     }
-  }, [editStub, open]);
+  }, [editStub, open, resetForm]);
 
   // When employer selected from dropdown, populate rate
   function handleEmployerSelect(empId: string) {
@@ -114,22 +130,6 @@ export function PayStubForm({ open, onClose, onSubmit, editStub, defaultEmployer
       setNetPay(parseFloat((grossPay - totalDeductions).toFixed(2)));
     }
   }, [grossPay, totalDeductions, netOverride]);
-
-  function resetForm() {
-    setEmployer(defaultEmployer || "");
-    setSelectedEmployerId("");
-    setPeriodStart("");
-    setPeriodEnd("");
-    setPayDate("");
-    setRegularHours(0);
-    setOvertimeHours(0);
-    setHourlyRate(0);
-    setGrossPay(0);
-    setDeductions({ ...emptyDeductions });
-    setNetPay(0);
-    setGrossOverride(false);
-    setNetOverride(false);
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

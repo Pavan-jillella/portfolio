@@ -92,7 +92,7 @@ export function InvestmentTracker({ investments, onAdd, onUpdate, onDelete }: In
 
   // Exchange rates for currency conversion
   const { data: ratesData } = useCurrencyRates();
-  const rates = ratesData?.rates || {};
+  const rates = useMemo(() => ratesData?.rates || {}, [ratesData]);
 
   // Ticker search state
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);

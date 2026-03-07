@@ -12,15 +12,9 @@ export async function GET() {
     supabase.from("subscription_plans").select("*").order("price"),
   ]);
 
-  if (servicesRes.error) {
-    return NextResponse.json({ error: servicesRes.error.message }, { status: 500 });
-  }
-  if (plansRes.error) {
-    return NextResponse.json({ error: plansRes.error.message }, { status: 500 });
-  }
-
+  // Return empty arrays if tables don't exist yet
   return NextResponse.json({
-    services: servicesRes.data,
-    plans: plansRes.data,
+    services: servicesRes.data ?? [],
+    plans: plansRes.data ?? [],
   });
 }

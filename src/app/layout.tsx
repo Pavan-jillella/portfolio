@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GrainOverlay } from "@/components/ui/GrainOverlay";
 import { CursorGlow } from "@/components/ui/CursorGlow";
@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   keywords: ["developer", "finance", "education", "technology", "portfolio"],
   authors: [{ name: "Pavan Jillella" }],
   manifest: "/manifest.json",
-  themeColor: "#0a0c12",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -45,6 +44,10 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0c12",
 };
 
 export default function RootLayout({
