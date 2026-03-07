@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 503 });
+    return NextResponse.json({ error: "AI API key not configured" }, { status: 503 });
   }
 
   let body: { habits: unknown[]; logs: unknown[] };
@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const openai = new OpenAI({ apiKey });
+  const openai = new OpenAI({
+    apiKey,
+    baseURL: process.env.OPENROUTER_API_KEY ? "https://openrouter.ai/api/v1" : undefined,
+  });
 
   try {
     const response = await openai.chat.completions.create({

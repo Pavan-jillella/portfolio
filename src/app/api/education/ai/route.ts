@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Too many requests. Try again in a minute." }, { status: 429 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "AI features not available" }, { status: 503 });
     }
@@ -115,7 +115,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid AI request type" }, { status: 400 });
     }
 
-    const openai = new OpenAI({ apiKey });
+    const openai = new OpenAI({
+      apiKey,
+      baseURL: process.env.OPENROUTER_API_KEY ? "https://openrouter.ai/api/v1" : undefined,
+    });
 
     const userMessage = prompt || (typeof data === "string" ? data : JSON.stringify(data));
     if (!userMessage) {
