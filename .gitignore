@@ -42,3 +42,7 @@ public/worker-*.js
 public/worker-*.js.map
 public/swe-worker-*.js
 public/fallback-*.js
+
+# Crawler pipeline state
+scripts/data/state.json
+scripts/data/state.json.tmp

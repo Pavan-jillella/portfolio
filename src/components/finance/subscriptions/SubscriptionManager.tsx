@@ -297,7 +297,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                     <div key={sub.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {sub.service.logo_url ? (
-                          <img src={sub.service.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          <img src={sub.service.logo_url} alt={sub.service.name} className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                         ) : (
                           <span className="w-4 h-4 rounded-sm bg-white/10 flex items-center justify-center font-display text-[8px] text-white/40">{sub.service.name.charAt(0).toUpperCase()}</span>
                         )}
@@ -351,7 +351,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                     {selectedService.logo_url ? (
                       <img
                         src={selectedService.logo_url}
-                        alt=""
+                        alt={selectedService.name}
                         className="w-8 h-8 rounded-lg bg-white/10"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                       />
@@ -611,7 +611,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                               {sub.service.logo_url ? (
                                 <img
                                   src={sub.service.logo_url}
-                                  alt=""
+                                  alt={sub.service.name}
                                   className="w-5 h-5 rounded-md"
                                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                                 />
@@ -711,7 +711,7 @@ export function SubscriptionManager({ userSubscriptions, onAdd, onToggle, onDele
                             <td className="px-4 py-2.5">
                               <div className="flex items-center gap-2">
                                 {sub.service.logo_url ? (
-                                  <img src={sub.service.logo_url} alt="" className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                  <img src={sub.service.logo_url} alt={sub.service.name} className="w-4 h-4 rounded-sm" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                                 ) : (
                                   <span className="w-4 h-4 rounded-sm bg-white/10 flex items-center justify-center font-display text-[8px] text-white/40">{sub.service.name.charAt(0).toUpperCase()}</span>
                                 )}

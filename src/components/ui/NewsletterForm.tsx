@@ -31,7 +31,7 @@ export function NewsletterForm() {
   if (status === "success") {
     return (
       <p className="font-body text-sm text-emerald-400">
-        You're subscribed! Thanks for joining.
+        You&apos;re subscribed! Thanks for joining.
       </p>
     );
   }
@@ -44,6 +44,7 @@ export function NewsletterForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        aria-label="Email address for newsletter"
         className="flex-1 bg-white/5 border border-white/10 text-white rounded-full px-5 py-2.5 font-body text-sm placeholder-white/25 focus:outline-none focus:border-blue-500/50 transition-all"
       />
       <button

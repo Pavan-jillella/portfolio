@@ -1,4 +1,4 @@
-import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, SubscriptionService, SubscriptionPlan, ProjectStatus, PayType, TaxConfig, Employer } from "@/types";
+import { CoursePlatform, CourseCategory, CourseStatus, InvestmentType, MarketRegion, PriceHistoryRange, SubscriptionFrequency, SubscriptionService, SubscriptionPlan, ProjectStatus, PayType, TaxConfig, Employer, HabitCategory, HabitDifficulty } from "@/types";
 
 export const DEFAULT_EXPENSE_CATEGORIES: string[] = [
   "Rent", "Groceries", "Dining", "Travel", "Subscriptions",
@@ -487,4 +487,57 @@ export const FILING_STATUS_LABELS: Record<TaxConfig["filing_status"], string> = 
   married_separately: "Married Filing Separately",
   head_of_household: "Head of Household",
 };
+
+// ===== Habit Tracker Constants =====
+
+export const HABIT_CATEGORIES: HabitCategory[] = [
+  "Health", "Learning", "Productivity", "Personal",
+];
+
+export const HABIT_CATEGORY_COLORS: Record<HabitCategory, string> = {
+  Health: "#10b981",
+  Learning: "#3b82f6",
+  Productivity: "#f59e0b",
+  Personal: "#8b5cf6",
+};
+
+export const HABIT_CATEGORY_ICONS: Record<HabitCategory, string> = {
+  Health: "Heart",
+  Learning: "BookOpen",
+  Productivity: "Target",
+  Personal: "Star",
+};
+
+export const HABIT_DIFFICULTY_XP: Record<HabitDifficulty, number> = {
+  easy: 10,
+  medium: 25,
+  hard: 50,
+};
+
+export const HABIT_DIFFICULTY_LABELS: Record<HabitDifficulty, string> = {
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
+};
+
+export const HABIT_STREAK_BADGES = [
+  { days: 7, type: "bronze" as const, label: "7-Day Streak", color: "#cd7f32" },
+  { days: 30, type: "silver" as const, label: "30-Day Streak", color: "#c0c0c0" },
+  { days: 100, type: "gold" as const, label: "100-Day Streak", color: "#ffd700" },
+];
+
+export const HABIT_XP_PER_LEVEL: number[] = [0, 100, 300, 600, 1000];
+
+export const HABIT_TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "daily", label: "Daily Tracker" },
+  { id: "weekly", label: "Weekly Goals" },
+  { id: "chains", label: "Routines" },
+  { id: "calendar", label: "Calendar" },
+  { id: "analytics", label: "Analytics" },
+  { id: "xp", label: "XP & Levels" },
+  { id: "coach", label: "AI Coach" },
+] as const;
+
+export type HabitTabId = (typeof HABIT_TABS)[number]["id"];
 

@@ -35,7 +35,6 @@ import { BudgetPlanner } from "./BudgetPlanner";
 import { AIAnalysis } from "./AIAnalysis";
 import { MonthlyReportEmail } from "./MonthlyReportEmail";
 import { CurrencySettings } from "./CurrencySettings";
-import { SubscriptionTracker } from "./SubscriptionTracker";
 import { SubscriptionManager } from "./subscriptions/SubscriptionManager";
 import { PayrollTracker } from "./PayrollTracker";
 import { FadeIn } from "@/components/ui/FadeIn";

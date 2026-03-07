@@ -8,8 +8,7 @@ import { BlogPost } from "@/types";
 import { CommentSection } from "@/components/blog/CommentSection";
 import { FadeIn } from "@/components/ui/FadeIn";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const remarkPlugins: any[] = [remarkGfm];
+const remarkPlugins = [remarkGfm];
 
 function isSafeHref(href: string | undefined): boolean {
   if (!href) return false;

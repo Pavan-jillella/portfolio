@@ -13,8 +13,11 @@ import {
   Course,
   DashboardProject,
   Note,
+  Habit,
+  HabitLog,
 } from "@/types";
 import { getCurrentMonth, getMonthlyTransactions } from "@/lib/finance-utils";
+import { getOverallHabitScore } from "@/lib/habit-utils";
 
 interface LifeIndexDashboardProps {
   blogCount: number;
@@ -173,6 +176,10 @@ export function LifeIndexDashboard({ blogCount }: LifeIndexDashboardProps) {
   const [courses] = useLocalStorage<Course[]>("pj-courses", []);
   const [projects] = useLocalStorage<DashboardProject[]>("pj-edu-projects", []);
   const [notes] = useLocalStorage<Note[]>("pj-edu-notes", []);
+
+  // ── Habit data ──
+  const [habits] = useLocalStorage<Habit[]>("pj-habits", []);
+  const [habitLogs] = useLocalStorage<HabitLog[]>("pj-habit-logs", []);
 
   // ── External data ──
   const [githubUsername] = useLocalStorage<string>("pj-github-username", "");
@@ -350,16 +357,20 @@ export function LifeIndexDashboard({ blogCount }: LifeIndexDashboardProps) {
     const completedProjects = projects.filter((p) => p.status === "completed").length;
     const projPct = Math.min(completedProjects / 5, 1) * 100;
 
-    // Composite: 25% notes, 25% blog, 25% streak, 25% completed projects
-    const raw = notesPct * 0.25 + blogPct * 0.25 + streakPct * 0.25 + projPct * 0.25;
+    // Habit score (overall completion rate across active habits, last 30 days)
+    const habitScore = getOverallHabitScore(habits, habitLogs);
+
+    // Composite: 20% notes, 20% blog, 15% streak, 20% projects, 25% habits
+    const raw = notesPct * 0.2 + blogPct * 0.2 + streakPct * 0.15 + projPct * 0.2 + habitScore * 0.25;
 
     return {
       score: Math.round(Math.min(raw, 100)),
       notesCount: notes.length,
       streak,
       completedProjects,
+      habitScore,
     };
-  }, [notes, blogCount, studySessions, projects]);
+  }, [notes, blogCount, studySessions, projects, habits, habitLogs]);
 
   // ── Composite index ──
   const compositeScore = Math.round(

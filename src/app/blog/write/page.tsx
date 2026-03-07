@@ -8,8 +8,7 @@ import remarkGfm from "remark-gfm";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { BlogPost } from "@/types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const remarkPlugins: any[] = [remarkGfm];
+const remarkPlugins = [remarkGfm];
 
 type EditorView = "split" | "editor" | "preview";
 type SaveStatus = "idle" | "saving" | "saved" | "error";

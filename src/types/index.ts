@@ -854,3 +854,82 @@ export interface GrowthData {
   month: string;
   score: number;
 }
+
+// ===== Habit Tracker Types =====
+
+export type HabitCategory = "Health" | "Learning" | "Productivity" | "Personal";
+
+export type HabitDifficulty = "easy" | "medium" | "hard";
+
+export type HabitChainTimeOfDay = "morning" | "afternoon" | "evening" | "anytime";
+
+export type LifeIndexDomain = "finance" | "learning" | "technical" | "growth";
+
+export interface Habit {
+  id: string;
+  name: string;
+  description: string;
+  category: HabitCategory;
+  difficulty: HabitDifficulty;
+  frequency_per_week: number;
+  chain_id: string | null;
+  life_index_domain: LifeIndexDomain | null;
+  icon: string;
+  color: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HabitLog {
+  id: string;
+  habit_id: string;
+  date: string;
+  completed: boolean;
+  xp_earned: number;
+  notes: string;
+  created_at: string;
+}
+
+export interface HabitChain {
+  id: string;
+  name: string;
+  description: string;
+  time_of_day: HabitChainTimeOfDay;
+  bonus_xp: number;
+  created_at: string;
+}
+
+export interface HabitWithStats extends Habit {
+  current_streak: number;
+  longest_streak: number;
+  completions_this_week: number;
+  completion_rate: number;
+  total_xp: number;
+  level: number;
+}
+
+export interface HabitBadge {
+  type: "bronze" | "silver" | "gold";
+  streak_days: number;
+  label: string;
+  color: string;
+}
+
+export interface HabitChainWithHabits extends HabitChain {
+  habits: Habit[];
+  all_completed_today: boolean;
+}
+
+export interface HabitDayData {
+  date: string;
+  completions: number;
+  total: number;
+}
+
+export interface HabitCategoryScore {
+  category: HabitCategory;
+  score: number;
+  habits_count: number;
+  completion_rate: number;
+}

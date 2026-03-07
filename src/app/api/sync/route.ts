@@ -24,6 +24,9 @@ const ALLOWED_TABLES = new Set([
   "vlogs",
   "blog_posts",
   "user_projects",
+  "habits",
+  "habit_logs",
+  "habit_chains",
 ]);
 
 function getAdminSupabase() {

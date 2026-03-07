@@ -20,6 +20,7 @@ export function MonthPicker({ selectedMonth, onChange }: MonthPickerProps) {
     <div className="flex items-center gap-4">
       <button
         onClick={() => shift(-1)}
+        aria-label="Previous month"
         className="glass-card w-9 h-9 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,6 +37,7 @@ export function MonthPicker({ selectedMonth, onChange }: MonthPickerProps) {
       </div>
       <button
         onClick={() => shift(1)}
+        aria-label="Next month"
         className="glass-card w-9 h-9 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

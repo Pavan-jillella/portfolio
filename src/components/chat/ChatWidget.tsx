@@ -107,7 +107,7 @@ export function ChatWidget() {
             {/* Header */}
             <div className="p-4 border-b border-white/5">
               <h3 className="font-display font-semibold text-sm text-white">AI Assistant</h3>
-              <p className="font-body text-xs text-white/30">Ask me about Pavan's work</p>
+              <p className="font-body text-xs text-white/30">Ask me about Pavan&apos;s work</p>
             </div>
 
             {/* Messages */}
@@ -164,11 +164,13 @@ export function ChatWidget() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask something..."
+                  aria-label="Ask the AI assistant a question"
                   className="flex-1 bg-white/5 border border-white/10 text-white rounded-xl px-4 py-2.5 font-body text-sm placeholder-white/25 focus:outline-none focus:border-blue-500/50 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || loading}
+                  aria-label="Send message"
                   className="glass-card px-4 py-2.5 rounded-xl text-white/60 hover:text-blue-400 transition-all disabled:opacity-30"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

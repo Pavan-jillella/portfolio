@@ -16,6 +16,7 @@ const navLinks = [
   { label: "Projects", href: "/projects" },
   { label: "Education", href: "/education" },
   { label: "Finance", href: "/finance" },
+  { label: "Habits", href: "/dashboard/habits" },
   { label: "Life Index", href: "/dashboard/life-index" },
 ];
 

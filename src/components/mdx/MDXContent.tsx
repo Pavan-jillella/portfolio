@@ -20,7 +20,7 @@ const components = {
     }
     return <code className="font-mono text-sm" {...props} />;
   },
-  img: (props: any) => <img className="rounded-2xl my-8 w-full" {...props} />,
+  img: (props: any) => <img className="rounded-2xl my-8 w-full" alt="" {...props} />,
   hr: () => <hr className="border-white/5 my-10" />,
   table: (props: any) => <div className="overflow-x-auto mb-6"><table className="w-full text-sm text-white/60" {...props} /></div>,
   th: (props: any) => <th className="text-left font-semibold text-white/80 p-2 border-b border-white/10" {...props} />,
