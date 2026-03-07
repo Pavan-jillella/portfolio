@@ -268,6 +268,7 @@ export function PayrollTracker({
           onAddSchedule={onAddSchedule}
           onDeleteSchedule={onDeleteSchedule}
           onCreatePayStub={handleCreatePayStubFromSchedule}
+          onAddEnhancedSchedule={onAddEnhancedSchedule}
         />
       )}
 

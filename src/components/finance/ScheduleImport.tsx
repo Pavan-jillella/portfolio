@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { WorkSchedule, ScheduleShift, PayrollSettings, AppsScriptData } from "@/types";
+import { WorkSchedule, ScheduleShift, EnhancedWorkSchedule, EnhancedShift, PayrollSettings, AppsScriptData } from "@/types";
 import { parseScheduleSheet, generateId, formatCurrency } from "@/lib/finance-utils";
 import { appsScriptToShifts } from "@/lib/payroll-utils";
 import { motion } from "framer-motion";
@@ -11,6 +11,7 @@ interface ScheduleImportProps {
   onAddSchedule: (schedule: WorkSchedule) => void;
   onDeleteSchedule: (id: string) => void;
   onCreatePayStub: (totalHours: number, periodLabel: string) => void;
+  onAddEnhancedSchedule?: (schedule: EnhancedWorkSchedule) => void;
 }
 
 export function ScheduleImport({
@@ -19,6 +20,7 @@ export function ScheduleImport({
   onAddSchedule,
   onDeleteSchedule,
   onCreatePayStub,
+  onAddEnhancedSchedule,
 }: ScheduleImportProps) {
   const [url, setUrl] = useState(settings.google_sheets_url);
   const [periodLabel, setPeriodLabel] = useState("");
@@ -120,8 +122,10 @@ export function ScheduleImport({
       onDeleteSchedule(existing.id);
     }
 
+    const scheduleId = generateId();
+
     const schedule: WorkSchedule = {
-      id: generateId(),
+      id: scheduleId,
       period_label: label,
       period_start: "",
       period_end: "",
@@ -131,6 +135,35 @@ export function ScheduleImport({
       created_at: new Date().toISOString(),
     };
     onAddSchedule(schedule);
+
+    // Also create an EnhancedWorkSchedule so Dashboard, Calendar, Files, and Forecast can read it
+    if (onAddEnhancedSchedule) {
+      const today = new Date().toISOString().slice(0, 10);
+      const enhancedShifts: EnhancedShift[] = preview.map((shift, i) => ({
+        id: generateId(),
+        schedule_id: scheduleId,
+        date: today,
+        day: shift.day,
+        start_time: shift.start_time,
+        end_time: shift.end_time,
+        hours: shift.hours,
+        is_holiday: false,
+      }));
+
+      const enhanced: EnhancedWorkSchedule = {
+        id: generateId(),
+        employer_id: settings.default_employer || "",
+        period_label: label,
+        start_date: today,
+        end_date: today,
+        shifts: enhancedShifts,
+        total_hours: totalHours,
+        gross_amount: parseFloat((totalHours * settings.hourly_rate).toFixed(2)),
+        created_at: new Date().toISOString(),
+      };
+      onAddEnhancedSchedule(enhanced);
+    }
+
     setPreview(null);
     setPeriodLabel("");
   }
@@ -144,8 +177,9 @@ export function ScheduleImport({
       const label = week.prettyLabel || week.weekLabel;
       if (existingLabels.has(label)) continue;
 
+      const scheduleId = generateId();
       const schedule: WorkSchedule = {
-        id: generateId(),
+        id: scheduleId,
         period_label: label,
         period_start: "",
         period_end: "",
@@ -155,6 +189,24 @@ export function ScheduleImport({
         created_at: new Date().toISOString(),
       };
       onAddSchedule(schedule);
+
+      // Also create enhanced schedule
+      if (onAddEnhancedSchedule) {
+        const today = new Date().toISOString().slice(0, 10);
+        const enhanced: EnhancedWorkSchedule = {
+          id: generateId(),
+          employer_id: settings.default_employer || "",
+          period_label: label,
+          start_date: today,
+          end_date: today,
+          shifts: [],
+          total_hours: week.totalHours,
+          gross_amount: parseFloat((week.totalHours * settings.hourly_rate).toFixed(2)),
+          created_at: new Date().toISOString(),
+        };
+        onAddEnhancedSchedule(enhanced);
+      }
+
       existingLabels.add(label);
       imported++;
     }

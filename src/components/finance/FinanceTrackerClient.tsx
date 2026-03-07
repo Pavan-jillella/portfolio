@@ -135,7 +135,7 @@ export function FinanceTrackerClient() {
   const monthlySubTotal = useMemo(() => getMonthlySubscriptionTotal(subscriptions), [subscriptions]);
   const userSubMonthlyTotal = useMemo(() => getUserSubscriptionMonthlyTotal(userSubscriptions), [userSubscriptions]);
 
-  const txIncome = monthlyTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const txIncome = monthlyTx.filter((t) => t.type === "income" && !t.description?.startsWith("Payroll:")).reduce((s, t) => s + t.amount, 0);
   const txExpenses = monthlyTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const portfolioValue = investments.reduce((s, i) => s + i.current_value, 0);
 
@@ -162,16 +162,20 @@ export function FinanceTrackerClient() {
   const enhancedTrend = useMemo(() => {
     const totalSubMonthly = monthlySubTotal + userSubMonthlyTotal;
     return trend.map((t) => {
+      // Subtract auto-created payroll transactions to avoid double-counting with pay stub totals
+      const autoPayrollTx = transactions
+        .filter((tx) => tx.type === "income" && tx.description?.startsWith("Payroll:") && tx.date.startsWith(t.month))
+        .reduce((sum, tx) => sum + tx.amount, 0);
       const payroll = payStubs
         .filter((s) => s.pay_date.startsWith(t.month))
         .reduce((sum, s) => sum + s.net_pay, 0);
       const partTime = getPartTimeJobEarnings(partTimeJobs, partTimeHours, t.month)
         .reduce((sum, e) => sum + e.earnings, 0);
-      const totalInc = t.income + payroll + partTime;
+      const totalInc = (t.income - autoPayrollTx) + payroll + partTime;
       const totalExp = t.expenses + totalSubMonthly;
       return { month: t.month, income: totalInc, expenses: totalExp, net: totalInc - totalExp };
     });
-  }, [trend, payStubs, partTimeJobs, partTimeHours, monthlySubTotal, userSubMonthlyTotal]);
+  }, [trend, payStubs, partTimeJobs, partTimeHours, monthlySubTotal, userSubMonthlyTotal, transactions]);
 
   // Apply filters to ALL transactions (not just monthly) for Transactions tab
   const filteredTx = useMemo(() => {
