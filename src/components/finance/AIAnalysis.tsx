@@ -79,7 +79,7 @@ Provide your analysis in these sections:
 
       if (!res.ok) {
         if (res.status === 503) {
-          setError("AI analysis requires an OpenAI API key. Add OPENAI_API_KEY to your .env.local file.");
+          setError("AI service is not configured. Please check your API key settings.");
         } else {
           setError("Failed to get analysis. Please try again.");
         }

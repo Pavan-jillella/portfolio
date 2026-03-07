@@ -46,7 +46,7 @@ export function HabitCoachTab({ habits, logs }: HabitCoachTabProps) {
       const data = await res.json();
       setAnalysis(data.analysis);
     } catch (e) {
-      setError("Could not generate analysis. Make sure OPENAI_API_KEY is configured.");
+      setError("Could not generate analysis. Please check your API key settings.");
     } finally {
       setLoading(false);
     }
