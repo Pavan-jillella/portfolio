@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LeetCodeAcceptedSubmission } from "@/types";
+import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 
 interface SolvedQuestionsPanelProps {
   submissions: LeetCodeAcceptedSubmission[];
@@ -15,6 +16,7 @@ export function SolvedQuestionsPanel({ submissions, totalCount, isLoading }: Sol
   const [search, setSearch] = useState("");
   const [langFilter, setLangFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   // Deduplicate by titleSlug — keep most recent submission per problem
   const uniqueSubmissions = useMemo(() => {
@@ -71,6 +73,7 @@ export function SolvedQuestionsPanel({ submissions, totalCount, isLoading }: Sol
               : uniqueSubmissions.length}
           </span>
         </h3>
+        <ViewToggle viewMode={viewMode} onChange={setViewMode} />
       </div>
 
       {/* Search */}
@@ -158,7 +161,7 @@ export function SolvedQuestionsPanel({ submissions, totalCount, isLoading }: Sol
       )}
 
       {/* Submission list */}
-      {!isLoading && filtered.length > 0 && (
+      {!isLoading && filtered.length > 0 && viewMode === "list" && (
         <div className="space-y-1">
           <AnimatePresence>
             {paginated.map((sub, i) => {
@@ -190,6 +193,82 @@ export function SolvedQuestionsPanel({ submissions, totalCount, isLoading }: Sol
               );
             })}
           </AnimatePresence>
+        </div>
+      )}
+
+      {/* Grid view */}
+      {!isLoading && filtered.length > 0 && viewMode === "grid" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginated.map((sub, i) => {
+            const date = new Date(parseInt(sub.timestamp) * 1000);
+            return (
+              <motion.a
+                key={`${sub.titleSlug}-${sub.timestamp}`}
+                href={`https://leetcode.com/problems/${sub.titleSlug}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-card rounded-2xl p-5 block hover:bg-white/[0.02] hover:border-white/10 transition-all group"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i < PAGE_SIZE ? i * 0.03 : 0, duration: 0.3 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="font-body text-sm text-white group-hover:text-blue-300 transition-colors truncate">
+                    {sub.title}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded-full border border-white/8 bg-white/4 font-mono text-[10px] text-white/30 uppercase">
+                    {sub.lang}
+                  </span>
+                  <span className="font-mono text-[10px] text-white/20">
+                    {date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                </div>
+              </motion.a>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Table view */}
+      {!isLoading && filtered.length > 0 && viewMode === "table" && (
+        <div className="glass-card rounded-2xl overflow-hidden -mx-6 -mb-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Title</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Language</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.map((sub) => {
+                  const date = new Date(parseInt(sub.timestamp) * 1000);
+                  return (
+                    <tr key={`${sub.titleSlug}-${sub.timestamp}`} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-2.5">
+                        <a href={`https://leetcode.com/problems/${sub.titleSlug}/`} target="_blank" rel="noopener noreferrer"
+                           className="font-body text-xs text-white/70 hover:text-blue-300 transition-colors">
+                          {sub.title}
+                        </a>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="font-mono text-[10px] text-white/40 uppercase">{sub.lang}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="font-mono text-xs text-white/30">
+                          {date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

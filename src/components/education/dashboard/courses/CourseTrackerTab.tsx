@@ -8,6 +8,7 @@ import { CourseNotesEditor } from "./CourseNotesEditor";
 import { CourseFileUpload } from "./CourseFileUpload";
 import { CourseForm } from "@/components/education/CourseForm";
 import { CourseRecommendations } from "../ai/CourseRecommendations";
+import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { motion } from "framer-motion";
 
 interface CourseTrackerTabProps {
@@ -41,6 +42,7 @@ export function CourseTrackerTab({
 }: CourseTrackerTabProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const stats = useMemo(() => {
     const completed = courses.filter((c) => c.status === "completed").length;
@@ -74,12 +76,15 @@ export function CourseTrackerTab({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-semibold text-xl text-white">Course Tracker</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="glass-card px-5 py-2 rounded-2xl text-sm font-body text-white/60 hover:text-white hover:border-blue-500/30 transition-all duration-300"
-        >
-          + Add Course
-        </button>
+        <div className="flex items-center gap-3">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          <button
+            onClick={() => setShowForm(true)}
+            className="glass-card px-5 py-2 rounded-2xl text-sm font-body text-white/60 hover:text-white hover:border-blue-500/30 transition-all duration-300"
+          >
+            + Add Course
+          </button>
+        </div>
       </div>
 
       <CourseForm open={showForm} onClose={() => setShowForm(false)} onSubmit={onAddCourse} />
@@ -107,7 +112,7 @@ export function CourseTrackerTab({
       {/* Course grid */}
       {courses.length === 0 ? (
         <p className="font-body text-sm text-white/20 text-center py-8">No courses added yet.</p>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {courses.map((course) => {
             const courseMods = modules.filter((m) => m.course_id === course.id);
@@ -147,6 +152,87 @@ export function CourseTrackerTab({
               </motion.div>
             );
           })}
+        </div>
+      ) : viewMode === "list" ? (
+        <div className="space-y-2">
+          {courses.map((course) => {
+            const courseMods = modules.filter((m) => m.course_id === course.id);
+            const modProgress = courseMods.length > 0 ? calculateModuleProgress(courseMods) : course.progress;
+            const statusCfg = COURSE_STATUS_CONFIG[course.status];
+            const isSelected = selectedCourseId === course.id;
+            return (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`glass-card rounded-2xl p-4 cursor-pointer transition-all hover:bg-white/[0.02] ${isSelected ? "border-blue-500/30" : ""}`}
+                onClick={() => setSelectedCourseId(isSelected ? null : course.id)}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="font-display font-semibold text-sm text-white truncate">{course.name}</span>
+                    <span className="tag-badge px-2 py-0.5 rounded-full border border-white/8 bg-white/4 text-white/30 text-[10px] shrink-0">{course.platform}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${statusCfg.color} ${statusCfg.bgColor}`}>{statusCfg.label}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 w-48">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                      <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${modProgress}%` }} />
+                    </div>
+                    <span className="font-mono text-[10px] text-white/30 w-8 text-right">{modProgress}%</span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="glass-card rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Course</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Platform</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Modules</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.map((course) => {
+                  const courseMods = modules.filter((m) => m.course_id === course.id);
+                  const modProgress = courseMods.length > 0 ? calculateModuleProgress(courseMods) : course.progress;
+                  const statusCfg = COURSE_STATUS_CONFIG[course.status];
+                  const isSelected = selectedCourseId === course.id;
+                  return (
+                    <tr
+                      key={course.id}
+                      className={`border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors cursor-pointer ${isSelected ? "bg-blue-500/5" : ""}`}
+                      onClick={() => setSelectedCourseId(isSelected ? null : course.id)}
+                    >
+                      <td className="px-4 py-2.5">
+                        <span className="font-body text-xs text-white/70">{course.name}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="font-mono text-[10px] text-white/40">{course.platform}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className={`inline-flex items-center text-[10px] px-2 py-0.5 rounded-full ${statusCfg.color} ${statusCfg.bgColor}`}>
+                          {statusCfg.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="font-mono text-xs text-white/40">{courseMods.length}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="font-mono text-xs text-white/50">{modProgress}%</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

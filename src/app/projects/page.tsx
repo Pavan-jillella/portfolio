@@ -5,6 +5,7 @@ import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { UserProject } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 
 const LANGUAGES = ["All", "TypeScript", "JavaScript", "Python", "Go", "Rust", "Java", "Other"];
 
@@ -18,6 +19,7 @@ export default function ProjectsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   // Form fields
   const [name, setName] = useState("");
@@ -119,16 +121,19 @@ export default function ProjectsPage() {
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setManageMode(!manageMode)}
-              className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
-                manageMode
-                  ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
-                  : "border-white/8 bg-white/4 text-white/50 hover:text-white hover:border-white/15"
-              }`}
-            >
-              {manageMode ? "Done" : "Manage"}
-            </button>
+            <div className="flex items-center gap-3">
+              <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+              <button
+                onClick={() => setManageMode(!manageMode)}
+                className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
+                  manageMode
+                    ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
+                    : "border-white/8 bg-white/4 text-white/50 hover:text-white hover:border-white/15"
+                }`}
+              >
+                {manageMode ? "Done" : "Manage"}
+              </button>
+            </div>
           </div>
 
           {/* Project Manager */}
@@ -236,42 +241,117 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {/* Filtered projects grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filtered.map((project, i) => (
-              <FadeIn key={project.id} delay={i * 0.05}>
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block glass-card rounded-2xl p-6 hover:bg-white/[0.02] hover:border-white/15 transition-all duration-300 group h-full"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-display font-semibold text-white group-hover:text-blue-300 transition-colors">
-                      {project.name}
-                    </h3>
-                    <span className="font-mono text-xs text-white/20 shrink-0 ml-3">{project.language}</span>
-                  </div>
-                  <p className="font-body text-sm text-white/40 mb-4 line-clamp-2">
-                    {project.description}
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono text-xs text-white/30">★ {project.stars}</span>
-                    <span className="font-mono text-xs text-white/30">⑂ {project.forks}</span>
-                  </div>
-                  {project.topics && project.topics.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {project.topics.slice(0, 4).map((topic: string) => (
-                        <span key={topic} className="px-2 py-0.5 rounded-full border border-white/5 bg-white/[0.02] font-mono text-xs text-white/20">
-                          {topic}
-                        </span>
-                      ))}
+          {/* Filtered projects */}
+          {viewMode === "grid" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {filtered.map((project, i) => (
+                <FadeIn key={project.id} delay={i * 0.05}>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block glass-card rounded-2xl p-6 hover:bg-white/[0.02] hover:border-white/15 transition-all duration-300 group h-full"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-display font-semibold text-white group-hover:text-blue-300 transition-colors">
+                        {project.name}
+                      </h3>
+                      <span className="font-mono text-xs text-white/20 shrink-0 ml-3">{project.language}</span>
                     </div>
-                  )}
-                </a>
-              </FadeIn>
-            ))}
-          </div>
+                    <p className="font-body text-sm text-white/40 mb-4 line-clamp-2">
+                      {project.description}
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-xs text-white/30">★ {project.stars}</span>
+                      <span className="font-mono text-xs text-white/30">⑂ {project.forks}</span>
+                    </div>
+                    {project.topics && project.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {project.topics.slice(0, 4).map((topic: string) => (
+                          <span key={topic} className="px-2 py-0.5 rounded-full border border-white/5 bg-white/[0.02] font-mono text-xs text-white/20">
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </a>
+                </FadeIn>
+              ))}
+            </div>
+          )}
+
+          {viewMode === "list" && (
+            <div className="space-y-2">
+              {filtered.map((project, i) => (
+                <FadeIn key={project.id} delay={i * 0.03}>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block glass-card rounded-2xl p-4 hover:bg-white/[0.02] hover:border-white/15 transition-all group"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="font-display font-semibold text-sm text-white group-hover:text-blue-300 transition-colors truncate">
+                          {project.name}
+                        </span>
+                        <span className="font-mono text-[10px] text-white/30 shrink-0">{project.language}</span>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <span className="font-mono text-xs text-white/30">★ {project.stars}</span>
+                        <span className="font-mono text-xs text-white/30">⑂ {project.forks}</span>
+                        <span className="font-body text-xs text-white/20 truncate max-w-[250px] hidden md:block">
+                          {project.description}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                </FadeIn>
+              ))}
+            </div>
+          )}
+
+          {viewMode === "table" && (
+            <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-white/5">
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Language</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Stars</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Forks</th>
+                      <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((project) => (
+                      <tr key={project.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-2.5">
+                          <a href={project.url} target="_blank" rel="noopener noreferrer"
+                             className="font-body text-xs text-white/70 hover:text-blue-300 transition-colors">
+                            {project.name}
+                          </a>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-mono text-[10px] text-white/40">{project.language}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <span className="font-mono text-xs text-white/40">{project.stars}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <span className="font-mono text-xs text-white/40">{project.forks}</span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-body text-xs text-white/30 truncate max-w-[300px] block">{project.description}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {filtered.length === 0 && (
             <div className="text-center py-16">

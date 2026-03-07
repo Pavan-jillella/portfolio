@@ -1,10 +1,11 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { StudySession, Course, DashboardProject } from "@/types";
 import { SKILL_CATEGORIES, SKILL_CATEGORY_COLORS } from "@/lib/constants";
 import { generateSkillsFromData } from "@/lib/education-utils";
 import { SkillCard } from "./SkillCard";
+import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 
 interface SkillTreeTabProps {
   sessions: StudySession[];
@@ -13,6 +14,8 @@ interface SkillTreeTabProps {
 }
 
 export function SkillTreeTab({ sessions, courses, projects }: SkillTreeTabProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+
   const skills = useMemo(
     () => generateSkillsFromData(sessions, courses, projects),
     [sessions, courses, projects]
@@ -34,6 +37,12 @@ export function SkillTreeTab({ sessions, courses, projects }: SkillTreeTabProps)
 
   return (
     <div className="space-y-8">
+      {/* Header with view toggle */}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="font-display font-semibold text-xl text-white">Skill Tree</h2>
+        <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+      </div>
+
       {/* Stats header */}
       <div className="grid grid-cols-3 gap-4">
         {[
@@ -54,8 +63,8 @@ export function SkillTreeTab({ sessions, courses, projects }: SkillTreeTabProps)
         ))}
       </div>
 
-      {/* Skill groups */}
-      {grouped.map(([category, catSkills]) => (
+      {/* Grid View (grouped) */}
+      {viewMode === "grid" && grouped.map(([category, catSkills]) => (
         <div key={category}>
           <div className="flex items-center gap-2 mb-4">
             <span
@@ -72,6 +81,83 @@ export function SkillTreeTab({ sessions, courses, projects }: SkillTreeTabProps)
           </div>
         </div>
       ))}
+
+      {/* List View (flat, sorted by XP desc) */}
+      {viewMode === "list" && (
+        <div className="space-y-2">
+          {[...skills].sort((a, b) => b.xp - a.xp).map((skill, i) => {
+            const catColor = SKILL_CATEGORY_COLORS[skill.category] || "#6b7280";
+            return (
+              <motion.div
+                key={skill.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.02 }}
+                className="glass-card rounded-xl p-4 flex items-center gap-4"
+              >
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />
+                <span className="font-display font-semibold text-sm text-white w-32 truncate shrink-0">{skill.name}</span>
+                <span className="font-mono text-[10px] text-white/30 w-20 shrink-0">{skill.category}</span>
+                <span className="font-mono text-[10px] text-white/40 shrink-0">Lv.{skill.level}</span>
+                <div className="flex-1 min-w-[100px]">
+                  <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ backgroundColor: catColor, width: `${(skill.xp / skill.max_xp) * 100}%` }} />
+                  </div>
+                </div>
+                <span className="font-mono text-[10px] text-white/30 shrink-0">{skill.xp} XP</span>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Table View (flat, sorted by XP desc) */}
+      {viewMode === "table" && (
+        <div className="glass-card rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Skill</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Category</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Level</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">XP</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...skills].sort((a, b) => b.xp - a.xp).map((skill) => {
+                  const catColor = SKILL_CATEGORY_COLORS[skill.category] || "#6b7280";
+                  return (
+                    <tr key={skill.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-2.5">
+                        <span className="font-body text-xs text-white/70">{skill.name}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: catColor }} />
+                          <span className="font-mono text-[10px] text-white/40">{skill.category}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="font-mono text-xs text-white/50">{skill.level}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="font-mono text-xs text-white/50">{skill.xp}</span>
+                      </td>
+                      <td className="px-4 py-2.5 w-32">
+                        <div className="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                          <div className="h-full rounded-full" style={{ backgroundColor: catColor, width: `${(skill.xp / skill.max_xp) * 100}%` }} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Empty state */}
       {skills.length === 0 && (

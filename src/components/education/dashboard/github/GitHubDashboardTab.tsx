@@ -6,6 +6,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { SkeletonGrid } from "@/components/ui/SkeletonGrid";
 import { RepoCard } from "./RepoCard";
+import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { motion } from "framer-motion";
 
 const LanguageChart = dynamic(() => import("./LanguageChart").then((m) => m.LanguageChart), {
@@ -49,6 +50,8 @@ function UsernamePrompt({ onSave }: { onSave: (username: string) => void }) {
 export function GitHubDashboardTab() {
   const [username, setUsername] = useLocalStorage<string>("pj-github-username", "");
   const { data, isLoading, error } = useGitHubData(username);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [showAll, setShowAll] = useState(false);
 
   if (!username) {
     return <UsernamePrompt onSave={setUsername} />;
@@ -76,16 +79,21 @@ export function GitHubDashboardTab() {
     );
   }
 
+  const displayedRepos = showAll ? data.repos : data.repos.slice(0, 8);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="font-display font-semibold text-xl text-white">GitHub</h2>
-        <button
-          onClick={() => setUsername("")}
-          className="font-body text-xs text-white/20 hover:text-white/50 transition-colors"
-        >
-          Change username
-        </button>
+        <div className="flex items-center gap-3">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          <button
+            onClick={() => setUsername("")}
+            className="font-body text-xs text-white/20 hover:text-white/50 transition-colors"
+          >
+            Change username
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -110,20 +118,98 @@ export function GitHubDashboardTab() {
         ))}
       </div>
 
-      {/* Language chart + repos */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
-        <LanguageChart data={data.languages} />
+      {/* Language chart */}
+      <LanguageChart data={data.languages} />
+
+      {/* Repos - Grid View */}
+      {viewMode === "grid" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.repos.slice(0, 8).map((repo) => (
+          {displayedRepos.map((repo) => (
             <RepoCard key={repo.id} repo={repo} />
           ))}
         </div>
-      </div>
+      )}
 
+      {/* Repos - List View */}
+      {viewMode === "list" && (
+        <div className="space-y-2">
+          {displayedRepos.map((repo) => (
+            <motion.a
+              key={repo.id}
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card rounded-2xl p-4 flex items-center justify-between gap-4 hover:bg-white/[0.02] hover:border-white/10 transition-all group"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="font-display font-semibold text-sm text-white group-hover:text-blue-300 transition-colors truncate">
+                  {repo.name}
+                </span>
+                {repo.language && (
+                  <span className="font-mono text-[10px] text-white/40 shrink-0">{repo.language}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-4 shrink-0">
+                {repo.stargazers_count > 0 && <span className="font-mono text-xs text-white/30">★ {repo.stargazers_count}</span>}
+                {repo.forks_count > 0 && <span className="font-mono text-xs text-white/30">⑂ {repo.forks_count}</span>}
+                <span className="font-body text-xs text-white/20 truncate max-w-[200px] hidden md:block">{repo.description || ""}</span>
+              </div>
+            </motion.a>
+          ))}
+        </div>
+      )}
+
+      {/* Repos - Table View */}
+      {viewMode === "table" && (
+        <div className="glass-card rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Language</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Stars</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Forks</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayedRepos.map((repo) => (
+                  <tr key={repo.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-2.5">
+                      <a href={repo.html_url} target="_blank" rel="noopener noreferrer"
+                         className="font-body text-xs text-white/70 hover:text-blue-300 transition-colors">{repo.name}</a>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="font-mono text-[10px] text-white/40">{repo.language || "—"}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <span className="font-mono text-xs text-white/40">{repo.stargazers_count}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <span className="font-mono text-xs text-white/40">{repo.forks_count}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="font-body text-xs text-white/30 truncate max-w-[300px] block">{repo.description || "—"}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Show all toggle */}
       {data.repos.length > 8 && (
-        <p className="font-body text-xs text-white/20 text-center">
-          Showing 8 of {data.repos.length} repositories
-        </p>
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="w-full py-3 rounded-xl bg-white/4 text-white/30 font-body text-xs hover:bg-white/6 hover:text-white/50 transition-all"
+        >
+          {showAll ? "Show fewer" : `Show all ${data.repos.length} repositories`}
+        </button>
       )}
     </div>
   );
