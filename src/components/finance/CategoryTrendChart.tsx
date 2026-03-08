@@ -66,7 +66,7 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
     );
   }
 
-  const width = 420;
+  const width = 520;
   const height = 220;
   const baseY = 180;
   const barArea = 140;
@@ -98,13 +98,15 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
           {/* Bars */}
           {data.map((group, monthIndex) => {
             const catCount = group.values.length;
-            const barW = Math.min((groupW * 0.7) / catCount, 12);
-            const startX = monthIndex * groupW + groupW * 0.15;
+            const barW = Math.min((groupW * 0.55) / catCount, 14);
+            const barGap = 3;
+            const totalBarsW = catCount * barW + (catCount - 1) * barGap;
+            const startX = monthIndex * groupW + (groupW - totalBarsW) / 2;
 
             return group.values.map((v, catIndex) => {
               if (v.amount === 0) return null;
               const barHeight = (v.amount / maxValue) * barArea;
-              const x = startX + catIndex * barW;
+              const x = startX + catIndex * (barW + barGap);
               const isLastMonth = monthIndex === data.length - 1;
 
               return (
