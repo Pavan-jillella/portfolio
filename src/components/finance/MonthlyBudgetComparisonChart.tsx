@@ -39,17 +39,17 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
     );
   }
 
-  const chartWidth = 600;
-  const chartHeight = 250;
-  const pt = 28, pb = 40, pl = 10, pr = 10;
+  const chartWidth = 700;
+  const chartHeight = 280;
+  const pt = 30, pb = 34, pl = 12, pr = 12;
   const dw = chartWidth - pl - pr;
   const dh = chartHeight - pt - pb;
 
   const maxValue = Math.max(...data.flatMap((d) => [d.budget, d.actual]), 1);
   const groupW = dw / data.length;
-  const barW = groupW * 0.3;
-  const barGap = groupW * 0.05;
-  const pillRx = barW / 2;
+  const barW = Math.max(groupW * 0.3, 16);
+  const barGap = Math.max(groupW * 0.05, 4);
+  const pillRx = Math.min(barW / 2, 8);
   const baseYLine = pt + dh;
 
   const budgetColor = "#3b82f6";
@@ -71,7 +71,7 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
           </div>
         </div>
       </div>
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto" style={{ overflow: "visible" }}>
         <defs>
           <linearGradient id="pillGrad-mbc-budget" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.95} />
@@ -137,16 +137,16 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
 
               {/* Value labels */}
               <text
-                x={budgetX + barW / 2} y={budgetY - 5}
-                textAnchor="middle" fill="rgba(96,165,250,0.9)"
-                fontSize="12" fontWeight="600" className="font-mono"
+                x={budgetX + barW / 2} y={budgetY - 6}
+                textAnchor="middle" fill="rgba(96,165,250,0.95)"
+                fontSize="12" fontWeight="700" className="font-mono"
               >
                 {formatCurrency(d.budget)}
               </text>
               <text
-                x={actualX + barW / 2} y={actualY - 5}
-                textAnchor="middle" fill={isOver ? "rgba(248,113,113,0.9)" : "rgba(251,146,60,0.9)"}
-                fontSize="12" fontWeight="600" className="font-mono"
+                x={actualX + barW / 2} y={actualY - 6}
+                textAnchor="middle" fill={isOver ? "rgba(248,113,113,0.95)" : "rgba(251,146,60,0.95)"}
+                fontSize="12" fontWeight="700" className="font-mono"
               >
                 {formatCurrency(d.actual)}
               </text>
@@ -154,8 +154,8 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
               {/* Category label */}
               <text
                 x={groupX + groupW / 2} y={chartHeight - pb + 18}
-                textAnchor="middle" fill="rgba(255,255,255,0.45)"
-                fontSize="9" className="font-mono"
+                textAnchor="middle" fill="rgba(255,255,255,0.5)"
+                fontSize="10" fontWeight="500" className="font-mono"
               >
                 {categoryLabel}
               </text>

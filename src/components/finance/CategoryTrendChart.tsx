@@ -62,21 +62,21 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
     );
   }
 
-  const chartWidth = 600;
-  const chartHeight = 220;
-  const pt = 15, pb = 40, pl = 10, pr = 10;
+  const chartWidth = 700;
+  const chartHeight = 280;
+  const pt = 30, pb = 32, pl = 12, pr = 12;
   const dw = chartWidth - pl - pr;
   const dh = chartHeight - pt - pb;
   const groupW = dw / months.length;
   const catCount = categories.length;
-  const barW = (groupW * 0.7) / catCount;
-  const groupPad = groupW * 0.15;
-  const pillRx = barW / 2;
+  const barW = Math.max((groupW * 0.75) / catCount, 8);
+  const groupPad = (groupW - barW * catCount) / 2;
+  const pillRx = Math.min(barW / 2, 6);
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Category Trends (6 Months)</h4>
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto" style={{ overflow: "visible" }}>
         <defs>
           {COLORS.map((c, idx) => (
             <linearGradient key={idx} id={`pillGrad-cat-${idx}`} x1="0" y1="0" x2="0" y2="1">
@@ -96,13 +96,11 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
           monthData.values.map((v, ci) => {
             if (v.amount === 0) return null;
             const x = pl + mi * groupW + groupPad + ci * barW;
-            const h = (v.amount / maxValue) * dh;
+            const h = Math.max((v.amount / maxValue) * dh, 3);
             const y = pt + dh - h;
 
             return (
               <g key={`${mi}-${ci}`}>
-                {/* Background track */}
-                <rect x={x} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.015)" />
                 {/* Pill bar */}
                 <motion.rect
                   x={x} y={y} width={barW} height={h}
@@ -111,9 +109,9 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
                   animate={{ height: h, y }}
                   transition={{ duration: 0.5, delay: mi * 0.06 + ci * 0.02 }}
                 />
-                {(mi === 0 || mi === data.length - 1) && v.amount > 0 && (
-                  <text x={x + barW / 2} y={y - 4} textAnchor="middle" fill={COLORS[ci % COLORS.length].label} fontSize="10" fontWeight="600" className="font-mono">
-                    {formatCurrency(v.amount)}
+                {v.amount > 0 && (
+                  <text x={x + barW / 2} y={y - 6} textAnchor="middle" fill={COLORS[ci % COLORS.length].label} fontSize="11" fontWeight="700" className="font-mono">
+                    ${Math.round(v.amount)}
                   </text>
                 )}
               </g>
@@ -128,9 +126,9 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
             <text
               key={m}
               x={pl + i * groupW + groupW / 2}
-              y={chartHeight - pb + 14}
-              textAnchor="middle" fill="rgba(255,255,255,0.45)"
-              fontSize="10" className="font-mono"
+              y={chartHeight - 6}
+              textAnchor="middle" fill="rgba(255,255,255,0.5)"
+              fontSize="11" fontWeight="500" className="font-mono"
             >
               {SHORT_MONTHS[idx]}
             </text>
@@ -139,11 +137,11 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
       </svg>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 mt-3 justify-center">
+      <div className="flex flex-wrap items-center gap-4 mt-4 justify-center">
         {categories.map((cat, i) => (
           <div key={cat} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length].base }} />
-            <span className="font-mono text-[10px] text-white/50">{cat}</span>
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length].base }} />
+            <span className="font-mono text-[11px] text-white/60">{cat}</span>
           </div>
         ))}
       </div>

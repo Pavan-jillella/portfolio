@@ -39,24 +39,24 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
     );
   }
 
-  const chartWidth = 600;
-  const chartHeight = 200;
-  const pt = 28, pb = 28, pl = 10, pr = 10;
+  const chartWidth = 700;
+  const chartHeight = 240;
+  const pt = 30, pb = 28, pl = 8, pr = 8;
   const dw = chartWidth - pl - pr;
   const dh = chartHeight - pt - pb;
-  const barW = (dw / dailySpending.length) * 0.65;
-  const gap = (dw / dailySpending.length) * 0.35;
-  const pillRx = barW / 2;
+  const step = dw / dailySpending.length;
+  const barW = Math.max(step * 0.7, 6);
+  const pillRx = Math.min(barW / 2, 5);
 
-  // Top 5 spending days for labels
+  // Top 7 spending days for labels
   const topDays = new Set(
-    [...dailySpending].sort((a, b) => b.amount - a.amount).slice(0, 5).map((d) => d.day)
+    [...dailySpending].sort((a, b) => b.amount - a.amount).slice(0, 7).map((d) => d.day)
   );
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Daily Spending</h4>
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto" style={{ overflow: "visible" }}>
         <defs>
           <linearGradient id="pillGrad-daily" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#f87171" stopOpacity={0.95} />
@@ -80,17 +80,12 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
         {/* Bars */}
         {dailySpending.map((d, i) => {
           if (d.amount === 0) return null;
-          const x = pl + i * (barW + gap);
-          const h = (d.amount / maxValue) * dh;
+          const x = pl + i * step + (step - barW) / 2;
+          const h = Math.max((d.amount / maxValue) * dh, 2);
           const y = pt + dh - h;
 
           return (
             <g key={d.day}>
-              {/* Background track */}
-              <rect
-                x={x} y={pt} width={barW} height={dh}
-                rx={pillRx} fill="rgba(255,255,255,0.02)"
-              />
               {/* Pill bar */}
               <motion.rect
                 x={x} y={y} width={barW} height={h}
@@ -101,9 +96,9 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
               />
               {topDays.has(d.day) && (
                 <text
-                  x={x + barW / 2} y={y - 5}
-                  textAnchor="middle" fill="rgba(248,113,113,0.9)"
-                  fontSize="12" fontWeight="600" className="font-mono"
+                  x={x + barW / 2} y={y - 6}
+                  textAnchor="middle" fill="rgba(248,113,113,0.95)"
+                  fontSize="11" fontWeight="700" className="font-mono"
                 >
                   {formatCurrency(d.amount)}
                 </text>
@@ -112,15 +107,15 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
           );
         })}
 
-        {/* X-axis day labels */}
+        {/* X-axis day labels - every 3rd day for readability */}
         {dailySpending.map((d, i) => {
-          if (d.day % 5 !== 0 && d.day !== 1) return null;
+          if (d.day % 3 !== 1 && d.day !== 1) return null;
           return (
             <text
               key={`x-${d.day}`}
-              x={pl + i * (barW + gap) + barW / 2}
+              x={pl + i * step + step / 2}
               y={chartHeight - 6}
-              textAnchor="middle" fill="rgba(255,255,255,0.4)"
+              textAnchor="middle" fill="rgba(255,255,255,0.45)"
               fontSize="10" className="font-mono"
             >
               {d.day}

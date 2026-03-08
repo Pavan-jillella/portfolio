@@ -17,21 +17,21 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
     );
   }
 
-  const chartWidth = 400;
-  const chartHeight = 200;
-  const paddingTop = 24;
+  const chartWidth = 600;
+  const chartHeight = 240;
+  const paddingTop = 30;
   const paddingBottom = 30;
-  const paddingLeft = 10;
-  const paddingRight = 10;
+  const paddingLeft = 12;
+  const paddingRight = 12;
   const drawableHeight = chartHeight - paddingTop - paddingBottom;
   const drawableWidth = chartWidth - paddingLeft - paddingRight;
 
   const maxValue = Math.max(...data.map((d) => Math.max(d.gross, d.net)), 1);
 
   const groupWidth = drawableWidth / data.length;
-  const barWidth = groupWidth * 0.3;
-  const barGap = groupWidth * 0.05;
-  const pillRx = barWidth / 2;
+  const barWidth = Math.max(groupWidth * 0.32, 16);
+  const barGap = Math.max(groupWidth * 0.06, 4);
+  const pillRx = Math.min(barWidth / 2, 8);
 
   const scaleY = (value: number) => {
     return paddingTop + drawableHeight - (value / maxValue) * drawableHeight;
@@ -53,7 +53,7 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto" style={{ overflow: "visible" }}>
         <defs>
           <linearGradient id="pillGrad-pwt-gross" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.95} />
@@ -81,8 +81,8 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
             key={`y-${frac}`}
             x={paddingLeft + 2}
             y={scaleY(frac * maxValue) - 4}
-            fill="rgba(255,255,255,0.25)"
-            fontSize="10"
+            fill="rgba(255,255,255,0.35)"
+            fontSize="10" fontWeight="500"
             className="font-mono"
           >
             {formatCurrency(frac * maxValue)}
@@ -132,10 +132,10 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
               {entry.gross > 0 && (
                 <text
                   x={groupX + barWidth / 2}
-                  y={baseY - grossHeight - 5}
+                  y={baseY - grossHeight - 6}
                   textAnchor="middle"
-                  fill="rgba(96,165,250,0.9)"
-                  fontSize="12" fontWeight="600"
+                  fill="rgba(96,165,250,0.95)"
+                  fontSize="12" fontWeight="700"
                   className="font-mono"
                 >
                   {formatCurrency(entry.gross)}
@@ -146,10 +146,10 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
               {entry.net > 0 && (
                 <text
                   x={groupX + barWidth + barGap + barWidth / 2}
-                  y={baseY - netHeight - 5}
+                  y={baseY - netHeight - 6}
                   textAnchor="middle"
-                  fill="rgba(52,211,153,0.9)"
-                  fontSize="12" fontWeight="600"
+                  fill="rgba(52,211,153,0.95)"
+                  fontSize="12" fontWeight="700"
                   className="font-mono"
                 >
                   {formatCurrency(entry.net)}
@@ -161,8 +161,8 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                 x={groupX + barWidth + barGap / 2}
                 y={chartHeight - 6}
                 textAnchor="middle"
-                fill="rgba(255,255,255,0.4)"
-                fontSize="10"
+                fill="rgba(255,255,255,0.5)"
+                fontSize="10" fontWeight="500"
                 className="font-mono"
               >
                 {entry.week_label}
