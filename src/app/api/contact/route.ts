@@ -73,8 +73,17 @@ export async function POST(req: NextRequest) {
     const contactEmail = process.env.CONTACT_EMAIL;
 
     if (!smtpHost || !smtpUser || !smtpPass || !contactEmail) {
-      console.log("Contact form submission (SMTP not configured):", { name, email, message: message.slice(0, 100) });
-      return NextResponse.json({ success: true });
+      const missing = [
+        !smtpHost && "SMTP_HOST",
+        !smtpUser && "SMTP_USER",
+        !smtpPass && "SMTP_PASS",
+        !contactEmail && "CONTACT_EMAIL",
+      ].filter(Boolean).join(", ");
+      console.error(`SMTP not configured. Missing: ${missing}`);
+      return NextResponse.json(
+        { error: `Email service not configured. Missing: ${missing}` },
+        { status: 503 }
+      );
     }
 
     const transporter = nodemailer.createTransport({

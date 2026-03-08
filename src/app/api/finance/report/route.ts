@@ -57,8 +57,16 @@ export async function POST(req: NextRequest) {
     const smtpPass = process.env.SMTP_PASS;
 
     if (!smtpHost || !smtpUser || !smtpPass) {
-      console.log("Monthly report (SMTP not configured):", { email, month: reportData.month });
-      return NextResponse.json({ success: true, message: "SMTP not configured. Report logged." });
+      const missing = [
+        !smtpHost && "SMTP_HOST",
+        !smtpUser && "SMTP_USER",
+        !smtpPass && "SMTP_PASS",
+      ].filter(Boolean).join(", ");
+      console.error(`SMTP not configured. Missing: ${missing}`);
+      return NextResponse.json(
+        { error: `Email service not configured. Missing: ${missing}` },
+        { status: 503 }
+      );
     }
 
     const topCatRows = reportData.topCategories

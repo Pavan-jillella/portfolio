@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { createAdminClient } from "@/lib/supabase/admin";
+import * as Sentry from "@sentry/nextjs";
 
 interface SubscriptionRow {
   id: string;
@@ -57,7 +58,13 @@ export async function POST(req: NextRequest) {
   const smtpPass = process.env.SMTP_PASS;
 
   if (!smtpHost || !smtpUser || !smtpPass) {
-    return NextResponse.json({ error: "SMTP not configured" }, { status: 503 });
+    const missing = [
+      !smtpHost && "SMTP_HOST",
+      !smtpUser && "SMTP_USER",
+      !smtpPass && "SMTP_PASS",
+    ].filter(Boolean).join(", ");
+    console.error(`SMTP not configured. Missing: ${missing}`);
+    return NextResponse.json({ error: `SMTP not configured. Missing: ${missing}` }, { status: 503 });
   }
 
   try {
@@ -217,6 +224,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ sent, errors });
   } catch (error) {
     console.error("Reminder API error:", error);
+    Sentry.captureException(error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
