@@ -6,6 +6,7 @@ import { getPartTimeJobEarnings } from "@/lib/finance-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { PartTimeWeeklyChart } from "./PartTimeWeeklyChart";
 import { PartTimeEarningsChart } from "./PartTimeEarningsChart";
+import { PartTimeJobDistributionChart } from "./PartTimeJobDistributionChart";
 
 interface PartTimeJobsTrackerProps {
   jobs: PartTimeJob[];
@@ -216,10 +217,13 @@ export function PartTimeJobsTracker({
 
       {/* Part-time analytics charts */}
       {jobs.length > 0 && hours.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <PartTimeWeeklyChart jobs={jobs} hours={hours} />
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <PartTimeWeeklyChart jobs={jobs} hours={hours} />
+            <PartTimeJobDistributionChart jobs={jobs} hours={hours} />
+          </div>
           <PartTimeEarningsChart jobs={jobs} hours={hours} />
-        </div>
+        </>
       )}
 
       {/* Recent hours log — grouped by job */}

@@ -91,7 +91,7 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
                 return (
                   <g key={stack.jobId}>
                     {isTop && (() => {
-                      const { rightFace, topFace } = bar3DPaths(x, currentY, barW, h, 4, -4);
+                      const { rightFace, topFace } = bar3DPaths(x, currentY, barW, h, 6, -6);
                       return (
                         <>
                           <path d={rightFace} fill={darkenColor(stack.color, 0.6)} />
@@ -115,7 +115,7 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
                 <text
                   x={x + barW / 2} y={baseY - scaleH(week.total) - 4}
                   textAnchor="middle" fill="rgba(255,255,255,0.5)"
-                  fontSize="8" className="font-mono"
+                  fontSize="11" className="font-mono"
                 >
                   {week.total.toFixed(1)}h
                 </text>
@@ -125,7 +125,7 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
               <text
                 x={x + barW / 2} y={chartHeight - 6}
                 textAnchor="middle" fill="rgba(255,255,255,0.35)"
-                fontSize="8" className="font-mono"
+                fontSize="10" className="font-mono"
               >
                 {week.label}
               </text>

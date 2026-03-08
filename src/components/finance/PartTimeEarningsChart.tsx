@@ -84,7 +84,7 @@ export function PartTimeEarningsChart({ jobs, hours }: PartTimeEarningsChartProp
 
           {/* Y-axis */}
           {[0, 0.5, 1].map((frac) => (
-            <text key={`y-${frac}`} x={pl - 6} y={scaleY(frac * maxValue) + 3} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="8" className="font-mono">
+            <text key={`y-${frac}`} x={pl - 6} y={scaleY(frac * maxValue) + 3} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="10" className="font-mono">
               {formatCurrency(frac * maxValue)}
             </text>
           ))}
@@ -103,13 +103,20 @@ export function PartTimeEarningsChart({ jobs, hours }: PartTimeEarningsChartProp
                   transition={{ duration: 1, delay: li * 0.2, ease: "easeOut" }}
                 />
                 {line.points.map((p, i) => (
+                  <g key={i}>
                   <motion.circle
-                    key={i} cx={scaleX(i)} cy={scaleY(p)} r={3}
+                    cx={scaleX(i)} cy={scaleY(p)} r={3}
                     fill={line.color}
                     initial={{ opacity: 0, r: 0 }}
                     animate={{ opacity: 1, r: 3 }}
                     transition={{ duration: 0.3, delay: 0.5 + li * 0.1 + i * 0.05 }}
                   />
+                  {i === line.points.length - 1 && p > 0 && (
+                    <text x={scaleX(i)} y={scaleY(p) - 8} textAnchor="middle" fill={`${line.color}cc`} fontSize="10" className="font-mono">
+                      {formatCurrency(p)}
+                    </text>
+                  )}
+                  </g>
                 ))}
               </g>
             );
@@ -117,7 +124,7 @@ export function PartTimeEarningsChart({ jobs, hours }: PartTimeEarningsChartProp
 
           {/* X-axis labels */}
           {weeks.map((w, i) => (
-            <text key={w} x={scaleX(i)} y={chartHeight - 6} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="8" className="font-mono">
+            <text key={w} x={scaleX(i)} y={chartHeight - 6} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="10" className="font-mono">
               {w}
             </text>
           ))}

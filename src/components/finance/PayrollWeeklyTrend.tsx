@@ -78,7 +78,7 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
             x={paddingLeft + 2}
             y={scaleY(frac * maxValue) - 4}
             fill="rgba(255,255,255,0.2)"
-            fontSize="7"
+            fontSize="10"
             className="font-mono"
           >
             {formatCurrency(frac * maxValue)}
@@ -149,7 +149,7 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                   y={baseY - grossHeight - 4}
                   textAnchor="middle"
                   fill="rgba(59,130,246,0.7)"
-                  fontSize="8"
+                  fontSize="11"
                   className="font-mono"
                 >
                   {formatCurrency(entry.gross)}
@@ -163,7 +163,7 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                   y={baseY - netHeight - 4}
                   textAnchor="middle"
                   fill="rgba(16,185,129,0.7)"
-                  fontSize="8"
+                  fontSize="11"
                   className="font-mono"
                 >
                   {formatCurrency(entry.net)}
@@ -176,7 +176,7 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                 y={chartHeight - 6}
                 textAnchor="middle"
                 fill="rgba(255,255,255,0.35)"
-                fontSize="8"
+                fontSize="10"
                 className="font-mono"
               >
                 {entry.week_label}

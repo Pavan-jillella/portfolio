@@ -106,10 +106,10 @@ export function DeductionsBreakdownChart({ payStubs, selectedMonth }: Deductions
           ))}
 
           {/* Center text */}
-          <text x={cx} y={cy - 6} textAnchor="middle" fill="rgba(255,255,255,0.8)" fontSize="14" className="font-mono font-bold">
+          <text x={cx} y={cy - 6} textAnchor="middle" fill="rgba(255,255,255,0.8)" fontSize="16" className="font-mono font-bold">
             {formatCurrency(total)}
           </text>
-          <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="8" className="font-mono">
+          <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize="10" className="font-mono">
             Total Tax
           </text>
         </svg>

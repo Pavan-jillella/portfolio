@@ -42,7 +42,7 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
 
   const chartWidth = 600;
   const chartHeight = 200;
-  const pt = 20, pb = 28, pl = 10, pr = 10;
+  const pt = 28, pb = 28, pl = 10, pr = 10;
   const dw = chartWidth - pl - pr;
   const dh = chartHeight - pt - pb;
   const barW = (dw / dailySpending.length) * 0.7;
@@ -75,7 +75,7 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
           const x = pl + i * (barW + gap);
           const h = (d.amount / maxValue) * dh;
           const y = pt + dh - h;
-          const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 4, -4);
+          const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 6, -6);
 
           return (
             <g key={d.day}>
@@ -92,7 +92,7 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
                 <text
                   x={x + barW / 2} y={y - 4}
                   textAnchor="middle" fill="rgba(239,68,68,0.8)"
-                  fontSize="7" className="font-mono"
+                  fontSize="11" className="font-mono"
                 >
                   {formatCurrency(d.amount)}
                 </text>
@@ -110,7 +110,7 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
               x={pl + i * (barW + gap) + barW / 2}
               y={chartHeight - 6}
               textAnchor="middle" fill="rgba(255,255,255,0.35)"
-              fontSize="8" className="font-mono"
+              fontSize="10" className="font-mono"
             >
               {d.day}
             </text>

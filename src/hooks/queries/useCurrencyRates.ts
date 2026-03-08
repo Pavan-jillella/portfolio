@@ -4,6 +4,7 @@ interface CurrencyRates {
   rates: Record<string, number>;
   base: string;
   updated: string;
+  fetchedAt?: string;
 }
 
 async function fetchCurrencyRates(): Promise<CurrencyRates> {
@@ -12,10 +13,11 @@ async function fetchCurrencyRates(): Promise<CurrencyRates> {
   return res.json();
 }
 
-export function useCurrencyRates() {
+export function useCurrencyRates(refetchIntervalMs?: number) {
   return useQuery({
     queryKey: ["currency-rates"],
     queryFn: fetchCurrencyRates,
-    staleTime: 60 * 60 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: refetchIntervalMs || false,
   });
 }

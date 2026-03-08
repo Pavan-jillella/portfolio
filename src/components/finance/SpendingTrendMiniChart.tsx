@@ -95,7 +95,7 @@ export function SpendingTrendMiniChart({ transactions, budgets }: SpendingTrendM
 
           {/* Y-axis */}
           {[0, 0.5, 1].map((frac) => (
-            <text key={`y-${frac}`} x={pl - 6} y={scaleY(frac * maxValue) + 3} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="8" className="font-mono">
+            <text key={`y-${frac}`} x={pl - 6} y={scaleY(frac * maxValue) + 3} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize="10" className="font-mono">
               {formatCurrency(frac * maxValue)}
             </text>
           ))}
@@ -136,11 +136,11 @@ export function SpendingTrendMiniChart({ transactions, budgets }: SpendingTrendM
                 transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
               />
               {d.spending > 0 && (
-                <text x={scaleX(i)} y={scaleY(d.spending) - 8} textAnchor="middle" fill="rgba(249,115,22,0.7)" fontSize="8" className="font-mono">
+                <text x={scaleX(i)} y={scaleY(d.spending) - 8} textAnchor="middle" fill="rgba(249,115,22,0.7)" fontSize="11" className="font-mono">
                   {formatCurrency(d.spending)}
                 </text>
               )}
-              <text x={scaleX(i)} y={chartHeight - 6} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="9" className="font-mono">
+              <text x={scaleX(i)} y={chartHeight - 6} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="10" className="font-mono">
                 {SHORT_MONTHS[parseInt(d.month.split("-")[1]) - 1]}
               </text>
             </g>

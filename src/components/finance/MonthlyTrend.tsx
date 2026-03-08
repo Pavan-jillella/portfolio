@@ -2,6 +2,7 @@
 import { MonthlySummary } from "@/types";
 import { formatCurrency, getMonthLabel } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
+import { Chart3DWrapper } from "@/components/ui/Chart3DWrapper";
 
 interface MonthlyTrendProps {
   trend: MonthlySummary[];
@@ -13,6 +14,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
   return (
     <div className="glass-card rounded-2xl p-6">
       <h3 className="font-display font-semibold text-lg text-white mb-6">Monthly Comparison</h3>
+      <Chart3DWrapper tiltX={6} tiltY={-3}>
       <div className="flex items-end gap-3 h-48">
         {trend.map((month, i) => {
           const incomeH = (month.income / maxValue) * 100;
@@ -26,7 +28,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
               <div className="w-full flex items-end gap-0.5 h-40 relative">
                 <div className="flex-1 flex flex-col items-center">
                   {month.income > 0 && (
-                    <span className="font-mono text-[10px] text-green-400 mb-0.5">
+                    <span className="font-mono text-[11px] text-green-400 mb-0.5">
                       {formatCurrency(month.income)}
                     </span>
                   )}
@@ -39,7 +41,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                 </div>
                 <div className="flex-1 flex flex-col items-center">
                   {month.expenses > 0 && (
-                    <span className="font-mono text-[10px] text-red-400 mb-0.5">
+                    <span className="font-mono text-[11px] text-red-400 mb-0.5">
                       {formatCurrency(month.expenses)}
                     </span>
                   )}
@@ -56,6 +58,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
           );
         })}
       </div>
+      </Chart3DWrapper>
       <div className="flex items-center gap-4 mt-4 justify-center">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-green-500/60" />

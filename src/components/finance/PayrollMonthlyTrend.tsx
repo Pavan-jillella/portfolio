@@ -116,7 +116,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
             y={scaleY(frac * maxValue) + 3}
             textAnchor="end"
             fill="rgba(255,255,255,0.2)"
-            fontSize="8"
+            fontSize="10"
             className="font-mono"
           >
             {formatCurrency(frac * maxValue)}
@@ -194,7 +194,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
                 y={scaleY(d.gross) - 8}
                 textAnchor="middle"
                 fill="rgba(59,130,246,0.7)"
-                fontSize="9"
+                fontSize="11"
                 className="font-mono"
               >
                 {formatCurrency(d.gross)}
@@ -208,7 +208,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
                 y={scaleY(d.net) + 14}
                 textAnchor="middle"
                 fill="rgba(16,185,129,0.7)"
-                fontSize="9"
+                fontSize="11"
                 className="font-mono"
               >
                 {formatCurrency(d.net)}
@@ -221,7 +221,7 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
               y={chartHeight - 6}
               textAnchor="middle"
               fill="rgba(255,255,255,0.35)"
-              fontSize="9"
+              fontSize="10"
               className="font-mono"
             >
               {monthLabel(d.month)}

@@ -128,7 +128,7 @@ export function SavingsTrendChart({ data }: SavingsTrendChartProps) {
                 y={p.y - 10}
                 textAnchor="middle"
                 className={p.savings >= 0 ? "fill-blue-400" : "fill-red-400"}
-                fontSize="9"
+                fontSize="11"
                 fontFamily="monospace"
               >
                 {formatCurrency(p.savings)}

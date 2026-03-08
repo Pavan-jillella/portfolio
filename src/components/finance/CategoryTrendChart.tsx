@@ -88,7 +88,7 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
             const h = (v.amount / maxValue) * dh;
             const y = pt + dh - h;
             const color = COLORS[ci % COLORS.length];
-            const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 3, -3);
+            const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 6, -6);
 
             return (
               <g key={`${mi}-${ci}`}>
@@ -101,6 +101,11 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
                   animate={{ height: h, y }}
                   transition={{ duration: 0.5, delay: mi * 0.06 + ci * 0.02 }}
                 />
+                {(mi === 0 || mi === data.length - 1) && v.amount > 0 && (
+                <text x={x + barW / 2} y={y - 3} textAnchor="middle" fill={`${color}cc`} fontSize="9" className="font-mono">
+                  {formatCurrency(v.amount)}
+                </text>
+                )}
               </g>
             );
           })
@@ -115,7 +120,7 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
               x={pl + i * groupW + groupW / 2}
               y={chartHeight - pb + 14}
               textAnchor="middle" fill="rgba(255,255,255,0.4)"
-              fontSize="9" className="font-mono"
+              fontSize="10" className="font-mono"
             >
               {SHORT_MONTHS[idx]}
             </text>

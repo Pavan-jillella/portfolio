@@ -47,7 +47,7 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
 
   const chartWidth = 500;
   const chartHeight = 220;
-  const pt = 20, pb = 30, pl = 10, pr = 10;
+  const pt = 28, pb = 30, pl = 10, pr = 10;
   const dw = chartWidth - pl - pr;
   const dh = chartHeight - pt - pb;
   const maxValue = Math.max(...data.flatMap((d) => [d.payroll, d.partTime]), 1);
@@ -89,7 +89,7 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
             <g key={entry.month}>
               {/* Payroll bar */}
               {entry.payroll > 0 && (() => {
-                const { rightFace, topFace } = bar3DPaths(groupX, baseY - payH, barW, payH, 5, -5);
+                const { rightFace, topFace } = bar3DPaths(groupX, baseY - payH, barW, payH, 6, -6);
                 return (
                   <>
                     <path d={rightFace} fill={darkenColor("#3b82f6", 0.6)} />
@@ -101,7 +101,7 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
                       animate={{ height: payH, y: baseY - payH }}
                       transition={{ duration: 0.6, delay: i * 0.08 }}
                     />
-                    <text x={groupX + barW / 2} y={baseY - payH - 4} textAnchor="middle" fill="rgba(59,130,246,0.7)" fontSize="7" className="font-mono">
+                    <text x={groupX + barW / 2} y={baseY - payH - 4} textAnchor="middle" fill="rgba(59,130,246,0.7)" fontSize="11" className="font-mono">
                       {formatCurrency(entry.payroll)}
                     </text>
                   </>
@@ -111,7 +111,7 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
               {/* Part-time bar */}
               {entry.partTime > 0 && (() => {
                 const x2 = groupX + barW + barGap;
-                const { rightFace, topFace } = bar3DPaths(x2, baseY - ptH, barW, ptH, 5, -5);
+                const { rightFace, topFace } = bar3DPaths(x2, baseY - ptH, barW, ptH, 6, -6);
                 return (
                   <>
                     <path d={rightFace} fill={darkenColor("#8b5cf6", 0.6)} />
@@ -123,7 +123,7 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
                       animate={{ height: ptH, y: baseY - ptH }}
                       transition={{ duration: 0.6, delay: i * 0.08 + 0.1 }}
                     />
-                    <text x={x2 + barW / 2} y={baseY - ptH - 4} textAnchor="middle" fill="rgba(139,92,246,0.7)" fontSize="7" className="font-mono">
+                    <text x={x2 + barW / 2} y={baseY - ptH - 4} textAnchor="middle" fill="rgba(139,92,246,0.7)" fontSize="11" className="font-mono">
                       {formatCurrency(entry.partTime)}
                     </text>
                   </>
@@ -135,7 +135,7 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
                 x={groupX + barW + barGap / 2}
                 y={chartHeight - 6}
                 textAnchor="middle" fill="rgba(255,255,255,0.35)"
-                fontSize="9" className="font-mono"
+                fontSize="10" className="font-mono"
               >
                 {SHORT_MONTHS[parseInt(entry.month.split("-")[1]) - 1]}
               </text>

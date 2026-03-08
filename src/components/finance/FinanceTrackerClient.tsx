@@ -81,6 +81,26 @@ const SpendingTrendMiniChart = dynamic(() => import("./SpendingTrendMiniChart").
   loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
 });
 
+const CategoryDonutChart = dynamic(() => import("./CategoryDonutChart").then((m) => m.CategoryDonutChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const TopExpensesChart = dynamic(() => import("./TopExpensesChart").then((m) => m.TopExpensesChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const BudgetOverviewDonut = dynamic(() => import("./BudgetOverviewDonut").then((m) => m.BudgetOverviewDonut), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const MonthlyBudgetComparisonChart = dynamic(() => import("./MonthlyBudgetComparisonChart").then((m) => m.MonthlyBudgetComparisonChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
 const tabs = [
   { id: "overview", label: "Overview" },
   { id: "transactions", label: "Transactions" },
@@ -653,6 +673,14 @@ export function FinanceTrackerClient() {
           <FadeIn delay={0.2}>
             <CategoryTrendChart transactions={transactions} />
           </FadeIn>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FadeIn delay={0.25}>
+              <CategoryDonutChart transactions={transactions} selectedMonth={selectedMonth} />
+            </FadeIn>
+            <FadeIn delay={0.3}>
+              <TopExpensesChart transactions={transactions} selectedMonth={selectedMonth} />
+            </FadeIn>
+          </div>
           </div>
         </ErrorBoundary>
       )}
@@ -672,7 +700,15 @@ export function FinanceTrackerClient() {
               <BudgetUtilizationChart budgets={budgets} spending={categoryBreakdown} selectedMonth={selectedMonth} />
             </FadeIn>
             <FadeIn delay={0.1}>
+              <BudgetOverviewDonut budgets={budgets} spending={categoryBreakdown} selectedMonth={selectedMonth} />
+            </FadeIn>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FadeIn delay={0.15}>
               <SpendingTrendMiniChart transactions={transactions} budgets={budgets} />
+            </FadeIn>
+            <FadeIn delay={0.2}>
+              <MonthlyBudgetComparisonChart budgets={budgets} transactions={transactions} selectedMonth={selectedMonth} />
             </FadeIn>
           </div>
           <FadeIn delay={0.15}>

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Budget, MonthlySpending } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
+import { bar3DPaths, darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 
 interface BudgetUtilizationChartProps {
   budgets: Budget[];
@@ -34,8 +35,8 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
   }
 
   const chartWidth = 500;
-  const rowHeight = 32;
-  const pt = 10, pb = 10, pl = 120, pr = 70;
+  const rowHeight = 38;
+  const pt = 10, pb = 10, pl = 120, pr = 90;
   const chartHeight = pt + rows.length * rowHeight + pb;
   const barMaxW = chartWidth - pl - pr;
 
@@ -58,7 +59,7 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
         <text
           x={pl + barMaxW} y={pt - 2}
           textAnchor="middle" fill="rgba(255,255,255,0.25)"
-          fontSize="7" className="font-mono"
+          fontSize="9" className="font-mono"
         >
           100%
         </text>
@@ -77,7 +78,7 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
               <text
                 x={pl - 8} y={y + rowHeight / 2 + 3}
                 textAnchor="end" fill="rgba(255,255,255,0.5)"
-                fontSize="9" className="font-mono"
+                fontSize="10" className="font-mono"
               >
                 {row.category.length > 14 ? row.category.slice(0, 14) + "…" : row.category}
               </text>
@@ -96,14 +97,22 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
                 animate={{ width: barW }}
                 transition={{ duration: 0.6, delay: i * 0.05 }}
               />
+              <rect x={pl} y={barY} width={barW} height={2} rx={1} fill={lightenColor(color, 0.3)} fillOpacity={0.5} />
 
               {/* Percentage + amount */}
               <text
                 x={pl + barMaxW + 6} y={y + rowHeight / 2 + 3}
                 textAnchor="start" fill={color}
-                fontSize="8" className="font-mono"
+                fontSize="11" className="font-mono"
               >
                 {Math.round(row.pct)}%
+              </text>
+              <text
+                x={pl + barMaxW + 6} y={y + rowHeight / 2 + 14}
+                textAnchor="start" fill="rgba(255,255,255,0.3)"
+                fontSize="8" className="font-mono"
+              >
+                {formatCurrency(row.spent)}
               </text>
             </g>
           );

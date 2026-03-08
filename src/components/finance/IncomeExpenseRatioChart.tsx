@@ -76,10 +76,10 @@ export function IncomeExpenseRatioChart({ income, expenses }: IncomeExpenseRatio
           ))}
 
           {/* Center text */}
-          <text x={cx} y={cy - 8} textAnchor="middle" fill={net >= 0 ? "#22c55e" : "#ef4444"} fontSize="16" className="font-mono font-bold">
+          <text x={cx} y={cy - 8} textAnchor="middle" fill={net >= 0 ? "#22c55e" : "#ef4444"} fontSize="18" className="font-mono font-bold">
             {formatCurrency(Math.abs(net))}
           </text>
-          <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="9" className="font-mono">
+          <text x={cx} y={cy + 10} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="10" className="font-mono">
             {net >= 0 ? "Net Savings" : "Net Deficit"}
           </text>
         </svg>
