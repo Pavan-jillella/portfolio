@@ -72,6 +72,23 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Weekly Hours</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          {jobLegend.map((j) => (
+            <linearGradient key={j.color} id={`barGrad-ptweekly-${j.color.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lightenColor(j.color, 0.3)} />
+              <stop offset="100%" stopColor={darkenColor(j.color, 0.2)} />
+            </linearGradient>
+          ))}
+          <filter id="barGlow-ptweekly">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
           <line key={frac} x1={pl} y1={baseY - frac * dh} x2={chartWidth - pr} y2={baseY - frac * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
@@ -91,7 +108,7 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
                 return (
                   <g key={stack.jobId}>
                     {isTop && (() => {
-                      const { rightFace, topFace } = bar3DPaths(x, currentY, barW, h, 6, -6);
+                      const { rightFace, topFace } = bar3DPaths(x, currentY, barW, h, 8, -8);
                       return (
                         <>
                           <path d={rightFace} fill={darkenColor(stack.color, 0.6)} />
@@ -101,11 +118,17 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
                     })()}
                     <motion.rect
                       x={x} y={currentY} width={barW} height={h}
-                      rx={isTop ? 2 : 0} fill={stack.color} fillOpacity={0.8}
+                      rx={isTop ? 6 : 0} fill={`url(#barGrad-ptweekly-${stack.color.slice(1)})`} fillOpacity={0.9}
+                      stroke={stack.color} strokeWidth={0.5} strokeOpacity={0.4}
+                      filter="url(#barGlow-ptweekly)"
                       initial={{ height: 0, y: baseY }}
                       animate={{ height: h, y: currentY }}
                       transition={{ duration: 0.5, delay: wi * 0.06 + si * 0.03 }}
                     />
+                    {/* Inner highlight stripe - topmost only */}
+                    {isTop && <rect x={x} y={currentY} width={2} height={h} rx={1} fill={lightenColor(stack.color, 0.5)} fillOpacity={0.4} />}
+                    {/* Dot cap - topmost only */}
+                    {isTop && <circle cx={x + barW / 2} cy={currentY} r={2.5} fill={lightenColor(stack.color, 0.4)} />}
                   </g>
                 );
               })}

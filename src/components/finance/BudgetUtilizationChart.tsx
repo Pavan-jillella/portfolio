@@ -50,6 +50,23 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Budget Utilization</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          {["#ef4444", "#eab308", "#22c55e"].map((c) => (
+            <linearGradient key={c} id={`barGrad-budgetutil-${c.slice(1)}`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor={lightenColor(c, 0.3)} />
+              <stop offset="100%" stopColor={darkenColor(c, 0.2)} />
+            </linearGradient>
+          ))}
+          <filter id="barGlow-budgetutil">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* 100% line */}
         <line
           x1={pl + barMaxW} y1={pt}
@@ -86,18 +103,23 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
               {/* Background track */}
               <rect
                 x={pl} y={barY} width={barMaxW} height={barH}
-                rx={3} fill="rgba(255,255,255,0.04)"
+                rx={6} fill="rgba(255,255,255,0.02)"
               />
 
               {/* Bar */}
               <motion.rect
                 x={pl} y={barY} width={barW} height={barH}
-                rx={3} fill={color} fillOpacity={0.7}
+                rx={6} fill={`url(#barGrad-budgetutil-${color.slice(1)})`} fillOpacity={0.9}
+                stroke={color} strokeWidth={0.5} strokeOpacity={0.4}
+                filter="url(#barGlow-budgetutil)"
                 initial={{ width: 0 }}
                 animate={{ width: barW }}
                 transition={{ duration: 0.6, delay: i * 0.05 }}
               />
-              <rect x={pl} y={barY} width={barW} height={2} rx={1} fill={lightenColor(color, 0.3)} fillOpacity={0.5} />
+              {/* Top highlight stripe */}
+              <rect x={pl} y={barY} width={barW} height={2} rx={1} fill={lightenColor(color, 0.5)} fillOpacity={0.4} />
+              {/* Dot cap */}
+              <circle cx={pl + barW} cy={barY + barH / 2} r={2.5} fill={lightenColor(color, 0.4)} />
 
               {/* Percentage + amount */}
               <text

@@ -830,7 +830,6 @@ export function FinanceTrackerClient() {
               subscriptionExpenses={monthlySubTotal + userSubMonthlyTotal}
             />
             <div className="glass-card rounded-2xl p-5">
-              <h4 className="font-display font-semibold text-sm text-white mb-3">Currency Settings</h4>
               <CurrencySettings
                 displayCurrency={displayCurrency}
                 onCurrencyChange={setDisplayCurrency}

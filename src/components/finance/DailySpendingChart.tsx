@@ -59,6 +59,21 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Daily Spending</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          <linearGradient id="barGrad-daily" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#ef4444", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#ef4444", 0.2)} />
+          </linearGradient>
+          <filter id="barGlow-daily">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
           <line
@@ -75,7 +90,7 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
           const x = pl + i * (barW + gap);
           const h = (d.amount / maxValue) * dh;
           const y = pt + dh - h;
-          const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 6, -6);
+          const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 8, -8);
 
           return (
             <g key={d.day}>
@@ -83,11 +98,17 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
               <path d={topFace} fill={lightenColor("#ef4444", 0.2)} />
               <motion.rect
                 x={x} y={y} width={barW} height={h}
-                rx={1} fill="#ef4444" fillOpacity={0.8}
+                rx={6} fill="url(#barGrad-daily)" fillOpacity={0.9}
+                stroke="#ef4444" strokeWidth={0.5} strokeOpacity={0.4}
+                filter="url(#barGlow-daily)"
                 initial={{ height: 0, y: pt + dh }}
                 animate={{ height: h, y }}
                 transition={{ duration: 0.5, delay: i * 0.02 }}
               />
+              {/* Inner highlight stripe */}
+              <rect x={x} y={y} width={2} height={h} rx={1} fill={lightenColor("#ef4444", 0.5)} fillOpacity={0.4} />
+              {/* Dot cap */}
+              <circle cx={x + barW / 2} cy={y} r={2.5} fill={lightenColor("#ef4444", 0.4)} />
               {topDays.has(d.day) && (
                 <text
                   x={x + barW / 2} y={y - 4}

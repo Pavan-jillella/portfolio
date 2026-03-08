@@ -75,6 +75,25 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
       </div>
 
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          <linearGradient id="barGrad-pvpt-payroll" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#3b82f6", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#3b82f6", 0.2)} />
+          </linearGradient>
+          <linearGradient id="barGrad-pvpt-parttime" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#8b5cf6", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#8b5cf6", 0.2)} />
+          </linearGradient>
+          <filter id="barGlow-pvpt">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
           <line key={frac} x1={pl} y1={scaleY(frac * maxValue)} x2={chartWidth - pr} y2={scaleY(frac * maxValue)} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
@@ -89,18 +108,24 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
             <g key={entry.month}>
               {/* Payroll bar */}
               {entry.payroll > 0 && (() => {
-                const { rightFace, topFace } = bar3DPaths(groupX, baseY - payH, barW, payH, 6, -6);
+                const { rightFace, topFace } = bar3DPaths(groupX, baseY - payH, barW, payH, 8, -8);
                 return (
                   <>
                     <path d={rightFace} fill={darkenColor("#3b82f6", 0.6)} />
                     <path d={topFace} fill={lightenColor("#3b82f6", 0.2)} />
                     <motion.rect
                       x={groupX} y={baseY - payH} width={barW} height={payH}
-                      rx={2} fill="#3b82f6" fillOpacity={0.8}
+                      rx={6} fill="url(#barGrad-pvpt-payroll)" fillOpacity={0.9}
+                      stroke="#3b82f6" strokeWidth={0.5} strokeOpacity={0.4}
+                      filter="url(#barGlow-pvpt)"
                       initial={{ height: 0, y: baseY }}
                       animate={{ height: payH, y: baseY - payH }}
                       transition={{ duration: 0.6, delay: i * 0.08 }}
                     />
+                    {/* Inner highlight stripe */}
+                    <rect x={groupX} y={baseY - payH} width={2} height={payH} rx={1} fill={lightenColor("#3b82f6", 0.5)} fillOpacity={0.4} />
+                    {/* Dot cap */}
+                    <circle cx={groupX + barW / 2} cy={baseY - payH} r={2.5} fill={lightenColor("#3b82f6", 0.4)} />
                     <text x={groupX + barW / 2} y={baseY - payH - 4} textAnchor="middle" fill="rgba(59,130,246,0.7)" fontSize="11" className="font-mono">
                       {formatCurrency(entry.payroll)}
                     </text>
@@ -111,18 +136,24 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
               {/* Part-time bar */}
               {entry.partTime > 0 && (() => {
                 const x2 = groupX + barW + barGap;
-                const { rightFace, topFace } = bar3DPaths(x2, baseY - ptH, barW, ptH, 6, -6);
+                const { rightFace, topFace } = bar3DPaths(x2, baseY - ptH, barW, ptH, 8, -8);
                 return (
                   <>
                     <path d={rightFace} fill={darkenColor("#8b5cf6", 0.6)} />
                     <path d={topFace} fill={lightenColor("#8b5cf6", 0.2)} />
                     <motion.rect
                       x={x2} y={baseY - ptH} width={barW} height={ptH}
-                      rx={2} fill="#8b5cf6" fillOpacity={0.8}
+                      rx={6} fill="url(#barGrad-pvpt-parttime)" fillOpacity={0.9}
+                      stroke="#8b5cf6" strokeWidth={0.5} strokeOpacity={0.4}
+                      filter="url(#barGlow-pvpt)"
                       initial={{ height: 0, y: baseY }}
                       animate={{ height: ptH, y: baseY - ptH }}
                       transition={{ duration: 0.6, delay: i * 0.08 + 0.1 }}
                     />
+                    {/* Inner highlight stripe */}
+                    <rect x={x2} y={baseY - ptH} width={2} height={ptH} rx={1} fill={lightenColor("#8b5cf6", 0.5)} fillOpacity={0.4} />
+                    {/* Dot cap */}
+                    <circle cx={x2 + barW / 2} cy={baseY - ptH} r={2.5} fill={lightenColor("#8b5cf6", 0.4)} />
                     <text x={x2 + barW / 2} y={baseY - ptH - 4} textAnchor="middle" fill="rgba(139,92,246,0.7)" fontSize="11" className="font-mono">
                       {formatCurrency(entry.partTime)}
                     </text>

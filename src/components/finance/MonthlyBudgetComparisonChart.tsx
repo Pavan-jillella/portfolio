@@ -72,6 +72,29 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
         </div>
       </div>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          <linearGradient id="barGrad-mbc-budget" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#3b82f6", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#3b82f6", 0.2)} />
+          </linearGradient>
+          <linearGradient id="barGrad-mbc-actual" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#f97316", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#f97316", 0.2)} />
+          </linearGradient>
+          <linearGradient id="barGrad-mbc-over" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#ef4444", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#ef4444", 0.2)} />
+          </linearGradient>
+          <filter id="barGlow-mbc">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
           <line
@@ -96,8 +119,8 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
           const isOver = d.actual > d.budget;
           const currentActualColor = isOver ? overBudgetColor : actualColor;
 
-          const budgetPaths = bar3DPaths(budgetX, budgetY, barW, budgetH, 6, -6);
-          const actualPaths = bar3DPaths(actualX, actualY, barW, actualH, 6, -6);
+          const budgetPaths = bar3DPaths(budgetX, budgetY, barW, budgetH, 8, -8);
+          const actualPaths = bar3DPaths(actualX, actualY, barW, actualH, 8, -8);
 
           const categoryLabel = d.category.length > 8 ? d.category.slice(0, 8) + "\u2026" : d.category;
 
@@ -108,22 +131,34 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
               <path d={budgetPaths.topFace} fill={lightenColor(budgetColor, 0.2)} />
               <motion.rect
                 x={budgetX} y={budgetY} width={barW} height={budgetH}
-                rx={1} fill={budgetColor} fillOpacity={0.8}
+                rx={6} fill="url(#barGrad-mbc-budget)" fillOpacity={0.9}
+                stroke={budgetColor} strokeWidth={0.5} strokeOpacity={0.4}
+                filter="url(#barGlow-mbc)"
                 initial={{ height: 0, y: pt + dh }}
                 animate={{ height: budgetH, y: budgetY }}
                 transition={{ duration: 0.5, delay: i * 0.08 }}
               />
+              {/* Inner highlight stripe */}
+              <rect x={budgetX} y={budgetY} width={2} height={budgetH} rx={1} fill={lightenColor(budgetColor, 0.5)} fillOpacity={0.4} />
+              {/* Dot cap */}
+              <circle cx={budgetX + barW / 2} cy={budgetY} r={2.5} fill={lightenColor(budgetColor, 0.4)} />
 
               {/* Actual bar 3D */}
               <path d={actualPaths.rightFace} fill={darkenColor(currentActualColor, 0.5)} />
               <path d={actualPaths.topFace} fill={lightenColor(currentActualColor, 0.2)} />
               <motion.rect
                 x={actualX} y={actualY} width={barW} height={actualH}
-                rx={1} fill={currentActualColor} fillOpacity={0.8}
+                rx={6} fill={isOver ? "url(#barGrad-mbc-over)" : "url(#barGrad-mbc-actual)"} fillOpacity={0.9}
+                stroke={currentActualColor} strokeWidth={0.5} strokeOpacity={0.4}
+                filter="url(#barGlow-mbc)"
                 initial={{ height: 0, y: pt + dh }}
                 animate={{ height: actualH, y: actualY }}
                 transition={{ duration: 0.5, delay: i * 0.08 + 0.1 }}
               />
+              {/* Inner highlight stripe */}
+              <rect x={actualX} y={actualY} width={2} height={actualH} rx={1} fill={lightenColor(currentActualColor, 0.5)} fillOpacity={0.4} />
+              {/* Dot cap */}
+              <circle cx={actualX + barW / 2} cy={actualY} r={2.5} fill={lightenColor(currentActualColor, 0.4)} />
 
               {/* Value labels above bars */}
               <text

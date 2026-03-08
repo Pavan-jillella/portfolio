@@ -75,6 +75,23 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Category Trends (6 Months)</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          {COLORS.map((color, idx) => (
+            <linearGradient key={idx} id={`barGrad-cattrend-${idx}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lightenColor(color, 0.3)} />
+              <stop offset="100%" stopColor={darkenColor(color, 0.2)} />
+            </linearGradient>
+          ))}
+          <filter id="barGlow-cattrend">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
           <line key={frac} x1={pl} y1={scaleY(frac * maxValue)} x2={chartWidth - pr} y2={scaleY(frac * maxValue)} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
@@ -88,7 +105,7 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
             const h = (v.amount / maxValue) * dh;
             const y = pt + dh - h;
             const color = COLORS[ci % COLORS.length];
-            const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 6, -6);
+            const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 8, -8);
 
             return (
               <g key={`${mi}-${ci}`}>
@@ -96,11 +113,17 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
                 <path d={topFace} fill={lightenColor(color, 0.2)} />
                 <motion.rect
                   x={x} y={y} width={barW} height={h}
-                  rx={1} fill={color} fillOpacity={0.8}
+                  rx={6} fill={`url(#barGrad-cattrend-${ci})`} fillOpacity={0.9}
+                  stroke={color} strokeWidth={0.5} strokeOpacity={0.4}
+                  filter="url(#barGlow-cattrend)"
                   initial={{ height: 0, y: pt + dh }}
                   animate={{ height: h, y }}
                   transition={{ duration: 0.5, delay: mi * 0.06 + ci * 0.02 }}
                 />
+                {/* Inner highlight stripe */}
+                <rect x={x} y={y} width={2} height={h} rx={1} fill={lightenColor(color, 0.5)} fillOpacity={0.4} />
+                {/* Dot cap */}
+                <circle cx={x + barW / 2} cy={y} r={2.5} fill={lightenColor(color, 0.4)} />
                 {(mi === 0 || mi === data.length - 1) && v.amount > 0 && (
                 <text x={x + barW / 2} y={y - 3} textAnchor="middle" fill={`${color}cc`} fontSize="9" className="font-mono">
                   {formatCurrency(v.amount)}
