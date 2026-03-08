@@ -38,6 +38,13 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
     return weeks;
   }, [jobs, hours]);
 
+  // Unique jobs for legend (must be called before any early return)
+  const jobLegend = useMemo(() => {
+    const seen = new Map<string, string>();
+    data.forEach((w) => w.stacks.forEach((s) => { if (!seen.has(s.jobName)) seen.set(s.jobName, s.color); }));
+    return Array.from(seen.entries()).map(([name, color]) => ({ name, color }));
+  }, [data]);
+
   const hasData = data.some((w) => w.total > 0);
 
   if (!hasData) {
@@ -60,13 +67,6 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
   const baseY = pt + dh;
 
   const scaleH = (v: number) => (v / maxValue) * dh;
-
-  // Unique jobs for legend
-  const jobLegend = useMemo(() => {
-    const seen = new Map<string, string>();
-    data.forEach((w) => w.stacks.forEach((s) => { if (!seen.has(s.jobName)) seen.set(s.jobName, s.color); }));
-    return Array.from(seen.entries()).map(([name, color]) => ({ name, color }));
-  }, [data]);
 
   return (
     <div className="glass-card rounded-2xl p-5">
