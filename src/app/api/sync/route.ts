@@ -110,7 +110,41 @@ export async function POST(req: NextRequest) {
     }
     if (table === "user_subscriptions") {
       // Strip enriched fields (service/plan objects) that come from client-side JOINs
-      dataWithUserId = dataWithUserId.map(({ service: _svc, plan: _plan, ...rest }) => rest);
+      // but keep them temporarily to seed missing services
+      const enrichedRows = dataWithUserId as Record<string, unknown>[];
+
+      // Ensure any custom services referenced by service_id exist in subscription_services
+      // so the foreign key constraint is satisfied
+      const serviceIds = Array.from(new Set(enrichedRows.map((r) => r.service_id as string).filter(Boolean)));
+      if (serviceIds.length > 0) {
+        const { data: existingServices } = await supabase
+          .from("subscription_services")
+          .select("id")
+          .in("id", serviceIds);
+        const existingIds = new Set((existingServices || []).map((s: { id: string }) => s.id));
+        const missingIds = serviceIds.filter((id) => !existingIds.has(id));
+
+        if (missingIds.length > 0) {
+          // Build service entries from enriched data or create minimal placeholders
+          const newServices = missingIds.map((id) => {
+            const row = enrichedRows.find((r) => r.service_id === id);
+            const svc = row?.service as Record<string, unknown> | undefined;
+            return {
+              id,
+              name: (svc?.name as string) || id,
+              slug: (svc?.slug as string) || id.toLowerCase().replace(/\s+/g, "-"),
+              domain: (svc?.domain as string) || "",
+              category: (svc?.category as string) || "Other",
+              website: (svc?.website as string) || null,
+              logo_url: (svc?.logo_url as string) || null,
+              created_at: new Date().toISOString(),
+            };
+          });
+          await supabase.from("subscription_services").upsert(newServices, { onConflict: "id" });
+        }
+      }
+
+      dataWithUserId = enrichedRows.map(({ service: _svc, plan: _plan, ...rest }) => rest);
     }
 
     const { error } = await supabase.from(table).upsert(dataWithUserId, { onConflict: "id" });
