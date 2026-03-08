@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { Budget, MonthlySpending } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
-import { bar3DPaths, darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 
 interface BudgetUtilizationChartProps {
   budgets: Budget[];
@@ -41,30 +40,28 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
   const barMaxW = chartWidth - pl - pr;
 
   const getColor = (pct: number) => {
-    if (pct >= 90) return "#ef4444";
-    if (pct >= 70) return "#eab308";
-    return "#22c55e";
+    if (pct >= 90) return { light: "#f87171", dark: "#dc2626", label: "rgba(248,113,113,0.9)" };
+    if (pct >= 70) return { light: "#fbbf24", dark: "#d97706", label: "rgba(251,191,36,0.9)" };
+    return { light: "#4ade80", dark: "#16a34a", label: "rgba(74,222,128,0.9)" };
   };
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Budget Utilization</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
-        {/* Gradient defs + glow filter */}
         <defs>
-          {["#ef4444", "#eab308", "#22c55e"].map((c) => (
-            <linearGradient key={c} id={`barGrad-budgetutil-${c.slice(1)}`} x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor={lightenColor(c, 0.3)} />
-              <stop offset="100%" stopColor={darkenColor(c, 0.2)} />
-            </linearGradient>
-          ))}
-          <filter id="barGlow-budgetutil">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
+          <linearGradient id="pillGrad-bu-green" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#4ade80" stopOpacity={0.95} />
+            <stop offset="100%" stopColor="#16a34a" stopOpacity={0.75} />
+          </linearGradient>
+          <linearGradient id="pillGrad-bu-yellow" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.95} />
+            <stop offset="100%" stopColor="#d97706" stopOpacity={0.75} />
+          </linearGradient>
+          <linearGradient id="pillGrad-bu-red" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#f87171" stopOpacity={0.95} />
+            <stop offset="100%" stopColor="#dc2626" stopOpacity={0.75} />
+          </linearGradient>
         </defs>
 
         {/* 100% line */}
@@ -75,7 +72,7 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
         />
         <text
           x={pl + barMaxW} y={pt - 2}
-          textAnchor="middle" fill="rgba(255,255,255,0.25)"
+          textAnchor="middle" fill="rgba(255,255,255,0.3)"
           fontSize="9" className="font-mono"
         >
           100%
@@ -83,56 +80,52 @@ export function BudgetUtilizationChart({ budgets, spending, selectedMonth }: Bud
 
         {rows.map((row, i) => {
           const y = pt + i * rowHeight;
-          const barH = rowHeight * 0.55;
+          const barH = rowHeight * 0.5;
           const barY = y + (rowHeight - barH) / 2;
           const clampedPct = Math.min(row.pct, 120);
           const barW = (clampedPct / 120) * barMaxW;
+          const pillRx = barH / 2;
           const color = getColor(row.pct);
+          const gradId = row.pct >= 90 ? "red" : row.pct >= 70 ? "yellow" : "green";
 
           return (
             <g key={row.category}>
               {/* Category label */}
               <text
                 x={pl - 8} y={y + rowHeight / 2 + 3}
-                textAnchor="end" fill="rgba(255,255,255,0.5)"
+                textAnchor="end" fill="rgba(255,255,255,0.55)"
                 fontSize="10" className="font-mono"
               >
-                {row.category.length > 14 ? row.category.slice(0, 14) + "…" : row.category}
+                {row.category.length > 14 ? row.category.slice(0, 14) + "\u2026" : row.category}
               </text>
 
               {/* Background track */}
               <rect
                 x={pl} y={barY} width={barMaxW} height={barH}
-                rx={6} fill="rgba(255,255,255,0.02)"
+                rx={pillRx} fill="rgba(255,255,255,0.03)"
               />
 
-              {/* Bar */}
+              {/* Pill bar */}
               <motion.rect
                 x={pl} y={barY} width={barW} height={barH}
-                rx={6} fill={`url(#barGrad-budgetutil-${color.slice(1)})`} fillOpacity={0.9}
-                stroke={color} strokeWidth={0.5} strokeOpacity={0.4}
-                filter="url(#barGlow-budgetutil)"
+                rx={pillRx} fill={`url(#pillGrad-bu-${gradId})`}
                 initial={{ width: 0 }}
                 animate={{ width: barW }}
                 transition={{ duration: 0.6, delay: i * 0.05 }}
               />
-              {/* Top highlight stripe */}
-              <rect x={pl} y={barY} width={barW} height={2} rx={1} fill={lightenColor(color, 0.5)} fillOpacity={0.4} />
-              {/* Dot cap */}
-              <circle cx={pl + barW} cy={barY + barH / 2} r={2.5} fill={lightenColor(color, 0.4)} />
 
               {/* Percentage + amount */}
               <text
-                x={pl + barMaxW + 6} y={y + rowHeight / 2 + 3}
-                textAnchor="start" fill={color}
-                fontSize="11" className="font-mono"
+                x={pl + barMaxW + 6} y={y + rowHeight / 2}
+                textAnchor="start" fill={color.label}
+                fontSize="12" fontWeight="600" className="font-mono"
               >
                 {Math.round(row.pct)}%
               </text>
               <text
-                x={pl + barMaxW + 6} y={y + rowHeight / 2 + 14}
-                textAnchor="start" fill="rgba(255,255,255,0.3)"
-                fontSize="8" className="font-mono"
+                x={pl + barMaxW + 6} y={y + rowHeight / 2 + 13}
+                textAnchor="start" fill="rgba(255,255,255,0.35)"
+                fontSize="9" className="font-mono"
               >
                 {formatCurrency(row.spent)}
               </text>

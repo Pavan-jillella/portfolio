@@ -2,7 +2,6 @@
 import { useMemo } from "react";
 import { PartTimeJob, PartTimeHourEntry } from "@/types";
 import { motion } from "framer-motion";
-import { bar3DPaths, darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 
 interface PartTimeWeeklyChartProps {
   jobs: PartTimeJob[];
@@ -38,7 +37,6 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
     return weeks;
   }, [jobs, hours]);
 
-  // Unique jobs for legend (must be called before any early return)
   const jobLegend = useMemo(() => {
     const seen = new Map<string, string>();
     data.forEach((w) => w.stacks.forEach((s) => { if (!seen.has(s.jobName)) seen.set(s.jobName, s.color); }));
@@ -64,34 +62,30 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
   const maxValue = Math.max(...data.map((w) => w.total), 1);
   const groupW = dw / data.length;
   const barW = groupW * 0.55;
+  const pillRx = barW / 2;
   const baseY = pt + dh;
 
   const scaleH = (v: number) => (v / maxValue) * dh;
+
+  // Generate unique gradient IDs
+  const colorSet = Array.from(new Set(jobLegend.map((j) => j.color)));
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Weekly Hours</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
-        {/* Gradient defs + glow filter */}
         <defs>
-          {jobLegend.map((j) => (
-            <linearGradient key={j.color} id={`barGrad-ptweekly-${j.color.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={lightenColor(j.color, 0.3)} />
-              <stop offset="100%" stopColor={darkenColor(j.color, 0.2)} />
+          {colorSet.map((color) => (
+            <linearGradient key={color} id={`pillGrad-ptwk-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.95} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.6} />
             </linearGradient>
           ))}
-          <filter id="barGlow-ptweekly">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
         {/* Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
-          <line key={frac} x1={pl} y1={baseY - frac * dh} x2={chartWidth - pr} y2={baseY - frac * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
+          <line key={frac} x1={pl} y1={baseY - frac * dh} x2={chartWidth - pr} y2={baseY - frac * dh} stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
         ))}
 
         {data.map((week, wi) => {
@@ -100,45 +94,34 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
 
           return (
             <g key={week.label}>
+              {/* Background track */}
+              <rect x={x} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.02)" />
+
               {week.stacks.map((stack, si) => {
                 const h = scaleH(stack.hours);
                 currentY -= h;
                 const isTop = si === week.stacks.length - 1;
+                const isBottom = si === 0;
 
                 return (
-                  <g key={stack.jobId}>
-                    {isTop && (() => {
-                      const { rightFace, topFace } = bar3DPaths(x, currentY, barW, h, 8, -8);
-                      return (
-                        <>
-                          <path d={rightFace} fill={darkenColor(stack.color, 0.6)} />
-                          <path d={topFace} fill={lightenColor(stack.color, 0.2)} />
-                        </>
-                      );
-                    })()}
-                    <motion.rect
-                      x={x} y={currentY} width={barW} height={h}
-                      rx={isTop ? 6 : 0} fill={`url(#barGrad-ptweekly-${stack.color.slice(1)})`} fillOpacity={0.9}
-                      stroke={stack.color} strokeWidth={0.5} strokeOpacity={0.4}
-                      filter="url(#barGlow-ptweekly)"
-                      initial={{ height: 0, y: baseY }}
-                      animate={{ height: h, y: currentY }}
-                      transition={{ duration: 0.5, delay: wi * 0.06 + si * 0.03 }}
-                    />
-                    {/* Inner highlight stripe - topmost only */}
-                    {isTop && <rect x={x} y={currentY} width={2} height={h} rx={1} fill={lightenColor(stack.color, 0.5)} fillOpacity={0.4} />}
-                    {/* Dot cap - topmost only */}
-                    {isTop && <circle cx={x + barW / 2} cy={currentY} r={2.5} fill={lightenColor(stack.color, 0.4)} />}
-                  </g>
+                  <motion.rect
+                    key={stack.jobId}
+                    x={x} y={currentY} width={barW} height={h}
+                    rx={isTop || isBottom ? pillRx : 0}
+                    fill={`url(#pillGrad-ptwk-${stack.color.replace("#", "")})`}
+                    initial={{ height: 0, y: baseY }}
+                    animate={{ height: h, y: currentY }}
+                    transition={{ duration: 0.5, delay: wi * 0.06 + si * 0.03 }}
+                  />
                 );
               })}
 
               {/* Total label */}
               {week.total > 0 && (
                 <text
-                  x={x + barW / 2} y={baseY - scaleH(week.total) - 4}
-                  textAnchor="middle" fill="rgba(255,255,255,0.5)"
-                  fontSize="11" className="font-mono"
+                  x={x + barW / 2} y={baseY - scaleH(week.total) - 5}
+                  textAnchor="middle" fill="rgba(255,255,255,0.7)"
+                  fontSize="12" fontWeight="600" className="font-mono"
                 >
                   {week.total.toFixed(1)}h
                 </text>
@@ -147,7 +130,7 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
               {/* Week label */}
               <text
                 x={x + barW / 2} y={chartHeight - 6}
-                textAnchor="middle" fill="rgba(255,255,255,0.35)"
+                textAnchor="middle" fill="rgba(255,255,255,0.4)"
                 fontSize="10" className="font-mono"
               >
                 {week.label}
@@ -162,8 +145,8 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
         <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
           {jobLegend.map((j) => (
             <div key={j.name} className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: j.color }} />
-              <span className="font-mono text-[10px] text-white/40">{j.name}</span>
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: j.color }} />
+              <span className="font-mono text-[10px] text-white/50">{j.name}</span>
             </div>
           ))}
         </div>

@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { Transaction } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
-import { darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 import { CATEGORY_HEX_COLORS } from "@/lib/constants";
 
 interface TopExpensesChartProps {
@@ -35,41 +34,37 @@ export function TopExpensesChart({ transactions, selectedMonth }: TopExpensesCha
   const barMaxW = chartWidth - pl - pr;
   const maxAmount = topExpenses[0].amount;
 
+  // Collect unique colors for gradient defs
+  const uniqueColors = Array.from(new Set(topExpenses.map(t => CATEGORY_HEX_COLORS[t.category] || "#6b7280")));
+
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Top Expenses</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
-        {/* Gradient defs + glow filter */}
         <defs>
-          {Array.from(new Set(topExpenses.map(t => CATEGORY_HEX_COLORS[t.category] || "#6b7280"))).map((color) => (
-            <linearGradient key={color} id={`barGrad-topexp-${color.slice(1)}`} x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor={lightenColor(color, 0.3)} />
-              <stop offset="100%" stopColor={darkenColor(color, 0.2)} />
+          {uniqueColors.map((color) => (
+            <linearGradient key={color} id={`pillGrad-topexp-${color.replace("#", "")}`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.6} />
             </linearGradient>
           ))}
-          <filter id="barGlow-topexp">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
         {topExpenses.map((t, i) => {
           const y = pt + i * rowHeight;
-          const barH = rowHeight * 0.55;
+          const barH = rowHeight * 0.5;
           const barY = y + (rowHeight - barH) / 2;
           const barW = (t.amount / maxAmount) * barMaxW;
+          const pillRx = barH / 2;
           const color = CATEGORY_HEX_COLORS[t.category] || "#6b7280";
           const label = t.description.length > 16 ? t.description.slice(0, 16) + "\u2026" : t.description;
 
           return (
             <g key={`${t.id}-${i}`}>
-              {/* Description label on the left */}
+              {/* Description label */}
               <text
                 x={pl - 8} y={y + rowHeight / 2 + 3}
-                textAnchor="end" fill="rgba(255,255,255,0.5)"
+                textAnchor="end" fill="rgba(255,255,255,0.55)"
                 fontSize="9" className="font-mono"
               >
                 {label}
@@ -78,29 +73,23 @@ export function TopExpensesChart({ transactions, selectedMonth }: TopExpensesCha
               {/* Background track */}
               <rect
                 x={pl} y={barY} width={barMaxW} height={barH}
-                rx={6} fill="rgba(255,255,255,0.02)"
+                rx={pillRx} fill="rgba(255,255,255,0.03)"
               />
 
-              {/* Animated bar */}
+              {/* Pill bar */}
               <motion.rect
                 x={pl} y={barY} width={barW} height={barH}
-                rx={6} fill={`url(#barGrad-topexp-${color.slice(1)})`} fillOpacity={0.9}
-                stroke={color} strokeWidth={0.5} strokeOpacity={0.4}
-                filter="url(#barGlow-topexp)"
+                rx={pillRx} fill={`url(#pillGrad-topexp-${color.replace("#", "")})`}
                 initial={{ width: 0 }}
                 animate={{ width: barW }}
                 transition={{ duration: 0.6, delay: i * 0.05 }}
               />
-              {/* Top highlight stripe */}
-              <rect x={pl} y={barY} width={barW} height={2} rx={1} fill={lightenColor(color, 0.5)} fillOpacity={0.4} />
-              {/* Dot cap */}
-              <circle cx={pl + barW} cy={barY + barH / 2} r={2.5} fill={lightenColor(color, 0.4)} />
 
-              {/* Amount on the right */}
+              {/* Amount */}
               <text
-                x={pl + barMaxW + 8} y={y + rowHeight / 2 + 3}
+                x={pl + barMaxW + 8} y={y + rowHeight / 2 + 4}
                 textAnchor="start" fill={color}
-                fontSize="11" className="font-mono"
+                fontSize="12" fontWeight="600" className="font-mono"
               >
                 {formatCurrency(t.amount)}
               </text>

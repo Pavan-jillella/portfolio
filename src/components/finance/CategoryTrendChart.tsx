@@ -3,13 +3,18 @@ import { useMemo } from "react";
 import { Transaction } from "@/types";
 import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
-import { bar3DPaths, darkenColor, lightenColor } from "@/lib/chart-3d-utils";
 
 interface CategoryTrendChartProps {
   transactions: Transaction[];
 }
 
-const COLORS = ["#3b82f6", "#8b5cf6", "#f97316", "#10b981", "#eab308"];
+const COLORS = [
+  { base: "#3b82f6", light: "#60a5fa", label: "rgba(96,165,250,0.9)" },
+  { base: "#8b5cf6", light: "#a78bfa", label: "rgba(167,139,250,0.9)" },
+  { base: "#f97316", light: "#fb923c", label: "rgba(251,146,60,0.9)" },
+  { base: "#10b981", light: "#34d399", label: "rgba(52,211,153,0.9)" },
+  { base: "#eab308", light: "#facc15", label: "rgba(250,204,21,0.9)" },
+];
 
 export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
   const { months, categories, data } = useMemo(() => {
@@ -20,7 +25,6 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
       monthKeys.push(d.toISOString().slice(0, 7));
     }
 
-    // Get top 5 expense categories across all time
     const catTotals = new Map<string, number>();
     transactions.filter((t) => t.type === "expense").forEach((t) => {
       catTotals.set(t.category, (catTotals.get(t.category) || 0) + t.amount);
@@ -30,7 +34,6 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
       .slice(0, 5)
       .map(([cat]) => cat);
 
-    // Build month x category matrix
     const matrix: { month: string; values: { category: string; amount: number }[] }[] = monthKeys.map(
       (month) => {
         const monthTx = transactions.filter(
@@ -68,33 +71,24 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
   const catCount = categories.length;
   const barW = (groupW * 0.7) / catCount;
   const groupPad = groupW * 0.15;
-
-  const scaleY = (v: number) => pt + dh - (v / maxValue) * dh;
+  const pillRx = barW / 2;
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Category Trends (6 Months)</h4>
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
-        {/* Gradient defs + glow filter */}
         <defs>
-          {COLORS.map((color, idx) => (
-            <linearGradient key={idx} id={`barGrad-cattrend-${idx}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={lightenColor(color, 0.3)} />
-              <stop offset="100%" stopColor={darkenColor(color, 0.2)} />
+          {COLORS.map((c, idx) => (
+            <linearGradient key={idx} id={`pillGrad-cat-${idx}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={c.light} stopOpacity={0.95} />
+              <stop offset="100%" stopColor={c.base} stopOpacity={0.7} />
             </linearGradient>
           ))}
-          <filter id="barGlow-cattrend">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
         {/* Grid */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
-          <line key={frac} x1={pl} y1={scaleY(frac * maxValue)} x2={chartWidth - pr} y2={scaleY(frac * maxValue)} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />
+          <line key={frac} x1={pl} y1={pt + dh - frac * dh} x2={chartWidth - pr} y2={pt + dh - frac * dh} stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
         ))}
 
         {/* Bars */}
@@ -104,30 +98,23 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
             const x = pl + mi * groupW + groupPad + ci * barW;
             const h = (v.amount / maxValue) * dh;
             const y = pt + dh - h;
-            const color = COLORS[ci % COLORS.length];
-            const { rightFace, topFace } = bar3DPaths(x, y, barW, h, 8, -8);
 
             return (
               <g key={`${mi}-${ci}`}>
-                <path d={rightFace} fill={darkenColor(color, 0.6)} />
-                <path d={topFace} fill={lightenColor(color, 0.2)} />
+                {/* Background track */}
+                <rect x={x} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.015)" />
+                {/* Pill bar */}
                 <motion.rect
                   x={x} y={y} width={barW} height={h}
-                  rx={6} fill={`url(#barGrad-cattrend-${ci})`} fillOpacity={0.9}
-                  stroke={color} strokeWidth={0.5} strokeOpacity={0.4}
-                  filter="url(#barGlow-cattrend)"
+                  rx={pillRx} fill={`url(#pillGrad-cat-${ci})`}
                   initial={{ height: 0, y: pt + dh }}
                   animate={{ height: h, y }}
                   transition={{ duration: 0.5, delay: mi * 0.06 + ci * 0.02 }}
                 />
-                {/* Inner highlight stripe */}
-                <rect x={x} y={y} width={2} height={h} rx={1} fill={lightenColor(color, 0.5)} fillOpacity={0.4} />
-                {/* Dot cap */}
-                <circle cx={x + barW / 2} cy={y} r={2.5} fill={lightenColor(color, 0.4)} />
                 {(mi === 0 || mi === data.length - 1) && v.amount > 0 && (
-                <text x={x + barW / 2} y={y - 3} textAnchor="middle" fill={`${color}cc`} fontSize="9" className="font-mono">
-                  {formatCurrency(v.amount)}
-                </text>
+                  <text x={x + barW / 2} y={y - 4} textAnchor="middle" fill={COLORS[ci % COLORS.length].label} fontSize="10" fontWeight="600" className="font-mono">
+                    {formatCurrency(v.amount)}
+                  </text>
                 )}
               </g>
             );
@@ -142,7 +129,7 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
               key={m}
               x={pl + i * groupW + groupW / 2}
               y={chartHeight - pb + 14}
-              textAnchor="middle" fill="rgba(255,255,255,0.4)"
+              textAnchor="middle" fill="rgba(255,255,255,0.45)"
               fontSize="10" className="font-mono"
             >
               {SHORT_MONTHS[idx]}
@@ -155,8 +142,8 @@ export function CategoryTrendChart({ transactions }: CategoryTrendChartProps) {
       <div className="flex flex-wrap items-center gap-3 mt-3 justify-center">
         {categories.map((cat, i) => (
           <div key={cat} className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-            <span className="font-mono text-[10px] text-white/40">{cat}</span>
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length].base }} />
+            <span className="font-mono text-[10px] text-white/50">{cat}</span>
           </div>
         ))}
       </div>
