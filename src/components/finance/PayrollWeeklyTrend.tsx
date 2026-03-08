@@ -142,17 +142,31 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                 transition={{ duration: 0.6, delay: i * 0.08 + 0.1, ease: "easeOut" }}
               />
 
-              {/* Gross value on hover area / tooltip */}
+              {/* Gross value label */}
               {entry.gross > 0 && (
                 <text
                   x={groupX + barWidth / 2}
                   y={baseY - grossHeight - 4}
                   textAnchor="middle"
-                  fill="rgba(255,255,255,0.3)"
-                  fontSize="6"
+                  fill="rgba(59,130,246,0.7)"
+                  fontSize="8"
                   className="font-mono"
                 >
                   {formatCurrency(entry.gross)}
+                </text>
+              )}
+
+              {/* Net value label */}
+              {entry.net > 0 && (
+                <text
+                  x={groupX + barWidth + barGap + barWidth / 2}
+                  y={baseY - netHeight - 4}
+                  textAnchor="middle"
+                  fill="rgba(16,185,129,0.7)"
+                  fontSize="8"
+                  className="font-mono"
+                >
+                  {formatCurrency(entry.net)}
                 </text>
               )}
 

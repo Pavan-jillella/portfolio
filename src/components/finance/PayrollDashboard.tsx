@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { PayStub, Employer, EnhancedWorkSchedule, IncomeGoal } from "@/types";
+import { PayStub, Employer, EnhancedWorkSchedule, IncomeGoal, PartTimeJob, PartTimeHourEntry } from "@/types";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { getPayrollDashboardStats } from "@/lib/payroll-utils";
 import { formatCurrency, getCurrentMonth } from "@/lib/finance-utils";
@@ -9,6 +9,8 @@ import { PayrollWeeklyTrend } from "./PayrollWeeklyTrend";
 import { PayrollMonthlyTrend } from "./PayrollMonthlyTrend";
 import { IncomeGoalTracker } from "./IncomeGoalTracker";
 import { IncomeForecast } from "./IncomeForecast";
+import { PayrollVsPartTimeChart } from "./PayrollVsPartTimeChart";
+import { DeductionsBreakdownChart } from "./DeductionsBreakdownChart";
 import { motion } from "framer-motion";
 
 interface PayrollDashboardProps {
@@ -16,6 +18,8 @@ interface PayrollDashboardProps {
   employers: Employer[];
   enhancedSchedules: EnhancedWorkSchedule[];
   incomeGoals: IncomeGoal[];
+  partTimeJobs: PartTimeJob[];
+  partTimeHours: PartTimeHourEntry[];
 }
 
 function formatMonthDisplay(month: string): string {
@@ -37,6 +41,8 @@ export function PayrollDashboard({
   employers,
   enhancedSchedules,
   incomeGoals,
+  partTimeJobs,
+  partTimeHours,
 }: PayrollDashboardProps) {
   // Default to latest month with data, or current month if no data
   const latestMonth = useMemo(() => {
@@ -161,6 +167,12 @@ export function PayrollDashboard({
 
       {/* Monthly trend full width */}
       <PayrollMonthlyTrend data={stats.monthly_trend} />
+
+      {/* Payroll vs Part-Time + Deductions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <PayrollVsPartTimeChart payStubs={payStubs} partTimeJobs={partTimeJobs} partTimeHours={partTimeHours} />
+        <DeductionsBreakdownChart payStubs={payStubs} selectedMonth={selectedMonth} />
+      </div>
 
       {/* Income Goal + Forecast */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -56,6 +56,31 @@ const SavingsTrendChart = dynamic(() => import("./SavingsTrendChart").then((m) =
   loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
 });
 
+const DailySpendingChart = dynamic(() => import("./DailySpendingChart").then((m) => m.DailySpendingChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const CategoryTrendChart = dynamic(() => import("./CategoryTrendChart").then((m) => m.CategoryTrendChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const IncomeExpenseRatioChart = dynamic(() => import("./IncomeExpenseRatioChart").then((m) => m.IncomeExpenseRatioChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const BudgetUtilizationChart = dynamic(() => import("./BudgetUtilizationChart").then((m) => m.BudgetUtilizationChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
+const SpendingTrendMiniChart = dynamic(() => import("./SpendingTrendMiniChart").then((m) => m.SpendingTrendMiniChart), {
+  ssr: false,
+  loading: () => <div className="glass-card rounded-2xl p-6 h-48 animate-pulse" />,
+});
+
 const tabs = [
   { id: "overview", label: "Overview" },
   { id: "transactions", label: "Transactions" },
@@ -609,7 +634,7 @@ export function FinanceTrackerClient() {
 
       {activeTab === "transactions" && (
         <ErrorBoundary module="Transactions">
-          <div>
+          <div className="space-y-8">
           <TransactionFilters categories={allCategories} onFilterChange={setFilters} />
           <TransactionTable
             transactions={filteredTx}
@@ -617,6 +642,17 @@ export function FinanceTrackerClient() {
             onEdit={editTransaction}
             categories={allCategories}
           />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FadeIn delay={0.1}>
+              <IncomeExpenseRatioChart income={income} expenses={expenses} />
+            </FadeIn>
+            <FadeIn delay={0.15}>
+              <DailySpendingChart transactions={transactions} selectedMonth={selectedMonth} />
+            </FadeIn>
+          </div>
+          <FadeIn delay={0.2}>
+            <CategoryTrendChart transactions={transactions} />
+          </FadeIn>
           </div>
         </ErrorBoundary>
       )}
@@ -631,7 +667,15 @@ export function FinanceTrackerClient() {
             onAddBudget={addBudget}
             onDeleteBudget={deleteBudget}
           />
-          <FadeIn delay={0.1}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FadeIn delay={0.05}>
+              <BudgetUtilizationChart budgets={budgets} spending={categoryBreakdown} selectedMonth={selectedMonth} />
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <SpendingTrendMiniChart transactions={transactions} budgets={budgets} />
+            </FadeIn>
+          </div>
+          <FadeIn delay={0.15}>
             <h3 className="font-display font-semibold text-lg text-white mb-4">Budget Planner</h3>
             <BudgetPlanner
               transactions={transactions}

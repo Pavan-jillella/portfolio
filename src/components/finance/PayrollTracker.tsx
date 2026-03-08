@@ -258,6 +258,8 @@ export function PayrollTracker({
           employers={employers}
           enhancedSchedules={enhancedSchedules}
           incomeGoals={enhancedSettings?.income_goals || []}
+          partTimeJobs={partTimeJobs}
+          partTimeHours={partTimeHours}
         />
       )}
 

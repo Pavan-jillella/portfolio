@@ -193,11 +193,25 @@ export function PayrollMonthlyTrend({ data }: PayrollMonthlyTrendProps) {
                 x={scaleX(i)}
                 y={scaleY(d.gross) - 8}
                 textAnchor="middle"
-                fill="rgba(255,255,255,0.3)"
-                fontSize="7"
+                fill="rgba(59,130,246,0.7)"
+                fontSize="9"
                 className="font-mono"
               >
                 {formatCurrency(d.gross)}
+              </text>
+            )}
+
+            {/* Net value label */}
+            {d.net > 0 && (
+              <text
+                x={scaleX(i)}
+                y={scaleY(d.net) + 14}
+                textAnchor="middle"
+                fill="rgba(16,185,129,0.7)"
+                fontSize="9"
+                className="font-mono"
+              >
+                {formatCurrency(d.net)}
               </text>
             )}
 

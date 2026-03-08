@@ -26,7 +26,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
               <div className="w-full flex items-end gap-0.5 h-40 relative">
                 <div className="flex-1 flex flex-col items-center">
                   {month.income > 0 && (
-                    <span className="font-mono text-[9px] text-green-400/60 mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="font-mono text-[10px] text-green-400 mb-0.5">
                       {formatCurrency(month.income)}
                     </span>
                   )}
@@ -39,7 +39,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                 </div>
                 <div className="flex-1 flex flex-col items-center">
                   {month.expenses > 0 && (
-                    <span className="font-mono text-[9px] text-red-400/60 mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="font-mono text-[10px] text-red-400 mb-0.5">
                       {formatCurrency(month.expenses)}
                     </span>
                   )}
@@ -51,7 +51,7 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                   />
                 </div>
               </div>
-              <span className="font-mono text-xs text-white/20">{shortLabel}</span>
+              <span className="font-mono text-xs text-white/40">{shortLabel}</span>
             </div>
           );
         })}
