@@ -1,6 +1,6 @@
 "use client";
+import { useState } from "react";
 import { WeeklyTrendEntry } from "@/types";
-import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
 
 interface PayrollWeeklyTrendProps {
@@ -8,6 +8,14 @@ interface PayrollWeeklyTrendProps {
 }
 
 export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
+  const [tooltip, setTooltip] = useState<{
+    label: string;
+    type: string;
+    amount: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
   if (data.length === 0) {
     return (
       <div className="glass-card rounded-2xl p-5">
@@ -17,85 +25,125 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
     );
   }
 
-  const W = 320, H = 160;
-  const pt = 14, pb = 20, pl = 6, pr = 6;
-  const dh = H - pt - pb;
-  const dw = W - pl - pr;
+  const width = 520;
+  const height = 220;
+  const baseY = 180;
+  const barArea = 140;
   const maxValue = Math.max(...data.map((d) => Math.max(d.gross, d.net)), 1);
-  const groupW = dw / data.length;
-  const barW = Math.min(groupW * 0.3, 16);
-  const barGap = Math.max(barW * 0.2, 2);
-  const rx = Math.min(barW / 2, 4);
-  const baseY = pt + dh;
+  const groupW = width / data.length;
+  const barW = Math.min(groupW * 0.3, 18);
+  const barGap = 4;
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="font-display font-semibold text-sm text-white">Weekly Trend</h4>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <span className="font-mono text-[9px] text-white/40">Gross</span>
+          <div className="flex items-center gap-2 text-xs text-gray-300">
+            <svg width="12" height="8"><rect width="12" height="8" rx="3" fill="#60a5fa" /></svg>
+            Gross
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="font-mono text-[9px] text-white/40">Net</span>
+          <div className="flex items-center gap-2 text-xs text-gray-300">
+            <svg width="12" height="8"><rect width="12" height="8" rx="3" fill="#34d399" /></svg>
+            Net
           </div>
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 200 }}>
-        <defs>
-          <linearGradient id="pwtGross" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.9} />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.6} />
-          </linearGradient>
-          <linearGradient id="pwtNet" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6ee7b7" stopOpacity={0.9} />
-            <stop offset="100%" stopColor="#059669" stopOpacity={0.6} />
-          </linearGradient>
-        </defs>
+      <div className="relative w-full">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full max-h-[240px]">
+          <defs>
+            <linearGradient id="pwtGross" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#60a5fa" />
+              <stop offset="100%" stopColor="#2563eb" />
+            </linearGradient>
+            <linearGradient id="pwtNet" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#34d399" />
+              <stop offset="100%" stopColor="#059669" />
+            </linearGradient>
+          </defs>
 
-        {[0.5, 1].map((f) => (
-          <line key={f} x1={pl} y1={baseY - f * dh} x2={W - pr} y2={baseY - f * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.3} />
-        ))}
+          {/* Grid */}
+          {[0, 25, 50, 75, 100].map((g, i) => {
+            const y = baseY - (g / 100) * barArea;
+            return (
+              <line key={i} x1="0" x2={width} y1={y} y2={y} stroke="#1f2937" strokeWidth="0.6" opacity="0.4" />
+            );
+          })}
 
-        {data.map((entry, i) => {
-          const cx = pl + i * groupW + groupW / 2;
-          const gx = cx - barW - barGap / 2;
-          const nx = cx + barGap / 2;
-          const gH = (entry.gross / maxValue) * dh;
-          const nH = (entry.net / maxValue) * dh;
+          {/* Bars */}
+          {data.map((entry, i) => {
+            const totalW = barW * 2 + barGap;
+            const startX = i * groupW + (groupW - totalW) / 2;
+            const gx = startX;
+            const nx = startX + barW + barGap;
+            const gH = (entry.gross / maxValue) * barArea;
+            const nH = (entry.net / maxValue) * barArea;
 
-          return (
-            <g key={entry.week_label}>
-              <motion.rect x={gx} y={baseY - gH} width={barW} height={gH} rx={rx}
-                fill="url(#pwtGross)"
-                initial={{ height: 0, y: baseY }} animate={{ height: gH, y: baseY - gH }}
-                transition={{ duration: 0.4, delay: i * 0.06 }} />
-              <motion.rect x={nx} y={baseY - nH} width={barW} height={nH} rx={rx}
-                fill="url(#pwtNet)"
-                initial={{ height: 0, y: baseY }} animate={{ height: nH, y: baseY - nH }}
-                transition={{ duration: 0.4, delay: i * 0.06 + 0.05 }} />
+            return (
+              <g key={entry.week_label}>
+                {/* Gross bar */}
+                {entry.gross > 0 && (
+                  <>
+                    <motion.rect
+                      x={gx} width={barW} rx="4"
+                      initial={{ height: 0, y: baseY }}
+                      animate={{ height: gH, y: baseY - gH }}
+                      transition={{ duration: 0.6, delay: i * 0.08 }}
+                      fill="url(#pwtGross)"
+                      style={{ filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.25))", cursor: "pointer" }}
+                      onMouseEnter={() => setTooltip({ label: entry.week_label, type: "Gross", amount: entry.gross, x: gx, y: baseY - gH })}
+                      onMouseLeave={() => setTooltip(null)}
+                    />
+                    <text x={gx + barW / 2} y={baseY - gH - 6} textAnchor="middle" fontSize="9" fill="#d1d5db">
+                      ${Math.round(entry.gross)}
+                    </text>
+                  </>
+                )}
 
-              {entry.gross > 0 && (
-                <text x={gx + barW / 2} y={baseY - gH - 3} textAnchor="middle" fill="rgba(147,197,253,0.85)" fontSize="6.5" fontWeight="600" className="font-mono">
-                  ${Math.round(entry.gross)}
+                {/* Net bar */}
+                {entry.net > 0 && (
+                  <>
+                    <motion.rect
+                      x={nx} width={barW} rx="4"
+                      initial={{ height: 0, y: baseY }}
+                      animate={{ height: nH, y: baseY - nH }}
+                      transition={{ duration: 0.6, delay: i * 0.08 + 0.05 }}
+                      fill="url(#pwtNet)"
+                      style={{ filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.25))", cursor: "pointer" }}
+                      onMouseEnter={() => setTooltip({ label: entry.week_label, type: "Net", amount: entry.net, x: nx, y: baseY - nH })}
+                      onMouseLeave={() => setTooltip(null)}
+                    />
+                    <text x={nx + barW / 2} y={baseY - nH - 6} textAnchor="middle" fontSize="9" fill="#d1d5db">
+                      ${Math.round(entry.net)}
+                    </text>
+                  </>
+                )}
+
+                {/* Week label */}
+                <text x={i * groupW + groupW / 2} y={200} textAnchor="middle" fontSize="9" fill="#9ca3af" fontWeight="500">
+                  {entry.week_label}
                 </text>
-              )}
-              {entry.net > 0 && (
-                <text x={nx + barW / 2} y={baseY - nH - 3} textAnchor="middle" fill="rgba(110,231,183,0.85)" fontSize="6.5" fontWeight="600" className="font-mono">
-                  ${Math.round(entry.net)}
-                </text>
-              )}
+              </g>
+            );
+          })}
+        </svg>
 
-              <text x={cx} y={H - 5} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="6.5" className="font-mono">
-                {entry.week_label}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+        {/* Tooltip */}
+        {tooltip && (
+          <div
+            className="absolute text-xs bg-zinc-900 border border-zinc-700 rounded-md px-3 py-2 shadow-lg pointer-events-none z-10"
+            style={{
+              left: `${(tooltip.x / width) * 100}%`,
+              top: `${(tooltip.y / height) * 100}%`,
+              transform: "translate(10px, -100%)",
+            }}
+          >
+            <div className="font-semibold text-white">{tooltip.label}</div>
+            <div className="text-gray-300">{tooltip.type}: ${tooltip.amount}</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

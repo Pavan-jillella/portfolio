@@ -1,7 +1,6 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Transaction } from "@/types";
-import { formatCurrency } from "@/lib/finance-utils";
 import { motion } from "framer-motion";
 
 interface DailySpendingChartProps {
@@ -10,6 +9,13 @@ interface DailySpendingChartProps {
 }
 
 export function DailySpendingChart({ transactions, selectedMonth }: DailySpendingChartProps) {
+  const [tooltip, setTooltip] = useState<{
+    day: number;
+    amount: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const dailySpending = useMemo(() => {
     const filtered = transactions.filter(
       (t) => t.type === "expense" && t.date.startsWith(selectedMonth)
@@ -39,62 +45,98 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
     );
   }
 
-  const W = 320, H = 140;
-  const pt = 8, pb = 16, pl = 4, pr = 4;
-  const dw = W - pl - pr;
-  const dh = H - pt - pb;
-  const step = dw / dailySpending.length;
-  const barW = Math.max(step * 0.65, 3);
-  const rx = Math.min(barW / 2, 3);
-  const baseY = pt + dh;
+  const width = 520;
+  const height = 220;
+  const baseY = 180;
+  const barArea = 140;
+  const groupW = width / dailySpending.length;
+  const barW = Math.min(groupW * 0.7, 14);
 
-  const top3 = new Set(
-    [...dailySpending].sort((a, b) => b.amount - a.amount).slice(0, 3).map((d) => d.day)
+  const top5 = new Set(
+    [...dailySpending].sort((a, b) => b.amount - a.amount).slice(0, 5).map((d) => d.day)
   );
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Daily Spending</h4>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 180 }}>
-        <defs>
-          <linearGradient id="dsPill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f87171" stopOpacity={0.9} />
-            <stop offset="100%" stopColor="#dc2626" stopOpacity={0.65} />
-          </linearGradient>
-        </defs>
 
-        {[0.5, 1].map((f) => (
-          <line key={f} x1={pl} y1={baseY - f * dh} x2={W - pr} y2={baseY - f * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.3} />
-        ))}
+      <div className="relative w-full">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full max-h-[240px]">
+          <defs>
+            <linearGradient id="dsPill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#f87171" />
+              <stop offset="100%" stopColor="#dc2626" />
+            </linearGradient>
+          </defs>
 
-        {dailySpending.map((d, i) => {
-          if (d.amount === 0) return null;
-          const x = pl + i * step + (step - barW) / 2;
-          const h = Math.max((d.amount / maxValue) * dh, 1.5);
-          const y = baseY - h;
-          return (
-            <g key={d.day}>
-              <motion.rect x={x} y={y} width={barW} height={h} rx={rx} fill="url(#dsPill)"
-                initial={{ height: 0, y: baseY }} animate={{ height: h, y }}
-                transition={{ duration: 0.4, delay: i * 0.01 }} />
-              {top3.has(d.day) && (
-                <text x={x + barW / 2} y={y - 3} textAnchor="middle" fill="rgba(248,113,113,0.85)" fontSize="7" fontWeight="600" className="font-mono">
-                  ${Math.round(d.amount)}
-                </text>
-              )}
-            </g>
-          );
-        })}
+          {/* Grid */}
+          {[0, 25, 50, 75, 100].map((g, i) => {
+            const y = baseY - (g / 100) * barArea;
+            return (
+              <line key={i} x1="0" x2={width} y1={y} y2={y} stroke="#1f2937" strokeWidth="0.6" opacity="0.4" />
+            );
+          })}
 
-        {dailySpending.map((d, i) => {
-          if (d.day % 5 !== 0 && d.day !== 1) return null;
-          return (
-            <text key={`l-${d.day}`} x={pl + i * step + step / 2} y={H - 3} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6" className="font-mono">
-              {d.day}
-            </text>
-          );
-        })}
-      </svg>
+          {/* Bars */}
+          {dailySpending.map((d, i) => {
+            if (d.amount === 0) return null;
+            const x = i * groupW + (groupW - barW) / 2;
+            const barHeight = (d.amount / maxValue) * barArea;
+
+            return (
+              <g key={d.day}>
+                <motion.rect
+                  x={x}
+                  width={barW}
+                  rx="4"
+                  initial={{ height: 0, y: baseY }}
+                  animate={{ height: barHeight, y: baseY - barHeight }}
+                  transition={{ duration: 0.5, delay: i * 0.015 }}
+                  fill="url(#dsPill)"
+                  style={{
+                    filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.25))",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={() =>
+                    setTooltip({ day: d.day, amount: d.amount, x, y: baseY - barHeight })
+                  }
+                  onMouseLeave={() => setTooltip(null)}
+                />
+                {top5.has(d.day) && (
+                  <text x={x + barW / 2} y={baseY - barHeight - 6} textAnchor="middle" fontSize="9" fill="#d1d5db">
+                    ${Math.round(d.amount)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Day labels */}
+          {dailySpending.map((d, i) => {
+            if (d.day % 5 !== 0 && d.day !== 1) return null;
+            return (
+              <text key={`l-${d.day}`} x={i * groupW + groupW / 2} y={200} textAnchor="middle" fontSize="9" fill="#9ca3af" fontWeight="500">
+                {d.day}
+              </text>
+            );
+          })}
+        </svg>
+
+        {/* Tooltip */}
+        {tooltip && (
+          <div
+            className="absolute text-xs bg-zinc-900 border border-zinc-700 rounded-md px-3 py-2 shadow-lg pointer-events-none z-10"
+            style={{
+              left: `${(tooltip.x / width) * 100}%`,
+              top: `${(tooltip.y / height) * 100}%`,
+              transform: "translate(10px, -100%)",
+            }}
+          >
+            <div className="font-semibold text-white">Day {tooltip.day}</div>
+            <div className="text-gray-300">${tooltip.amount}</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
