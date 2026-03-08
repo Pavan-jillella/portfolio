@@ -55,6 +55,25 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
       </div>
 
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+        {/* Gradient defs + glow filter */}
+        <defs>
+          <linearGradient id="barGrad-pwt-gross" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#3b82f6", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#3b82f6", 0.2)} />
+          </linearGradient>
+          <linearGradient id="barGrad-pwt-net" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lightenColor("#10b981", 0.3)} />
+            <stop offset="100%" stopColor={darkenColor("#10b981", 0.2)} />
+          </linearGradient>
+          <filter id="barGlow-pwt">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Horizontal grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
           const y = scaleY(frac * maxValue);
@@ -96,7 +115,7 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
             <g key={entry.week_label}>
               {/* 3D extrusion faces for gross bar */}
               {(() => {
-                const { rightFace, topFace } = bar3DPaths(groupX, baseY - grossHeight, barWidth, grossHeight, 6, -6);
+                const { rightFace, topFace } = bar3DPaths(groupX, baseY - grossHeight, barWidth, grossHeight, 8, -8);
                 return (
                   <>
                     <path d={rightFace} fill={darkenColor("#3b82f6", 0.6)} />
@@ -110,17 +129,25 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                 y={baseY - grossHeight}
                 width={barWidth}
                 height={grossHeight}
-                rx={2}
-                fill="#3b82f6"
-                fillOpacity={0.8}
+                rx={6}
+                fill="url(#barGrad-pwt-gross)"
+                fillOpacity={0.9}
+                stroke="#3b82f6"
+                strokeWidth={0.5}
+                strokeOpacity={0.4}
+                filter="url(#barGlow-pwt)"
                 initial={{ height: 0, y: baseY }}
                 animate={{ height: grossHeight, y: baseY - grossHeight }}
                 transition={{ duration: 0.6, delay: i * 0.08, ease: "easeOut" }}
               />
+              {/* Inner highlight stripe */}
+              <rect x={groupX} y={baseY - grossHeight} width={2} height={grossHeight} rx={1} fill={lightenColor("#3b82f6", 0.5)} fillOpacity={0.4} />
+              {/* Dot cap */}
+              <circle cx={groupX + barWidth / 2} cy={baseY - grossHeight} r={2.5} fill={lightenColor("#3b82f6", 0.4)} />
 
               {/* 3D extrusion faces for net bar */}
               {(() => {
-                const { rightFace, topFace } = bar3DPaths(groupX + barWidth + barGap, baseY - netHeight, barWidth, netHeight, 6, -6);
+                const { rightFace, topFace } = bar3DPaths(groupX + barWidth + barGap, baseY - netHeight, barWidth, netHeight, 8, -8);
                 return (
                   <>
                     <path d={rightFace} fill={darkenColor("#10b981", 0.6)} />
@@ -134,13 +161,21 @@ export function PayrollWeeklyTrend({ data }: PayrollWeeklyTrendProps) {
                 y={baseY - netHeight}
                 width={barWidth}
                 height={netHeight}
-                rx={2}
-                fill="#10b981"
-                fillOpacity={0.8}
+                rx={6}
+                fill="url(#barGrad-pwt-net)"
+                fillOpacity={0.9}
+                stroke="#10b981"
+                strokeWidth={0.5}
+                strokeOpacity={0.4}
+                filter="url(#barGlow-pwt)"
                 initial={{ height: 0, y: baseY }}
                 animate={{ height: netHeight, y: baseY - netHeight }}
                 transition={{ duration: 0.6, delay: i * 0.08 + 0.1, ease: "easeOut" }}
               />
+              {/* Inner highlight stripe */}
+              <rect x={groupX + barWidth + barGap} y={baseY - netHeight} width={2} height={netHeight} rx={1} fill={lightenColor("#10b981", 0.5)} fillOpacity={0.4} />
+              {/* Dot cap */}
+              <circle cx={groupX + barWidth + barGap + barWidth / 2} cy={baseY - netHeight} r={2.5} fill={lightenColor("#10b981", 0.4)} />
 
               {/* Gross value label */}
               {entry.gross > 0 && (

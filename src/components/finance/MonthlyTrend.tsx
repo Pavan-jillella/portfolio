@@ -36,8 +36,12 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                     initial={{ height: 0 }}
                     animate={{ height: `${incomeH}%` }}
                     transition={{ duration: 0.5, delay: i * 0.05 }}
-                    className="w-full bg-green-500/60 rounded-t-md min-h-[2px] bar-3d"
-                  />
+                    className="w-full rounded-t-lg min-h-[2px] bar-3d relative overflow-hidden"
+                    style={{ background: "linear-gradient(to top, rgba(34,197,94,0.4), rgba(34,197,94,0.7))", boxShadow: "0 0 8px rgba(34,197,94,0.3), inset 1px 0 0 rgba(255,255,255,0.15)" }}
+                  >
+                    <div className="absolute left-0 top-0 w-[2px] h-full bg-green-300/40 rounded-full" />
+                    <div className="absolute left-1/2 -translate-x-1/2 top-0 w-1.5 h-1.5 rounded-full bg-green-300/60" />
+                  </motion.div>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
                   {month.expenses > 0 && (
@@ -49,8 +53,12 @@ export function MonthlyTrend({ trend }: MonthlyTrendProps) {
                     initial={{ height: 0 }}
                     animate={{ height: `${expenseH}%` }}
                     transition={{ duration: 0.5, delay: i * 0.05 + 0.05 }}
-                    className="w-full bg-red-500/60 rounded-t-md min-h-[2px] bar-3d"
-                  />
+                    className="w-full rounded-t-lg min-h-[2px] bar-3d relative overflow-hidden"
+                    style={{ background: "linear-gradient(to top, rgba(239,68,68,0.4), rgba(239,68,68,0.7))", boxShadow: "0 0 8px rgba(239,68,68,0.3), inset 1px 0 0 rgba(255,255,255,0.15)" }}
+                  >
+                    <div className="absolute left-0 top-0 w-[2px] h-full bg-red-300/40 rounded-full" />
+                    <div className="absolute left-1/2 -translate-x-1/2 top-0 w-1.5 h-1.5 rounded-full bg-red-300/60" />
+                  </motion.div>
                 </div>
               </div>
               <span className="font-mono text-xs text-white/40">{shortLabel}</span>

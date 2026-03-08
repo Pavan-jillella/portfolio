@@ -66,6 +66,9 @@ export function CurrencySettings({ displayCurrency, onCurrencyChange }: Currency
   const [rateHistory, setRateHistory] = useState<Record<string, { time: number; rate: number }[]>>({});
   const [selectedRate, setSelectedRate] = useState<string | null>(null);
   const [comparisonCurrency, setComparisonCurrency] = useState<string | null>(null);
+  const [converterFrom, setConverterFrom] = useState("USD");
+  const [converterTo, setConverterTo] = useState("INR");
+  const [converterAmount, setConverterAmount] = useState<string>("100");
   const prevRatesRef = useRef<Record<string, number>>({});
 
   const intervalMs = fetchInterval > 0 ? fetchInterval * 60 * 1000 : undefined;
@@ -248,6 +251,90 @@ export function CurrencySettings({ displayCurrency, onCurrencyChange }: Currency
             </button>
           ))}
         </div>
+
+        {/* Live Currency Converter */}
+        {Object.keys(rates).length > 0 && (
+          <div className="mb-6 rounded-xl bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 border border-white/[0.06] p-5">
+            <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-4">
+              Currency Converter
+            </p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* From side */}
+              <div className="flex-1 flex items-center gap-2">
+                <input
+                  type="number"
+                  value={converterAmount}
+                  onChange={(e) => setConverterAmount(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 font-mono text-lg focus:border-blue-500/50 transition-all outline-none"
+                  placeholder="Amount"
+                  min="0"
+                  step="any"
+                />
+                <select
+                  value={converterFrom}
+                  onChange={(e) => setConverterFrom(e.target.value)}
+                  className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 font-mono text-sm focus:border-blue-500/50 transition-all outline-none appearance-none cursor-pointer min-w-[80px]"
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code} className="bg-gray-900 text-white">{COUNTRY_FLAGS[c.code]} {c.code}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Swap button */}
+              <button
+                onClick={() => {
+                  const tmp = converterFrom;
+                  setConverterFrom(converterTo);
+                  setConverterTo(tmp);
+                }}
+                className="self-center glass-card p-2 rounded-xl hover:border-blue-500/30 transition-all group"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white/40 group-hover:text-blue-400 transition-colors">
+                  <path d="M6 4L2 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 16L18 12L14 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="3" y1="8" x2="17" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <line x1="3" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+
+              {/* To side */}
+              <div className="flex-1 flex items-center gap-2">
+                <div className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3">
+                  <p className="font-mono text-lg text-white font-bold">
+                    {(() => {
+                      const amt = parseFloat(converterAmount) || 0;
+                      if (amt === 0) return "0.00";
+                      const fromRate = converterFrom === "USD" ? 1 : (rates[converterFrom] || 1);
+                      const toRate = converterTo === "USD" ? 1 : (rates[converterTo] || 1);
+                      const result = (amt / fromRate) * toRate;
+                      return result < 1 ? result.toFixed(6) : result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()}
+                  </p>
+                </div>
+                <select
+                  value={converterTo}
+                  onChange={(e) => setConverterTo(e.target.value)}
+                  className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-3 font-mono text-sm focus:border-blue-500/50 transition-all outline-none appearance-none cursor-pointer min-w-[80px]"
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code} className="bg-gray-900 text-white">{COUNTRY_FLAGS[c.code]} {c.code}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {/* Quick conversion note */}
+            <p className="font-mono text-[10px] text-white/20 mt-3 text-center">
+              {converterFrom !== converterTo && rates[converterFrom !== "USD" ? converterFrom : converterTo] ? (
+                <>1 {converterFrom} = {(() => {
+                  const fromRate = converterFrom === "USD" ? 1 : (rates[converterFrom] || 1);
+                  const toRate = converterTo === "USD" ? 1 : (rates[converterTo] || 1);
+                  return ((1 / fromRate) * toRate).toFixed(4);
+                })()} {converterTo}</>
+              ) : "Select different currencies to convert"}
+            </p>
+          </div>
+        )}
 
         {/* USA vs Selected Country Comparison Panel */}
         <AnimatePresence mode="wait">
