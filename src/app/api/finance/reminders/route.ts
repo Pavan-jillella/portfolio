@@ -146,9 +146,7 @@ export async function POST(req: NextRequest) {
     userEmails.forEach((u) => emailMap.set(u.id, u.email));
 
     const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: parseInt(smtpPort || "587"),
-      secure: smtpPort === "465",
+      service: "gmail",
       auth: { user: smtpUser, pass: smtpPass },
     });
 

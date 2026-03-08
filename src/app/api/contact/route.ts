@@ -87,9 +87,7 @@ export async function POST(req: NextRequest) {
     }
 
     const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: parseInt(smtpPort || "587"),
-      secure: smtpPort === "465",
+      service: "gmail",
       auth: { user: smtpUser, pass: smtpPass },
     });
 

@@ -114,9 +114,7 @@ export async function POST(req: NextRequest) {
     `;
 
     const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: parseInt(smtpPort || "587"),
-      secure: smtpPort === "465",
+      service: "gmail",
       auth: { user: smtpUser, pass: smtpPass },
     });
 
@@ -130,6 +128,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     Sentry.captureException(error);
-    return NextResponse.json({ error: "Failed to send report" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Report email error:", msg);
+    return NextResponse.json({ error: `Failed to send report: ${msg}` }, { status: 500 });
   }
 }
