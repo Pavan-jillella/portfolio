@@ -54,38 +54,34 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
     );
   }
 
-  const chartWidth = 500;
-  const chartHeight = 200;
-  const pt = 20, pb = 28, pl = 10, pr = 10;
-  const dw = chartWidth - pl - pr;
-  const dh = chartHeight - pt - pb;
+  const W = 320, H = 140;
+  const pt = 14, pb = 18, pl = 6, pr = 6;
+  const dw = W - pl - pr;
+  const dh = H - pt - pb;
   const maxValue = Math.max(...data.map((w) => w.total), 1);
   const groupW = dw / data.length;
-  const barW = groupW * 0.55;
-  const pillRx = barW / 2;
+  const barW = Math.min(groupW * 0.55, 24);
+  const rx = Math.min(barW / 2, 5);
   const baseY = pt + dh;
 
   const scaleH = (v: number) => (v / maxValue) * dh;
-
-  // Generate unique gradient IDs
   const colorSet = Array.from(new Set(jobLegend.map((j) => j.color)));
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Weekly Hours</h4>
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 180 }}>
         <defs>
           {colorSet.map((color) => (
-            <linearGradient key={color} id={`pillGrad-ptwk-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.95} />
-              <stop offset="100%" stopColor={color} stopOpacity={0.6} />
+            <linearGradient key={color} id={`ptwk-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.55} />
             </linearGradient>
           ))}
         </defs>
 
-        {/* Grid */}
-        {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
-          <line key={frac} x1={pl} y1={baseY - frac * dh} x2={chartWidth - pr} y2={baseY - frac * dh} stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
+        {[0.5, 1].map((f) => (
+          <line key={f} x1={pl} y1={baseY - f * dh} x2={W - pr} y2={baseY - f * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.3} />
         ))}
 
         {data.map((week, wi) => {
@@ -94,45 +90,27 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
 
           return (
             <g key={week.label}>
-              {/* Background track */}
-              <rect x={x} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.02)" />
-
               {week.stacks.map((stack, si) => {
                 const h = scaleH(stack.hours);
                 currentY -= h;
                 const isTop = si === week.stacks.length - 1;
                 const isBottom = si === 0;
-
                 return (
-                  <motion.rect
-                    key={stack.jobId}
-                    x={x} y={currentY} width={barW} height={h}
-                    rx={isTop || isBottom ? pillRx : 0}
-                    fill={`url(#pillGrad-ptwk-${stack.color.replace("#", "")})`}
-                    initial={{ height: 0, y: baseY }}
-                    animate={{ height: h, y: currentY }}
-                    transition={{ duration: 0.5, delay: wi * 0.06 + si * 0.03 }}
-                  />
+                  <motion.rect key={stack.jobId} x={x} y={currentY} width={barW} height={h}
+                    rx={isTop || isBottom ? rx : 0}
+                    fill={`url(#ptwk-${stack.color.replace("#", "")})`}
+                    initial={{ height: 0, y: baseY }} animate={{ height: h, y: currentY }}
+                    transition={{ duration: 0.4, delay: wi * 0.04 + si * 0.02 }} />
                 );
               })}
 
-              {/* Total label */}
               {week.total > 0 && (
-                <text
-                  x={x + barW / 2} y={baseY - scaleH(week.total) - 5}
-                  textAnchor="middle" fill="rgba(255,255,255,0.7)"
-                  fontSize="12" fontWeight="600" className="font-mono"
-                >
+                <text x={x + barW / 2} y={baseY - scaleH(week.total) - 4} textAnchor="middle" fill="rgba(255,255,255,0.6)" fontSize="7" fontWeight="600" className="font-mono">
                   {week.total.toFixed(1)}h
                 </text>
               )}
 
-              {/* Week label */}
-              <text
-                x={x + barW / 2} y={chartHeight - 6}
-                textAnchor="middle" fill="rgba(255,255,255,0.4)"
-                fontSize="10" className="font-mono"
-              >
+              <text x={x + barW / 2} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6.5" className="font-mono">
                 {week.label}
               </text>
             </g>
@@ -140,13 +118,12 @@ export function PartTimeWeeklyChart({ jobs, hours }: PartTimeWeeklyChartProps) {
         })}
       </svg>
 
-      {/* Legend */}
       {jobLegend.length > 1 && (
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
           {jobLegend.map((j) => (
-            <div key={j.name} className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: j.color }} />
-              <span className="font-mono text-[10px] text-white/50">{j.name}</span>
+            <div key={j.name} className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: j.color }} />
+              <span className="font-mono text-[9px] text-white/45">{j.name}</span>
             </div>
           ))}
         </div>

@@ -39,125 +39,81 @@ export function MonthlyBudgetComparisonChart({ budgets, transactions, selectedMo
     );
   }
 
-  const chartWidth = 700;
-  const chartHeight = 280;
-  const pt = 30, pb = 34, pl = 12, pr = 12;
-  const dw = chartWidth - pl - pr;
-  const dh = chartHeight - pt - pb;
-
+  const W = 320, H = 160;
+  const pt = 14, pb = 22, pl = 6, pr = 6;
+  const dw = W - pl - pr;
+  const dh = H - pt - pb;
   const maxValue = Math.max(...data.flatMap((d) => [d.budget, d.actual]), 1);
   const groupW = dw / data.length;
-  const barW = Math.max(groupW * 0.3, 16);
-  const barGap = Math.max(groupW * 0.05, 4);
-  const pillRx = Math.min(barW / 2, 8);
-  const baseYLine = pt + dh;
-
-  const budgetColor = "#3b82f6";
-  const actualColor = "#f97316";
-  const overBudgetColor = "#ef4444";
+  const barW = Math.min(groupW * 0.28, 18);
+  const barGap = Math.max(barW * 0.2, 2);
+  const rx = Math.min(barW / 2, 4);
+  const baseY = pt + dh;
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="font-display font-semibold text-sm text-white">Budget vs Actual</h4>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: budgetColor }} />
-            <span className="font-mono text-[10px] text-white/50">Budget</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="font-mono text-[9px] text-white/40">Budget</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: actualColor }} />
-            <span className="font-mono text-[10px] text-white/50">Actual</span>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="font-mono text-[9px] text-white/40">Actual</span>
           </div>
         </div>
       </div>
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto" style={{ overflow: "visible" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 200 }}>
         <defs>
-          <linearGradient id="pillGrad-mbc-budget" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.95} />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.7} />
+          <linearGradient id="mbcBudget" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.6} />
           </linearGradient>
-          <linearGradient id="pillGrad-mbc-actual" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#fb923c" stopOpacity={0.95} />
-            <stop offset="100%" stopColor="#ea580c" stopOpacity={0.7} />
+          <linearGradient id="mbcActual" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fdba74" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#ea580c" stopOpacity={0.6} />
           </linearGradient>
-          <linearGradient id="pillGrad-mbc-over" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f87171" stopOpacity={0.95} />
-            <stop offset="100%" stopColor="#dc2626" stopOpacity={0.7} />
+          <linearGradient id="mbcOver" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fca5a5" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6} />
           </linearGradient>
         </defs>
 
-        {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
-          <line
-            key={frac}
-            x1={pl} y1={pt + dh - frac * dh}
-            x2={chartWidth - pr} y2={pt + dh - frac * dh}
-            stroke="rgba(255,255,255,0.04)" strokeWidth={0.5}
-          />
+        {[0.5, 1].map((f) => (
+          <line key={f} x1={pl} y1={baseY - f * dh} x2={W - pr} y2={baseY - f * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.3} />
         ))}
 
-        {/* Grouped bars */}
         {data.map((d, i) => {
-          const groupX = pl + i * groupW;
-          const budgetX = groupX + (groupW - barW * 2 - barGap) / 2;
-          const actualX = budgetX + barW + barGap;
-
-          const budgetH = (d.budget / maxValue) * dh;
-          const budgetY = baseYLine - budgetH;
-          const actualH = (d.actual / maxValue) * dh;
-          const actualY = baseYLine - actualH;
-
+          const cx = pl + i * groupW + groupW / 2;
+          const bx = cx - barW - barGap / 2;
+          const ax = cx + barGap / 2;
+          const bH = (d.budget / maxValue) * dh;
+          const aH = (d.actual / maxValue) * dh;
           const isOver = d.actual > d.budget;
-          const categoryLabel = d.category.length > 8 ? d.category.slice(0, 8) + "\u2026" : d.category;
+          const catLabel = d.category.length > 7 ? d.category.slice(0, 6) + "…" : d.category;
 
           return (
             <g key={d.category}>
-              {/* Background tracks */}
-              <rect x={budgetX} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.02)" />
-              <rect x={actualX} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.02)" />
+              <motion.rect x={bx} y={baseY - bH} width={barW} height={bH} rx={rx}
+                fill="url(#mbcBudget)"
+                initial={{ height: 0, y: baseY }} animate={{ height: bH, y: baseY - bH }}
+                transition={{ duration: 0.4, delay: i * 0.06 }} />
+              <motion.rect x={ax} y={baseY - aH} width={barW} height={aH} rx={rx}
+                fill={isOver ? "url(#mbcOver)" : "url(#mbcActual)"}
+                initial={{ height: 0, y: baseY }} animate={{ height: aH, y: baseY - aH }}
+                transition={{ duration: 0.4, delay: i * 0.06 + 0.05 }} />
 
-              {/* Budget pill bar */}
-              <motion.rect
-                x={budgetX} y={budgetY} width={barW} height={budgetH}
-                rx={pillRx} fill="url(#pillGrad-mbc-budget)"
-                initial={{ height: 0, y: baseYLine }}
-                animate={{ height: budgetH, y: budgetY }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-              />
-
-              {/* Actual pill bar */}
-              <motion.rect
-                x={actualX} y={actualY} width={barW} height={actualH}
-                rx={pillRx} fill={isOver ? "url(#pillGrad-mbc-over)" : "url(#pillGrad-mbc-actual)"}
-                initial={{ height: 0, y: baseYLine }}
-                animate={{ height: actualH, y: actualY }}
-                transition={{ duration: 0.5, delay: i * 0.08 + 0.1 }}
-              />
-
-              {/* Value labels */}
-              <text
-                x={budgetX + barW / 2} y={budgetY - 6}
-                textAnchor="middle" fill="rgba(96,165,250,0.95)"
-                fontSize="12" fontWeight="700" className="font-mono"
-              >
-                {formatCurrency(d.budget)}
+              <text x={bx + barW / 2} y={baseY - bH - 3} textAnchor="middle" fill="rgba(147,197,253,0.85)" fontSize="6.5" fontWeight="600" className="font-mono">
+                ${Math.round(d.budget)}
               </text>
-              <text
-                x={actualX + barW / 2} y={actualY - 6}
-                textAnchor="middle" fill={isOver ? "rgba(248,113,113,0.95)" : "rgba(251,146,60,0.95)"}
-                fontSize="12" fontWeight="700" className="font-mono"
-              >
-                {formatCurrency(d.actual)}
+              <text x={ax + barW / 2} y={baseY - aH - 3} textAnchor="middle" fill={isOver ? "rgba(252,165,165,0.85)" : "rgba(253,186,116,0.85)"} fontSize="6.5" fontWeight="600" className="font-mono">
+                ${Math.round(d.actual)}
               </text>
 
-              {/* Category label */}
-              <text
-                x={groupX + groupW / 2} y={chartHeight - pb + 18}
-                textAnchor="middle" fill="rgba(255,255,255,0.5)"
-                fontSize="10" fontWeight="500" className="font-mono"
-              >
-                {categoryLabel}
+              <text x={cx} y={H - 6} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="6.5" className="font-mono">
+                {catLabel}
               </text>
             </g>
           );

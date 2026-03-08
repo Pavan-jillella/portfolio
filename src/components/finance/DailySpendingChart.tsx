@@ -39,85 +39,57 @@ export function DailySpendingChart({ transactions, selectedMonth }: DailySpendin
     );
   }
 
-  const chartWidth = 700;
-  const chartHeight = 240;
-  const pt = 30, pb = 28, pl = 8, pr = 8;
-  const dw = chartWidth - pl - pr;
-  const dh = chartHeight - pt - pb;
+  const W = 320, H = 140;
+  const pt = 8, pb = 16, pl = 4, pr = 4;
+  const dw = W - pl - pr;
+  const dh = H - pt - pb;
   const step = dw / dailySpending.length;
-  const barW = Math.max(step * 0.7, 6);
-  const pillRx = Math.min(barW / 2, 5);
+  const barW = Math.max(step * 0.65, 3);
+  const rx = Math.min(barW / 2, 3);
+  const baseY = pt + dh;
 
-  // Top 7 spending days for labels
-  const topDays = new Set(
-    [...dailySpending].sort((a, b) => b.amount - a.amount).slice(0, 7).map((d) => d.day)
+  const top3 = new Set(
+    [...dailySpending].sort((a, b) => b.amount - a.amount).slice(0, 3).map((d) => d.day)
   );
 
   return (
     <div className="glass-card rounded-2xl p-5">
       <h4 className="font-display font-semibold text-sm text-white mb-4">Daily Spending</h4>
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto" style={{ overflow: "visible" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 180 }}>
         <defs>
-          <linearGradient id="pillGrad-daily" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f87171" stopOpacity={0.95} />
-            <stop offset="100%" stopColor="#dc2626" stopOpacity={0.7} />
+          <linearGradient id="dsPill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f87171" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#dc2626" stopOpacity={0.65} />
           </linearGradient>
         </defs>
 
-        {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
-          const y = pt + dh - (frac * dh);
-          return (
-            <line
-              key={frac}
-              x1={pl} y1={y}
-              x2={chartWidth - pr} y2={y}
-              stroke="rgba(255,255,255,0.04)" strokeWidth={0.5}
-            />
-          );
-        })}
+        {[0.5, 1].map((f) => (
+          <line key={f} x1={pl} y1={baseY - f * dh} x2={W - pr} y2={baseY - f * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.3} />
+        ))}
 
-        {/* Bars */}
         {dailySpending.map((d, i) => {
           if (d.amount === 0) return null;
           const x = pl + i * step + (step - barW) / 2;
-          const h = Math.max((d.amount / maxValue) * dh, 2);
-          const y = pt + dh - h;
-
+          const h = Math.max((d.amount / maxValue) * dh, 1.5);
+          const y = baseY - h;
           return (
             <g key={d.day}>
-              {/* Pill bar */}
-              <motion.rect
-                x={x} y={y} width={barW} height={h}
-                rx={pillRx} fill="url(#pillGrad-daily)"
-                initial={{ height: 0, y: pt + dh }}
-                animate={{ height: h, y }}
-                transition={{ duration: 0.5, delay: i * 0.015 }}
-              />
-              {topDays.has(d.day) && (
-                <text
-                  x={x + barW / 2} y={y - 6}
-                  textAnchor="middle" fill="rgba(248,113,113,0.95)"
-                  fontSize="11" fontWeight="700" className="font-mono"
-                >
-                  {formatCurrency(d.amount)}
+              <motion.rect x={x} y={y} width={barW} height={h} rx={rx} fill="url(#dsPill)"
+                initial={{ height: 0, y: baseY }} animate={{ height: h, y }}
+                transition={{ duration: 0.4, delay: i * 0.01 }} />
+              {top3.has(d.day) && (
+                <text x={x + barW / 2} y={y - 3} textAnchor="middle" fill="rgba(248,113,113,0.85)" fontSize="7" fontWeight="600" className="font-mono">
+                  ${Math.round(d.amount)}
                 </text>
               )}
             </g>
           );
         })}
 
-        {/* X-axis day labels - every 3rd day for readability */}
         {dailySpending.map((d, i) => {
-          if (d.day % 3 !== 1 && d.day !== 1) return null;
+          if (d.day % 5 !== 0 && d.day !== 1) return null;
           return (
-            <text
-              key={`x-${d.day}`}
-              x={pl + i * step + step / 2}
-              y={chartHeight - 6}
-              textAnchor="middle" fill="rgba(255,255,255,0.45)"
-              fontSize="10" className="font-mono"
-            >
+            <text key={`l-${d.day}`} x={pl + i * step + step / 2} y={H - 3} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6" className="font-mono">
               {d.day}
             </text>
           );

@@ -44,16 +44,15 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
     );
   }
 
-  const chartWidth = 500;
-  const chartHeight = 220;
-  const pt = 28, pb = 30, pl = 10, pr = 10;
-  const dw = chartWidth - pl - pr;
-  const dh = chartHeight - pt - pb;
+  const W = 320, H = 160;
+  const pt = 14, pb = 20, pl = 6, pr = 6;
+  const dw = W - pl - pr;
+  const dh = H - pt - pb;
   const maxValue = Math.max(...data.flatMap((d) => [d.payroll, d.partTime]), 1);
   const groupW = dw / data.length;
-  const barW = groupW * 0.3;
-  const barGap = groupW * 0.05;
-  const pillRx = barW / 2;
+  const barW = Math.min(groupW * 0.3, 16);
+  const barGap = Math.max(barW * 0.2, 2);
+  const rx = Math.min(barW / 2, 4);
   const baseY = pt + dh;
 
   return (
@@ -61,84 +60,66 @@ export function PayrollVsPartTimeChart({ payStubs, partTimeJobs, partTimeHours }
       <div className="flex items-center justify-between mb-4">
         <h4 className="font-display font-semibold text-sm text-white">Payroll vs Part-Time</h4>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-            <span className="font-mono text-[10px] text-white/50">Payroll</span>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="font-mono text-[9px] text-white/40">Payroll</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-            <span className="font-mono text-[10px] text-white/50">Part-Time</span>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-purple-500" />
+            <span className="font-mono text-[9px] text-white/40">Part-Time</span>
           </div>
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 200 }}>
         <defs>
-          <linearGradient id="pillGrad-pvpt-payroll" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.95} />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.7} />
+          <linearGradient id="pvptPay" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.6} />
           </linearGradient>
-          <linearGradient id="pillGrad-pvpt-parttime" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.95} />
-            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7} />
+          <linearGradient id="pvptPt" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#c4b5fd" stopOpacity={0.9} />
+            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.6} />
           </linearGradient>
         </defs>
 
-        {/* Grid */}
-        {[0, 0.25, 0.5, 0.75, 1].map((frac) => (
-          <line key={frac} x1={pl} y1={pt + dh - frac * dh} x2={chartWidth - pr} y2={pt + dh - frac * dh} stroke="rgba(255,255,255,0.04)" strokeWidth={0.5} />
+        {[0.5, 1].map((f) => (
+          <line key={f} x1={pl} y1={baseY - f * dh} x2={W - pr} y2={baseY - f * dh} stroke="rgba(255,255,255,0.05)" strokeWidth={0.3} />
         ))}
 
         {data.map((entry, i) => {
-          const groupX = pl + i * groupW + groupW * 0.15;
+          const cx = pl + i * groupW + groupW / 2;
+          const px = cx - barW - barGap / 2;
+          const tx = cx + barGap / 2;
           const payH = (entry.payroll / maxValue) * dh;
           const ptH = (entry.partTime / maxValue) * dh;
 
           return (
             <g key={entry.month}>
-              {/* Background tracks */}
-              <rect x={groupX} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.02)" />
-              <rect x={groupX + barW + barGap} y={pt} width={barW} height={dh} rx={pillRx} fill="rgba(255,255,255,0.02)" />
-
-              {/* Payroll pill bar */}
               {entry.payroll > 0 && (
                 <>
-                  <motion.rect
-                    x={groupX} y={baseY - payH} width={barW} height={payH}
-                    rx={pillRx} fill="url(#pillGrad-pvpt-payroll)"
-                    initial={{ height: 0, y: baseY }}
-                    animate={{ height: payH, y: baseY - payH }}
-                    transition={{ duration: 0.6, delay: i * 0.08 }}
-                  />
-                  <text x={groupX + barW / 2} y={baseY - payH - 5} textAnchor="middle" fill="rgba(96,165,250,0.9)" fontSize="12" fontWeight="600" className="font-mono">
-                    {formatCurrency(entry.payroll)}
+                  <motion.rect x={px} y={baseY - payH} width={barW} height={payH} rx={rx}
+                    fill="url(#pvptPay)"
+                    initial={{ height: 0, y: baseY }} animate={{ height: payH, y: baseY - payH }}
+                    transition={{ duration: 0.4, delay: i * 0.06 }} />
+                  <text x={px + barW / 2} y={baseY - payH - 3} textAnchor="middle" fill="rgba(147,197,253,0.85)" fontSize="6.5" fontWeight="600" className="font-mono">
+                    ${Math.round(entry.payroll)}
                   </text>
                 </>
               )}
-
-              {/* Part-time pill bar */}
               {entry.partTime > 0 && (
                 <>
-                  <motion.rect
-                    x={groupX + barW + barGap} y={baseY - ptH} width={barW} height={ptH}
-                    rx={pillRx} fill="url(#pillGrad-pvpt-parttime)"
-                    initial={{ height: 0, y: baseY }}
-                    animate={{ height: ptH, y: baseY - ptH }}
-                    transition={{ duration: 0.6, delay: i * 0.08 + 0.1 }}
-                  />
-                  <text x={groupX + barW + barGap + barW / 2} y={baseY - ptH - 5} textAnchor="middle" fill="rgba(167,139,250,0.9)" fontSize="12" fontWeight="600" className="font-mono">
-                    {formatCurrency(entry.partTime)}
+                  <motion.rect x={tx} y={baseY - ptH} width={barW} height={ptH} rx={rx}
+                    fill="url(#pvptPt)"
+                    initial={{ height: 0, y: baseY }} animate={{ height: ptH, y: baseY - ptH }}
+                    transition={{ duration: 0.4, delay: i * 0.06 + 0.05 }} />
+                  <text x={tx + barW / 2} y={baseY - ptH - 3} textAnchor="middle" fill="rgba(196,181,253,0.85)" fontSize="6.5" fontWeight="600" className="font-mono">
+                    ${Math.round(entry.partTime)}
                   </text>
                 </>
               )}
 
-              {/* Month label */}
-              <text
-                x={groupX + barW + barGap / 2}
-                y={chartHeight - 6}
-                textAnchor="middle" fill="rgba(255,255,255,0.4)"
-                fontSize="10" className="font-mono"
-              >
+              <text x={cx} y={H - 5} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="7" className="font-mono">
                 {SHORT_MONTHS[parseInt(entry.month.split("-")[1]) - 1]}
               </text>
             </g>
