@@ -40,6 +40,7 @@ import { QuizTab } from "./quiz/QuizTab";
 import { LearningPlannerTab } from "./planner/LearningPlannerTab";
 import { StudyAssistantChat } from "./ai/StudyAssistantChat";
 import { CourseRoadmap } from "./ai/CourseRoadmap";
+import { RoadmapTab } from "./roadmap/RoadmapTab";
 
 export function EducationDashboardClient() {
   // ===== State (Realtime-synced) =====
@@ -64,6 +65,13 @@ export function EducationDashboardClient() {
   const { isAvailable: isStorageAvailable, upload: uploadFile } = useSupabaseStorage();
   const { user } = useAuth();
   const isRealtimeConnected = sessionsConnected || notesConnected || coursesConnected || projectsConnected;
+
+  const visibleTabs = useMemo(() =>
+    DASHBOARD_TABS.filter((tab) =>
+      tab.id !== "roadmap" || user?.email === "pavankalyan171199@gmail.com"
+    ),
+    [user?.email]
+  );
 
   function copyProfileLink() {
     if (!user?.id) return;
@@ -225,7 +233,7 @@ export function EducationDashboardClient() {
       <FadeIn delay={0.05}>
         <div className="flex items-center gap-4">
           <div className="flex flex-wrap gap-2 flex-1">
-            {DASHBOARD_TABS.map((tab) => (
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -414,6 +422,14 @@ export function EducationDashboardClient() {
               sessions={studySessions}
               courses={courses}
             />
+          </ErrorBoundary>
+        </FadeIn>
+      )}
+
+      {activeTab === "roadmap" && (
+        <FadeIn>
+          <ErrorBoundary module="Roadmap">
+            <RoadmapTab sessions={studySessions} />
           </ErrorBoundary>
         </FadeIn>
       )}

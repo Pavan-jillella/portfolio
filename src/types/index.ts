@@ -509,6 +509,30 @@ export interface LeetCodeDashboardData {
   submissionCalendar: Record<string, number>;
 }
 
+// ===== FAANG Roadmap Types =====
+
+export interface RoadmapTopicProgress {
+  topicId: string;
+  completed: boolean;
+  completedAt?: string;
+}
+
+export interface RoadmapPhaseProgress {
+  phaseId: number;
+  topicProgress: RoadmapTopicProgress[];
+  notes: string;
+  updatedAt: string;
+}
+
+export interface RoadmapProgress {
+  phases: RoadmapPhaseProgress[];
+  problemsSolved: { easy: number; medium: number; hard: number };
+  mockInterviewsDone: number;
+  systemDesignsDone: number;
+  projectsCompleted: string[];
+  updatedAt: string;
+}
+
 export interface DashboardOverviewStats {
   studyHoursThisWeek: number;
   coursesCompleted: number;
