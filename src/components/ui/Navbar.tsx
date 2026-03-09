@@ -9,7 +9,7 @@ import { SECTION_LABELS, SectionKey } from "@/lib/visibility";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-const navLinks = [
+const baseNavLinks = [
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog" },
   { label: "Vlogs", href: "/vlogs" },
@@ -19,6 +19,8 @@ const navLinks = [
   { label: "Habits", href: "/dashboard/habits" },
   { label: "Life Index", href: "/dashboard/life-index" },
 ];
+
+const ROADMAP_EMAIL = "pavankalyan171199@gmail.com";
 
 const sectionKeys = Object.keys(SECTION_LABELS) as SectionKey[];
 
@@ -33,6 +35,10 @@ export function Navbar() {
   const router = useRouter();
   const { visibility, toggleSection } = useVisibility();
   const { user, signOut } = useAuth();
+
+  const navLinks = user?.email === ROADMAP_EMAIL
+    ? [...baseNavLinks, { label: "Roadmap", href: "/roadmap" }]
+    : baseNavLinks;
 
   async function handleSignOut() {
     await signOut();
