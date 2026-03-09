@@ -374,6 +374,141 @@ function CounterInput({
   );
 }
 
+/* ─── visual tree diagram ─────────────────────────────────── */
+
+function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
+  const [hoveredPhase, setHoveredPhase] = useState<number | null>(null);
+
+  return (
+    <div className="glass-card rounded-2xl p-5 overflow-x-auto">
+      <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-6">
+        Learning Path Tree
+      </p>
+
+      <div className="min-w-[800px]">
+        {/* Root node */}
+        <div className="flex justify-center mb-2">
+          <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500/20 to-violet-500/20 border border-blue-500/20">
+            <span className="font-display font-bold text-sm text-white">FAANG Preparation</span>
+          </div>
+        </div>
+
+        {/* Connector from root to phases */}
+        <div className="flex justify-center mb-2">
+          <div className="w-px h-6 bg-white/10" />
+        </div>
+
+        {/* Horizontal line across all phases */}
+        <div className="relative mx-12 mb-2">
+          <div className="h-px bg-white/10 absolute top-0 left-0 right-0" />
+          {/* Drop-down connectors for each phase */}
+          <div className="flex justify-between">
+            {PHASES.map((phase) => (
+              <div key={phase.id} className="flex flex-col items-center" style={{ width: `${100 / PHASES.length}%` }}>
+                <div className={cn("w-px h-6", phase.bgColor + "/30")} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Phase nodes row */}
+        <div className="flex justify-between gap-2 mx-4 mb-2">
+          {PHASES.map((phase) => {
+            const pct = getPhaseProgress(progress, phase.id);
+            const isHovered = hoveredPhase === phase.id;
+            return (
+              <div
+                key={phase.id}
+                className="flex flex-col items-center flex-1"
+                onMouseEnter={() => setHoveredPhase(phase.id)}
+                onMouseLeave={() => setHoveredPhase(null)}
+              >
+                <motion.div
+                  animate={{ scale: isHovered ? 1.05 : 1 }}
+                  className={cn(
+                    "w-full rounded-xl px-2 py-2.5 text-center border transition-all cursor-default",
+                    pct === 100
+                      ? `${phase.bgColor}/20 ${phase.borderColor} ring-1 ${phase.borderColor.replace("border-", "ring-")}`
+                      : pct > 0
+                      ? `bg-white/[0.03] ${phase.borderColor}`
+                      : "bg-white/[0.02] border-white/5"
+                  )}
+                >
+                  <p className={cn("font-mono text-[9px] uppercase tracking-wider mb-0.5", phase.color)}>
+                    {phase.duration}
+                  </p>
+                  <p className={cn("font-display font-bold text-[11px] leading-tight", pct > 0 ? phase.color : "text-white/60")}>
+                    {phase.title}
+                  </p>
+                  <div className="h-1 rounded-full bg-white/5 overflow-hidden mt-1.5">
+                    <motion.div
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.5 }}
+                      className={cn("h-full rounded-full", phase.bgColor + "/50")}
+                    />
+                  </div>
+                  <p className="font-mono text-[8px] text-white/20 mt-1">{pct}%</p>
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Drop-down connectors from phases to topics */}
+        <div className="flex justify-between gap-2 mx-4 mb-1">
+          {PHASES.map((phase) => (
+            <div key={phase.id} className="flex flex-col items-center flex-1">
+              <div className={cn("w-px h-4", hoveredPhase === phase.id ? phase.bgColor + "/40" : "bg-white/5")} />
+            </div>
+          ))}
+        </div>
+
+        {/* Topic branches */}
+        <div className="flex justify-between gap-2 mx-4">
+          {PHASES.map((phase) => {
+            const isActive = hoveredPhase === phase.id;
+            return (
+              <div key={phase.id} className="flex-1 min-w-0">
+                <AnimatePresence>
+                  <motion.div
+                    initial={false}
+                    animate={{ opacity: isActive ? 1 : 0.4, height: isActive ? "auto" : 120 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className={cn("rounded-lg border p-2 space-y-0.5", isActive ? phase.borderColor : "border-white/5")}>
+                      {phase.topics.map((topic) => {
+                        const done = isTopicCompleted(progress, phase.id, topic.id);
+                        return (
+                          <div
+                            key={topic.id}
+                            className="flex items-center gap-1.5 px-1.5 py-1 rounded"
+                          >
+                            <div className={cn(
+                              "w-2 h-2 rounded-full flex-shrink-0 transition-colors",
+                              done ? phase.bgColor + "/60" : "bg-white/10"
+                            )} />
+                            <span className={cn(
+                              "font-mono text-[9px] leading-tight truncate transition-colors",
+                              done ? `${phase.color} line-through opacity-60` : "text-white/40"
+                            )}>
+                              {topic.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── main component ──────────────────────────────────────── */
 
 interface RoadmapTabProps {
@@ -552,6 +687,9 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
           })}
         </div>
       </div>
+
+      {/* ── Visual Learning Path Tree ────────────── */}
+      <LearningTreeDiagram progress={progress} />
 
       {/* ── Roadmap Tree ─────────────────────────────── */}
       <div id="roadmap-tree" className="glass-card rounded-2xl p-5">
