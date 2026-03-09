@@ -1,5 +1,5 @@
 "use client";
-import { use, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,11 +16,11 @@ function isSafeHref(href: string | undefined): boolean {
 }
 
 interface BlogPostPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const { slug } = use(params);
+  const { slug } = params;
   const [posts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
   const [ready, setReady] = useState(false);
 
