@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isOwner } from "@/lib/roles";
 
 const DATA_TABLES = [
   "transactions",
@@ -22,14 +23,12 @@ const DATA_TABLES = [
   "enhanced_work_schedules",
 ];
 
-const OWNER_EMAIL = process.env.OWNER_EMAIL;
-
 export async function POST() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !anonKey || !serviceKey || !OWNER_EMAIL) {
+  if (!url || !anonKey || !serviceKey) {
     return NextResponse.json({ error: "Not configured" }, { status: 500 });
   }
 
@@ -52,7 +51,7 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (user.email !== OWNER_EMAIL) {
+  if (!isOwner(user.email)) {
     return NextResponse.json(
       { error: "Only the owner can run this migration", your_email: user.email },
       { status: 403 }

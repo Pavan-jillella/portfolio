@@ -6,7 +6,7 @@ import { CommandPalette } from "@/components/search/CommandPalette";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isMinimalPage = pathname === "/login" || pathname === "/blog/write";
+  const isMinimalPage = pathname === "/login" || pathname === "/blog/write" || pathname === "/terms" || pathname === "/privacy";
 
   return (
     <>

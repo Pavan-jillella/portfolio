@@ -5,10 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { cn } from "@/lib/utils";
+import { isOwner } from "@/lib/roles";
 
 /* ─── constants ─────────────────────────────────────────────── */
-
-const ALLOWED_EMAIL = "pavankalyan171199@gmail.com";
 
 interface Phase {
   id: number;
@@ -389,7 +388,7 @@ export function FAANGRoadmapClient() {
     );
   }
 
-  if (!user || user.email !== ALLOWED_EMAIL) {
+  if (!user || !isOwner(user.email)) {
     return (
       <FadeIn>
         <div className="glass-card rounded-2xl p-12 text-center">

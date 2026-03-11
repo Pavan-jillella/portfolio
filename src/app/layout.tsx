@@ -10,6 +10,7 @@ import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { LayoutShell } from "@/components/layout/LayoutShell";
+import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -76,6 +77,7 @@ export default function RootLayout({
                 <FloatingBackground />
                 <LayoutShell>{children}</LayoutShell>
                 <PageViewTracker />
+                <CookieConsent />
                 <Analytics />
               </SmoothScroll>
             </PostHogProvider>

@@ -11,6 +11,8 @@ const PUBLIC_PATHS = [
   "/api/analytics",
   "/api/education/profile/",
   "/education/profile/",
+  "/terms",
+  "/privacy",
 ];
 
 /** Files at the root that should be publicly accessible */
@@ -33,11 +35,90 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
+// --- In-memory rate limiting for API routes ---
+const apiRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+// Cleanup stale entries periodically
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const key of Array.from(apiRateLimitMap.keys())) {
+      const entry = apiRateLimitMap.get(key);
+      if (entry && now > entry.resetAt) {
+        apiRateLimitMap.delete(key);
+      }
+    }
+  }, 60_000);
+}
+
+function checkApiRateLimit(ip: string): { allowed: boolean; remaining: number } {
+  const LIMIT = 60; // 60 requests per window
+  const WINDOW_MS = 60_000; // 1 minute
+  const now = Date.now();
+  const key = `api:${ip}`;
+  const entry = apiRateLimitMap.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    apiRateLimitMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return { allowed: true, remaining: LIMIT - 1 };
+  }
+
+  if (entry.count >= LIMIT) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  entry.count++;
+  return { allowed: true, remaining: LIMIT - entry.count };
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
+    // Rate limit public API routes too
+    if (pathname.startsWith("/api")) {
+      const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.ip || "unknown";
+      const { allowed, remaining } = checkApiRateLimit(ip);
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "Too many requests. Please try again later." },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": "60",
+              "X-RateLimit-Remaining": "0",
+            },
+          }
+        );
+      }
+      const response = NextResponse.next();
+      response.headers.set("X-RateLimit-Remaining", String(remaining));
+      return response;
+    }
     return NextResponse.next();
+  }
+
+  // Rate limit all API routes
+  if (pathname.startsWith("/api")) {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.ip || "unknown";
+    const { allowed, remaining } = checkApiRateLimit(ip);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "60",
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
+
+    const { supabase, response } = createMiddlewareClient(request);
+    await supabase.auth.getUser();
+    response.headers.set("X-RateLimit-Remaining", String(remaining));
+    return response;
   }
 
   const { supabase, response } = createMiddlewareClient(request);
@@ -45,11 +126,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  // API routes: refresh session cookies but don't redirect (they return 401 themselves)
-  if (pathname.startsWith("/api")) {
-    return response;
-  }
 
   if (!user) {
     const loginUrl = new URL("/login", request.url);
