@@ -6,6 +6,7 @@ import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { generateId } from "@/lib/finance-utils";
 import { migrateNoteToCourseIds, migrateFileToEntityIds } from "@/lib/education-utils";
+import { isOwner } from "@/lib/roles";
 import {
   StudySession,
   StudyGoal,
@@ -90,7 +91,7 @@ export function EducationDashboardClient() {
 
   const visibleTabs = useMemo(() =>
     DASHBOARD_TABS.filter((tab) =>
-      tab.id !== "roadmap" || user?.email === "pavankalyan171199@gmail.com"
+      tab.id !== "roadmap" || isOwner(user?.email)
     ),
     [user?.email]
   );
@@ -133,6 +134,29 @@ export function EducationDashboardClient() {
     setCourseModules((prev) => prev.filter((m) => m.course_id !== id));
     setCourseNotes((prev) => prev.filter((n) => n.course_id !== id));
     setCourseFiles((prev) => prev.filter((f) => f.course_id !== id));
+  }
+
+  // Import a pre-built course from the seed API (owner only)
+  async function importSeedCourse(): Promise<string | null> {
+    try {
+      const res = await fetch("/api/education/seed", { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json();
+        return err.error || "Import failed";
+      }
+      const data = await res.json();
+      // Add course to local state (will also sync to Supabase via realtime)
+      setCourses((prev) => {
+        // Avoid duplicates
+        if (prev.some((c) => c.name === data.course.name)) return prev;
+        return [...prev, data.course];
+      });
+      // Add modules to localStorage
+      setCourseModules((prev) => [...prev, ...data.modules]);
+      return null; // no error
+    } catch {
+      return "Network error during import";
+    }
   }
 
   // ===== Course Module Handlers =====
@@ -328,8 +352,10 @@ export function EducationDashboardClient() {
               courseFiles={courseFiles}
               generalFiles={files}
               isStorageAvailable={isStorageAvailable}
+              isOwnerUser={isOwner(user?.email)}
               onAddCourse={addCourse}
               onDeleteCourse={deleteCourse}
+              onImportSeedCourse={importSeedCourse}
               onAddModule={addCourseModule}
               onToggleModule={toggleCourseModule}
               onDeleteModule={deleteCourseModule}

@@ -10,7 +10,7 @@ import { CourseLinkedFiles } from "./CourseLinkedFiles";
 import { CourseForm } from "@/components/education/CourseForm";
 import { CourseRecommendations } from "../ai/CourseRecommendations";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CourseTrackerTabProps {
   courses: Course[];
@@ -20,8 +20,10 @@ interface CourseTrackerTabProps {
   courseFiles: CourseFile[];
   generalFiles: UploadedFile[];
   isStorageAvailable: boolean;
+  isOwnerUser?: boolean;
   onAddCourse: (course: Omit<Course, "id" | "created_at">) => void;
   onDeleteCourse: (id: string) => void;
+  onImportSeedCourse?: () => Promise<string | null>;
   onAddModule: (module: Omit<CourseModule, "id" | "created_at">) => void;
   onToggleModule: (id: string) => void;
   onDeleteModule: (id: string) => void;
@@ -41,8 +43,10 @@ export function CourseTrackerTab({
   courseFiles,
   generalFiles,
   isStorageAvailable,
+  isOwnerUser,
   onAddCourse,
   onDeleteCourse,
+  onImportSeedCourse,
   onAddModule,
   onToggleModule,
   onDeleteModule,
@@ -56,6 +60,8 @@ export function CourseTrackerTab({
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const stats = useMemo(() => {
     const completed = courses.filter((c) => c.status === "completed").length;
@@ -91,6 +97,26 @@ export function CourseTrackerTab({
         <h2 className="font-display font-semibold text-xl text-white">Course Tracker</h2>
         <div className="flex items-center gap-3">
           <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          {isOwnerUser && onImportSeedCourse && (
+            <button
+              onClick={async () => {
+                setImporting(true);
+                setImportMsg(null);
+                const err = await onImportSeedCourse();
+                if (err) {
+                  setImportMsg({ type: "error", text: err });
+                } else {
+                  setImportMsg({ type: "success", text: "Python Roadmap imported!" });
+                }
+                setImporting(false);
+                setTimeout(() => setImportMsg(null), 4000);
+              }}
+              disabled={importing}
+              className="glass-card px-4 py-2 rounded-2xl text-sm font-body text-blue-400/60 hover:text-blue-400 hover:border-blue-500/30 transition-all duration-300 disabled:opacity-40"
+            >
+              {importing ? "Importing..." : "Import Python Roadmap"}
+            </button>
+          )}
           <button
             onClick={() => setShowForm(true)}
             className="glass-card px-5 py-2 rounded-2xl text-sm font-body text-white/60 hover:text-white hover:border-blue-500/30 transition-all duration-300"
@@ -101,6 +127,23 @@ export function CourseTrackerTab({
       </div>
 
       <CourseForm open={showForm} onClose={() => setShowForm(false)} onSubmit={onAddCourse} />
+
+      <AnimatePresence>
+        {importMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`rounded-xl px-4 py-3 text-sm font-body ${
+              importMsg.type === "success"
+                ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                : "bg-red-500/10 border border-red-500/20 text-red-400"
+            }`}
+          >
+            {importMsg.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">
