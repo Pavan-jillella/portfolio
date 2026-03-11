@@ -5,6 +5,18 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { BlogPost } from "@/types";
 
+function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
 export function BlogFilters({ posts }: { posts: BlogPost[] }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -68,7 +80,7 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                         {post.description}
                       </p>
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-white/25">{post.created_at}</span>
+                        <span className="font-mono text-xs text-white/25">{formatDate(post.created_at)}</span>
                         <span className="tag-badge px-2 py-0.5 rounded-full border border-white/8 bg-white/4 text-white/30 text-xs">
                           {post.category}
                         </span>
@@ -101,7 +113,7 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                   </h2>
                   <p className="font-body text-sm text-white/40 line-clamp-3 mb-auto">{post.description}</p>
                   <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/5">
-                    <span className="font-mono text-xs text-white/25">{post.created_at}</span>
+                    <span className="font-mono text-xs text-white/25">{formatDate(post.created_at)}</span>
                     <span className="font-mono text-xs text-white/20">{post.read_time}</span>
                   </div>
                 </div>
@@ -138,7 +150,7 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="font-mono text-xs text-white/30">{post.created_at}</span>
+                      <span className="font-mono text-xs text-white/30">{formatDate(post.created_at)}</span>
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <span className="font-mono text-xs text-white/20">{post.read_time}</span>

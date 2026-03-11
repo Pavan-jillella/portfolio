@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { rateLimit } from "@/lib/rate-limit";
+import * as Sentry from "@sentry/nextjs";
 
 async function getAuthUserId(): Promise<string | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -153,6 +154,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result: content, raw: content });
   } catch (error) {
     console.error("Education AI error:", error);
+    Sentry.captureException(error);
     return NextResponse.json({ error: "AI request failed" }, { status: 500 });
   }
 }

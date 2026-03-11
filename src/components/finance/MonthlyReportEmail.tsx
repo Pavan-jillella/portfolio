@@ -1,7 +1,14 @@
 "use client";
-import { useState } from "react";
-import { Transaction, Budget, MonthlyReport } from "@/types";
-import { generateMonthlyReport, formatCurrency, getMonthLabel } from "@/lib/finance-utils";
+import { useState, useMemo } from "react";
+import { Transaction, Budget, Subscription, UserSubscription, MonthlyReport } from "@/types";
+import {
+  generateMonthlyReport,
+  formatCurrency,
+  getMonthLabel,
+  getMonthlyTransactions,
+  getCategoryBreakdown,
+  getMonthlyTrend,
+} from "@/lib/finance-utils";
 
 interface MonthlyReportEmailProps {
   transactions: Transaction[];
@@ -10,16 +17,89 @@ interface MonthlyReportEmailProps {
   payrollIncome?: number;
   partTimeIncome?: number;
   subscriptionExpenses?: number;
+  subscriptions?: Subscription[];
+  userSubscriptions?: UserSubscription[];
 }
 
-export function MonthlyReportEmail({ transactions, budgets, selectedMonth, payrollIncome = 0, partTimeIncome = 0, subscriptionExpenses = 0 }: MonthlyReportEmailProps) {
+export function MonthlyReportEmail({
+  transactions,
+  budgets,
+  selectedMonth,
+  payrollIncome = 0,
+  partTimeIncome = 0,
+  subscriptionExpenses = 0,
+  subscriptions = [],
+  userSubscriptions = [],
+}: MonthlyReportEmailProps) {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const report: MonthlyReport = generateMonthlyReport(transactions, budgets, selectedMonth, payrollIncome + partTimeIncome, subscriptionExpenses);
+  const report: MonthlyReport = generateMonthlyReport(
+    transactions,
+    budgets,
+    selectedMonth,
+    payrollIncome + partTimeIncome,
+    subscriptionExpenses
+  );
   const monthLabel = getMonthLabel(selectedMonth);
+
+  // Compute expanded data for the email
+  const expandedData = useMemo(() => {
+    // Monthly trend (last 6 months)
+    const trend = getMonthlyTrend(transactions, 6);
+
+    // Budget performance
+    const monthTx = getMonthlyTransactions(transactions, selectedMonth);
+    const catBreakdown = getCategoryBreakdown(monthTx);
+    const budgetPerformance = budgets
+      .filter((b) => b.month === selectedMonth)
+      .map((b) => {
+        const spent = catBreakdown.find((c) => c.category === b.category)?.total || 0;
+        return {
+          category: b.category,
+          budget: b.monthly_limit,
+          spent,
+          status: spent > b.monthly_limit ? "over" : spent > b.monthly_limit * 0.9 ? "warning" : "good",
+        };
+      });
+
+    // Top transactions (largest 5 expenses this month)
+    const topTransactions = monthTx
+      .filter((t) => t.type === "expense")
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5)
+      .map((t) => ({ date: t.date, description: t.description, amount: t.amount, category: t.category }));
+
+    // Active subscriptions list
+    const activeSubs = [
+      ...subscriptions.filter((s) => s.active).map((s) => ({ name: s.name, amount: s.amount, frequency: s.frequency })),
+      ...userSubscriptions.filter((s) => s.active).map((s) => ({ name: s.service_id, amount: s.price, frequency: s.billing_cycle })),
+    ].slice(0, 10);
+
+    // Savings trend from monthly trend
+    const savingsTrend = trend.map((t) => ({ month: t.month, savings: t.net }));
+
+    // Month-over-month comparison
+    const [y, m] = selectedMonth.split("-").map(Number);
+    const lastMonth = new Date(y, m - 2, 1).toISOString().slice(0, 7);
+    const lastMonthTx = getMonthlyTransactions(transactions, lastMonth);
+    const lastMonthExpenses = lastMonthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    const lastMonthIncome = lastMonthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    const expenseChange = lastMonthExpenses > 0 ? Math.round(((report.expenses - lastMonthExpenses) / lastMonthExpenses) * 100) : 0;
+    const incomeChange = lastMonthIncome > 0 ? Math.round(((report.income - lastMonthIncome) / lastMonthIncome) * 100) : 0;
+
+    return {
+      monthlyTrend: trend.map((t) => ({ month: t.month, income: t.income, expenses: t.expenses, savings: t.net })),
+      budgetPerformance,
+      topTransactions,
+      subscriptionsList: activeSubs,
+      totalSubscriptions: subscriptionExpenses,
+      savingsTrend,
+      comparison: { expenseChange, incomeChange, lastMonthExpenses, lastMonthIncome },
+    };
+  }, [transactions, budgets, selectedMonth, subscriptions, userSubscriptions, report.expenses, report.income, subscriptionExpenses]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +112,11 @@ export function MonthlyReportEmail({ transactions, budgets, selectedMonth, payro
       const res = await fetch("/api/finance/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), reportData: report }),
+        body: JSON.stringify({
+          email: email.trim(),
+          reportData: report,
+          expandedData,
+        }),
       });
 
       const data = await res.json();

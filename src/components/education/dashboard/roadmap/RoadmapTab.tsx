@@ -401,11 +401,14 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
         {/* Horizontal line across all phases */}
         <div className="relative mx-12 mb-2">
           <div className="h-px bg-white/10 absolute top-0 left-0 right-0" />
-          {/* Drop-down connectors for each phase */}
           <div className="flex justify-between">
             {PHASES.map((phase) => (
-              <div key={phase.id} className="flex flex-col items-center" style={{ width: `${100 / PHASES.length}%` }}>
-                <div className={cn("w-px h-6", phase.bgColor + "/30")} />
+              <div
+                key={phase.id}
+                className="flex flex-col items-center"
+                style={{ width: `${100 / PHASES.length}%` }}
+              >
+                <div className={cn("w-px h-6", `${phase.bgColor}/30`)} />
               </div>
             ))}
           </div>
@@ -416,6 +419,11 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
           {PHASES.map((phase) => {
             const pct = getPhaseProgress(progress, phase.id);
             const isHovered = hoveredPhase === phase.id;
+            const nodeClass = pct === 100
+              ? `${phase.bgColor}/20 ${phase.borderColor} ring-1 ${phase.borderColor.replace("border-", "ring-")}`
+              : pct > 0
+              ? `bg-white/[0.03] ${phase.borderColor}`
+              : "bg-white/[0.02] border-white/5";
             return (
               <div
                 key={phase.id}
@@ -423,15 +431,11 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
                 onMouseEnter={() => setHoveredPhase(phase.id)}
                 onMouseLeave={() => setHoveredPhase(null)}
               >
-                <motion.div
-                  animate={{ scale: isHovered ? 1.05 : 1 }}
+                <div
                   className={cn(
                     "w-full rounded-xl px-2 py-2.5 text-center border transition-all cursor-default",
-                    pct === 100
-                      ? `${phase.bgColor}/20 ${phase.borderColor} ring-1 ${phase.borderColor.replace("border-", "ring-")}`
-                      : pct > 0
-                      ? `bg-white/[0.03] ${phase.borderColor}`
-                      : "bg-white/[0.02] border-white/5"
+                    nodeClass,
+                    isHovered && "scale-105"
                   )}
                 >
                   <p className={cn("font-mono text-[9px] uppercase tracking-wider mb-0.5", phase.color)}>
@@ -441,14 +445,13 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
                     {phase.title}
                   </p>
                   <div className="h-1 rounded-full bg-white/5 overflow-hidden mt-1.5">
-                    <motion.div
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.5 }}
-                      className={cn("h-full rounded-full", phase.bgColor + "/50")}
+                    <div
+                      className={cn("h-full rounded-full transition-all duration-500", `${phase.bgColor}/50`)}
+                      style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="font-mono text-[8px] text-white/20 mt-1">{pct}%</p>
-                </motion.div>
+                  <p className="font-mono text-[8px] text-white/20 mt-1">{String(pct)}%</p>
+                </div>
               </div>
             );
           })}
@@ -458,7 +461,7 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
         <div className="flex justify-between gap-2 mx-4 mb-1">
           {PHASES.map((phase) => (
             <div key={phase.id} className="flex flex-col items-center flex-1">
-              <div className={cn("w-px h-4", hoveredPhase === phase.id ? phase.bgColor + "/40" : "bg-white/5")} />
+              <div className={cn("w-px h-4", hoveredPhase === phase.id ? `${phase.bgColor}/40` : "bg-white/5")} />
             </div>
           ))}
         </div>
@@ -469,37 +472,35 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
             const isActive = hoveredPhase === phase.id;
             return (
               <div key={phase.id} className="flex-1 min-w-0">
-                <AnimatePresence>
-                  <motion.div
-                    initial={false}
-                    animate={{ opacity: isActive ? 1 : 0.4, height: isActive ? "auto" : 120 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className={cn("rounded-lg border p-2 space-y-0.5", isActive ? phase.borderColor : "border-white/5")}>
-                      {phase.topics.map((topic) => {
-                        const done = isTopicCompleted(progress, phase.id, topic.id);
-                        return (
-                          <div
-                            key={topic.id}
-                            className="flex items-center gap-1.5 px-1.5 py-1 rounded"
-                          >
-                            <div className={cn(
-                              "w-2 h-2 rounded-full flex-shrink-0 transition-colors",
-                              done ? phase.bgColor + "/60" : "bg-white/10"
-                            )} />
-                            <span className={cn(
-                              "font-mono text-[9px] leading-tight truncate transition-colors",
-                              done ? `${phase.color} line-through opacity-60` : "text-white/40"
-                            )}>
-                              {topic.label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+                <div
+                  className={cn(
+                    "overflow-hidden transition-all duration-300",
+                    isActive ? "opacity-100" : "opacity-40 max-h-[120px]"
+                  )}
+                >
+                  <div className={cn("rounded-lg border p-2 space-y-0.5", isActive ? phase.borderColor : "border-white/5")}>
+                    {phase.topics.map((topic) => {
+                      const done = isTopicCompleted(progress, phase.id, topic.id);
+                      return (
+                        <div
+                          key={topic.id}
+                          className="flex items-center gap-1.5 px-1.5 py-1 rounded"
+                        >
+                          <div className={cn(
+                            "w-2 h-2 rounded-full flex-shrink-0 transition-colors",
+                            done ? `${phase.bgColor}/60` : "bg-white/10"
+                          )} />
+                          <span className={cn(
+                            "font-mono text-[9px] leading-tight truncate transition-colors",
+                            done ? `${phase.color} line-through opacity-60` : "text-white/40"
+                          )}>
+                            {topic.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             );
           })}

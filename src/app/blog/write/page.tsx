@@ -1,6 +1,6 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -15,6 +15,9 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 export default function BlogWritePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editSlug = searchParams.get("edit");
+
   const [posts, setPosts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -25,8 +28,33 @@ export default function BlogWritePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [view, setView] = useState<EditorView>("split");
   const [showMeta, setShowMeta] = useState(true);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load existing post data when editing
+  useEffect(() => {
+    if (editSlug && posts.length > 0 && !initialized) {
+      const existing = posts.find((p) => p.slug === editSlug);
+      if (existing) {
+        setTitle(existing.title);
+        setDescription(existing.description);
+        setCategory(existing.category);
+        setTags(existing.tags?.join(", ") || "");
+        setContent(existing.content);
+        setEditingPostId(existing.id);
+        setInitialized(true);
+      }
+    }
+    if (!editSlug) setInitialized(true);
+  }, [editSlug, posts, initialized]);
+
+  const isEditing = !!editingPostId;
 
   const slug = useMemo(() => {
+    if (isEditing) {
+      const existing = posts.find((p) => p.id === editingPostId);
+      if (existing) return existing.slug;
+    }
     const base = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -34,7 +62,7 @@ export default function BlogWritePage() {
     if (!base) return "";
     const exists = posts.some((p) => p.slug === base);
     return exists ? `${base}-${Date.now().toString(36)}` : base;
-  }, [title, posts]);
+  }, [title, posts, isEditing, editingPostId]);
 
   const wordCount = useMemo(
     () => content.trim().split(/\s+/).filter(Boolean).length,
@@ -52,30 +80,50 @@ export default function BlogWritePage() {
     setErrorMsg("");
 
     try {
-      const newPost: BlogPost = {
-        id: Date.now().toString(),
-        title: title.trim(),
-        slug: slug || "untitled",
-        description: description.trim(),
-        content: content.trim(),
-        category,
-        read_time: readTime,
-        published: true,
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-        created_at: new Date().toISOString(),
-      };
+      if (isEditing) {
+        // Update existing post
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === editingPostId
+              ? {
+                  ...p,
+                  title: title.trim(),
+                  description: description.trim(),
+                  content: content.trim(),
+                  category,
+                  read_time: readTime,
+                  tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+                }
+              : p
+          )
+        );
+        setStatus("saved");
+        const targetSlug = posts.find((p) => p.id === editingPostId)?.slug || slug;
+        setTimeout(() => router.push(`/blog/${targetSlug}`), 1000);
+      } else {
+        // Create new post
+        const newPost: BlogPost = {
+          id: Date.now().toString(),
+          title: title.trim(),
+          slug: slug || "untitled",
+          description: description.trim(),
+          content: content.trim(),
+          category,
+          read_time: readTime,
+          published: true,
+          tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+          created_at: new Date().toISOString(),
+        };
 
-      setPosts((prev) => [newPost, ...prev]);
-      setStatus("saved");
-      setTimeout(() => router.push(`/blog/${slug}`), 1000);
+        setPosts((prev) => [newPost, ...prev]);
+        setStatus("saved");
+        setTimeout(() => router.push(`/blog/${slug}`), 1000);
+      }
     } catch {
-      setErrorMsg("Failed to publish");
+      setErrorMsg(isEditing ? "Failed to update" : "Failed to publish");
       setStatus("error");
     }
-  }, [title, slug, description, category, content, tags, readTime, router, setPosts]);
+  }, [title, slug, description, category, content, tags, readTime, router, setPosts, isEditing, editingPostId, posts]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -102,7 +150,7 @@ export default function BlogWritePage() {
           </Link>
           <div className="w-px h-5 bg-white/[0.06]" />
           <span className="font-mono text-[10px] text-white/20 uppercase tracking-widest">
-            {slug || "new-post"}
+            {isEditing ? "editing" : "new-post"} &middot; {slug || "untitled"}
           </span>
         </div>
 
@@ -145,7 +193,7 @@ export default function BlogWritePage() {
             {wordCount} words &middot; {readTime}
           </span>
 
-          {/* Publish button */}
+          {/* Publish / Update button */}
           <button
             onClick={handlePublish}
             disabled={status === "saving" || !title.trim() || !content.trim()}
@@ -165,17 +213,17 @@ export default function BlogWritePage() {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                 />
-                Publishing...
+                {isEditing ? "Updating..." : "Publishing..."}
               </>
             ) : status === "saved" ? (
               <>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                Published
+                {isEditing ? "Updated" : "Published"}
               </>
             ) : (
-              "Publish"
+              isEditing ? "Update" : "Publish"
             )}
           </button>
         </div>
@@ -346,7 +394,9 @@ export default function BlogWritePage() {
                       <td className="border border-white/[0.08] px-3 py-2 font-body text-white/40">{children}</td>
                     ),
                   }}
-                />
+                >
+                  {content}
+                </ReactMarkdown>
               ) : (
                 <p className="font-body text-sm text-white/15 italic">Preview will appear here...</p>
               )}

@@ -1,0 +1,398 @@
+<mxfile host="app.diagrams.net" modified="2026-03-07" agent="Claude" version="21.0.0" type="device">
+  <diagram id="portfolio-architecture" name="Portfolio Architecture">
+    <mxGraphModel dx="2400" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="4000" pageHeight="3200" math="0" shadow="0" background="none">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ========== TITLE ========== -->
+        <mxCell id="title" value="&lt;font style=&quot;font-size: 30px; color: #334155;&quot;&gt;&lt;b&gt;Pavan Jillella — Portfolio Architecture&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 13px; color: #94a3b8;&quot;&gt;Next.js 14 App Router  •  TypeScript  •  Supabase  •  Vercel&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="820" y="20" width="600" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LAYER 1: CLIENT / BROWSER ========== -->
+        <mxCell id="layer1-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#7dd3fc;strokeWidth=2;arcSize=5;opacity=35;glass=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="95" width="2340" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1-label" value="&lt;font style=&quot;font-size: 15px; color: #0284c7;&quot;&gt;&lt;b&gt;☁ CLIENT LAYER&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94a3b8;&quot;&gt;Browser  •  React Components&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="102" width="220" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Provider Stack -->
+        <mxCell id="providers" value="&lt;font color=&quot;#1e40af&quot;&gt;&lt;b&gt;Provider Stack&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;ThemeProvider&lt;br&gt;AuthProvider&lt;br&gt;QueryProvider&lt;br&gt;PostHogProvider&lt;br&gt;SmoothScroll&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#93c5fd;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;shadow=0;" vertex="1" parent="1">
+          <mxGeometry x="60" y="155" width="145" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- Public Pages -->
+        <mxCell id="public-pages" value="&lt;font color=&quot;#065f46&quot;&gt;&lt;b&gt;Public Pages&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/ (Landing)&lt;br&gt;/login&lt;br&gt;/education/profile/[id]&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="230" y="155" width="165" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Content Pages -->
+        <mxCell id="content-pages" value="&lt;font color=&quot;#065f46&quot;&gt;&lt;b&gt;Content Pages&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/blog • /blog/[slug]&lt;br&gt;/blog/write (TipTap)&lt;br&gt;/projects • /vlogs&lt;br&gt;/about • /contact&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="420" y="155" width="175" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Finance Dashboard -->
+        <mxCell id="finance-dash" value="&lt;font color=&quot;#9d174d&quot;&gt;&lt;b&gt;Finance Tracker&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/finance/tracker&lt;br&gt;11 tabs: Transactions&lt;br&gt;Budgets • Savings&lt;br&gt;Investments • Payroll&lt;br&gt;Subscriptions • Reports&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce7f3;strokeColor=#f9a8d4;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="620" y="155" width="175" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- Education Dashboard -->
+        <mxCell id="edu-dash" value="&lt;font color=&quot;#581c87&quot;&gt;&lt;b&gt;Education Dashboard&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/education/dashboard&lt;br&gt;11 tabs: Study • Courses&lt;br&gt;Notes • Projects • Files&lt;br&gt;GitHub • LeetCode&lt;br&gt;Skills • Quiz • AI&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#d8b4fe;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="820" y="155" width="180" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- Habits Dashboard -->
+        <mxCell id="habits-dash" value="&lt;font color=&quot;#9a3412&quot;&gt;&lt;b&gt;Habit Tracker&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/dashboard/habits&lt;br&gt;8 tabs: Daily • Weekly&lt;br&gt;Calendar • Chains&lt;br&gt;Analytics • XP • Coach&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#fdba74;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1025" y="155" width="175" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- Life Index & Analytics -->
+        <mxCell id="life-index" value="&lt;font color=&quot;#155e75&quot;&gt;&lt;b&gt;Life Index &amp; Analytics&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/dashboard/life-index&lt;br&gt;/dashboard/analytics&lt;br&gt;/dashboard/activity&lt;br&gt;Composite score across domains&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=#67e8f9;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1225" y="155" width="200" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Admin -->
+        <mxCell id="admin" value="&lt;font color=&quot;#991b1b&quot;&gt;&lt;b&gt;Admin Panel&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;/admin&lt;br&gt;Analytics • Blog&lt;br&gt;Setup • Migrations&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#fca5a5;strokeWidth=1.5;opacity=70;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="155" width="145" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Shared UI Components -->
+        <mxCell id="shared-ui" value="&lt;font color=&quot;#334155&quot;&gt;&lt;b&gt;Shared UI Components&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Navbar • ViewToggle • ChatWidget&lt;br&gt;CommandPalette • ThemeToggle&lt;br&gt;GrainOverlay • CursorGlow • FadeIn&lt;br&gt;Chart3DWrapper • ErrorBoundary&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#cbd5e1;strokeWidth=1.5;opacity=60;glass=1;arcSize=14;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1620" y="155" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Client State Management -->
+        <mxCell id="state-mgmt" value="&lt;font color=&quot;#78350f&quot;&gt;&lt;b&gt;State Management&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;useLocalStorage (40+ keys)&lt;br&gt;useSupabaseRealtimeSync (23 tables)&lt;br&gt;React Query (8 hooks)&lt;br&gt;AuthContext (Supabase session)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#fcd34d;strokeWidth=1.5;opacity=60;glass=1;arcSize=14;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1620" y="265" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Feature badges row -->
+        <mxCell id="feat-pwa" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;PWA&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="230" y="270" width="48" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-dark" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;Dark Mode&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="286" y="270" width="68" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-glass" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;Glass UI&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="362" y="270" width="58" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-3d" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;3D Charts&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="428" y="270" width="66" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-views" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;Multi-View&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="502" y="270" width="68" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-rt" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;Realtime Sync&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="578" y="270" width="82" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-search" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;Cmd+K Search&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="668" y="270" width="82" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-embed" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;Embeddings&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="758" y="270" width="72" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="feat-export" value="&lt;font style=&quot;font-size: 9px; color: #475569;&quot;&gt;&lt;b&gt;PDF / Excel&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=60;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="838" y="270" width="70" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LAYER 2: MIDDLEWARE ========== -->
+        <mxCell id="layer2-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fbbf24;strokeWidth=2;arcSize=5;opacity=25;glass=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="455" width="2340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="layer2-label" value="&lt;font style=&quot;font-size: 15px; color: #b45309;&quot;&gt;&lt;b&gt;⚡ MIDDLEWARE LAYER&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="462" width="210" height="25" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw-auth" value="&lt;font color=&quot;#92400e&quot;&gt;&lt;b&gt;Auth Middleware&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #78716c;&quot;&gt;Supabase session refresh&lt;br&gt;Redirect unauthed → /login&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#fcd34d;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="280" y="468" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw-csp" value="&lt;font color=&quot;#92400e&quot;&gt;&lt;b&gt;Security Headers&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #78716c;&quot;&gt;CSP • X-Frame-Options&lt;br&gt;Rate Limiting • CAPTCHA&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#fcd34d;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="510" y="468" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw-cache" value="&lt;font color=&quot;#92400e&quot;&gt;&lt;b&gt;Cache Strategy&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #78716c;&quot;&gt;ISR: revalidate 300–3600s&lt;br&gt;Client: React Query 5–60min&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#fcd34d;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="740" y="468" width="210" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw-rls" value="&lt;font color=&quot;#92400e&quot;&gt;&lt;b&gt;/api/sync Proxy&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #78716c;&quot;&gt;Service role key&lt;br&gt;Injects user_id • 30 tables&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef3c7;strokeColor=#fcd34d;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="980" y="468" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LAYER 3: API ROUTES ========== -->
+        <mxCell id="layer3-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#fca5a5;strokeWidth=2;arcSize=5;opacity=25;glass=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="585" width="2340" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3-label" value="&lt;font style=&quot;font-size: 15px; color: #dc2626;&quot;&gt;&lt;b&gt;⚙ API LAYER&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94a3b8;&quot;&gt;Next.js Route Handlers (/api/*)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="592" width="230" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Finance APIs -->
+        <mxCell id="api-finance" value="&lt;font color=&quot;#9d174d&quot;&gt;&lt;b&gt;Finance APIs&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;/api/finance/stocks&lt;br&gt;/api/finance/stocks/search&lt;br&gt;/api/finance/stocks/history&lt;br&gt;/api/finance/crypto&lt;br&gt;/api/finance/currency&lt;br&gt;/api/finance/payroll-import&lt;br&gt;/api/finance/report&lt;br&gt;/api/finance/subscription-catalog&lt;br&gt;/api/finance/reminders&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce7f3;strokeColor=#f9a8d4;strokeWidth=1.5;opacity=65;glass=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="642" width="225" height="185" as="geometry" />
+        </mxCell>
+
+        <!-- Education APIs -->
+        <mxCell id="api-edu" value="&lt;font color=&quot;#581c87&quot;&gt;&lt;b&gt;Education APIs&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;/api/education/ai&lt;br&gt;/api/education/upload&lt;br&gt;/api/education/upload/[path]&lt;br&gt;/api/education/profile/[id]&lt;br&gt;/api/github&lt;br&gt;/api/github/events&lt;br&gt;/api/leetcode&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#d8b4fe;strokeWidth=1.5;opacity=65;glass=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="315" y="642" width="210" height="155" as="geometry" />
+        </mxCell>
+
+        <!-- AI APIs -->
+        <mxCell id="api-ai" value="&lt;font color=&quot;#312e81&quot;&gt;&lt;b&gt;AI APIs&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;/api/chat&lt;br&gt;/api/embeddings/generate&lt;br&gt;/api/embeddings/search&lt;br&gt;/api/knowledge-graph&lt;br&gt;/api/habits/coach&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e7ff;strokeColor=#a5b4fc;strokeWidth=1.5;opacity=65;glass=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="555" y="642" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Content APIs -->
+        <mxCell id="api-content" value="&lt;font color=&quot;#065f46&quot;&gt;&lt;b&gt;Content APIs&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;/api/comments&lt;br&gt;/api/newsletter&lt;br&gt;/api/contact&lt;br&gt;/api/activity&lt;br&gt;/api/analytics&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=1.5;opacity=65;glass=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="785" y="642" width="175" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Auth & Sync APIs -->
+        <mxCell id="api-sync" value="&lt;font color=&quot;#155e75&quot;&gt;&lt;b&gt;Auth &amp; Sync&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;/api/auth/callback&lt;br&gt;/api/sync (CRUD proxy)&lt;br&gt;/api/search-data&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=#67e8f9;strokeWidth=1.5;opacity=65;glass=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="642" width="175" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Admin APIs -->
+        <mxCell id="api-admin" value="&lt;font color=&quot;#991b1b&quot;&gt;&lt;b&gt;Admin APIs&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;/api/admin/setup-db&lt;br&gt;/api/admin/check-tables&lt;br&gt;/api/admin/export&lt;br&gt;/api/admin/migrate-owner&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#fca5a5;strokeWidth=1.5;opacity=65;glass=1;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="642" width="190" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LAYER 4: EXTERNAL SERVICES ========== -->
+        <mxCell id="layer4-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=2;arcSize=5;opacity=20;glass=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="890" width="2340" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="layer4-label" value="&lt;font style=&quot;font-size: 15px; color: #059669;&quot;&gt;&lt;b&gt;🌐 EXTERNAL SERVICES&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="897" width="210" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Supabase -->
+        <mxCell id="supabase" value="&lt;font color=&quot;#065f46&quot;&gt;&lt;b style=&quot;font-size: 13px;&quot;&gt;Supabase&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;&lt;b&gt;Auth:&lt;/b&gt; Google OAuth • Sessions&lt;br&gt;&lt;b&gt;Database:&lt;/b&gt; 30+ PostgreSQL tables&lt;br&gt;&lt;b&gt;Realtime:&lt;/b&gt; postgres_changes (23 tables)&lt;br&gt;&lt;b&gt;Storage:&lt;/b&gt; education-files bucket&lt;br&gt;&lt;b&gt;RPC:&lt;/b&gt; match_embeddings (vector)&lt;br&gt;&lt;b&gt;RLS:&lt;/b&gt; Row-level security per user_id&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#34d399;strokeWidth=2;opacity=70;glass=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="935" width="285" height="145" as="geometry" />
+        </mxCell>
+
+        <!-- OpenAI -->
+        <mxCell id="openai" value="&lt;font color=&quot;#065f46&quot;&gt;&lt;b&gt;OpenAI&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #475569;&quot;&gt;gpt-4o-mini (Chat • Edu AI&lt;br&gt;Habit Coach)&lt;br&gt;text-embedding-3-small&lt;br&gt;(Semantic Search)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="380" y="935" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- GitHub API -->
+        <mxCell id="github-api" value="&lt;font color=&quot;#1e293b&quot;&gt;&lt;b&gt;GitHub API v3&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Repos • Stars • Forks&lt;br&gt;Languages • Push Events&lt;br&gt;Commit Activity&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#cbd5e1;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="615" y="935" width="165" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- LeetCode API -->
+        <mxCell id="leetcode-api" value="&lt;font color=&quot;#92400e&quot;&gt;&lt;b&gt;alfa-leetcode-api&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Profile Stats&lt;br&gt;Accepted Submissions&lt;br&gt;(Render-hosted)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#fdba74;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="815" y="935" width="170" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Yahoo Finance -->
+        <mxCell id="yahoo" value="&lt;font color=&quot;#581c87&quot;&gt;&lt;b&gt;Yahoo Finance&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Stock Quotes • Search&lt;br&gt;Price History&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#d8b4fe;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="935" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- CoinGecko -->
+        <mxCell id="coingecko" value="&lt;font color=&quot;#166534&quot;&gt;&lt;b&gt;CoinGecko&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Crypto Prices&lt;br&gt;BTC • ETH • SOL&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#86efac;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1205" y="935" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ExchangeRate API -->
+        <mxCell id="exchange" value="&lt;font color=&quot;#155e75&quot;&gt;&lt;b&gt;ExchangeRate API&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;USD-based Currency Rates&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=#67e8f9;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1370" y="935" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Google Sheets -->
+        <mxCell id="gsheets" value="&lt;font color=&quot;#166534&quot;&gt;&lt;b&gt;Google Sheets&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Payroll Import&lt;br&gt;Apps Script&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#86efac;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1575" y="935" width="130" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- SMTP -->
+        <mxCell id="smtp" value="&lt;font color=&quot;#1e40af&quot;&gt;&lt;b&gt;SMTP / Nodemailer&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Contact Form Emails&lt;br&gt;Monthly Reports&lt;br&gt;Subscription Reminders&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#93c5fd;strokeWidth=1.5;opacity=65;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="1740" y="935" width="170" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Monitoring Row -->
+        <mxCell id="sentry" value="&lt;font color=&quot;#581c87&quot;&gt;&lt;b&gt;Sentry&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Error Monitoring&lt;br&gt;Client + Server + Edge&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#d8b4fe;strokeWidth=1.5;opacity=55;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1110" width="155" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="posthog" value="&lt;font color=&quot;#1e40af&quot;&gt;&lt;b&gt;PostHog&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Product Analytics&lt;br&gt;Pageview Tracking&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#93c5fd;strokeWidth=1.5;opacity=55;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="245" y="1110" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vercel" value="&lt;font color=&quot;#1e293b&quot;&gt;&lt;b&gt;Vercel&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Hosting • Edge Network&lt;br&gt;Web Vitals Analytics&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#cbd5e1;strokeWidth=1.5;opacity=55;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="425" y="1110" width="160" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="turnstile" value="&lt;font color=&quot;#9a3412&quot;&gt;&lt;b&gt;Cloudflare Turnstile&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;CAPTCHA&lt;br&gt;Contact Form&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#fdba74;strokeWidth=1.5;opacity=55;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="615" y="1110" width="155" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="google-fonts" value="&lt;font color=&quot;#1e40af&quot;&gt;&lt;b&gt;Google Fonts&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Syne • DM Sans&lt;br&gt;JetBrains Mono&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#93c5fd;strokeWidth=1.5;opacity=55;glass=1;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1110" width="145" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========== DATA FLOW ARROWS ========== -->
+
+        <!-- Client → Middleware -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#f9a8d4;strokeWidth=1.5;opacity=70;exitX=0.5;exitY=1;entryX=0.3;entryY=0;curved=1;" edge="1" parent="1" source="finance-dash" target="mw-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow1b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#d8b4fe;strokeWidth=1.5;opacity=70;exitX=0.5;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="edu-dash" target="mw-cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow1c" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#fdba74;strokeWidth=1.5;opacity=70;exitX=0.5;exitY=1;entryX=0.7;entryY=0;curved=1;" edge="1" parent="1" source="habits-dash" target="mw-cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Middleware → API -->
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#fcd34d;strokeWidth=1.5;opacity=70;exitX=0.5;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="mw-rls" target="api-sync">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- API → External Services -->
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#f9a8d4;strokeWidth=1.5;opacity=60;exitX=0.5;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="api-finance" target="yahoo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#d8b4fe;strokeWidth=1.5;opacity=60;exitX=0.3;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="api-edu" target="github-api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#fdba74;strokeWidth=1.5;opacity=60;exitX=0.7;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="api-edu" target="leetcode-api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#a5b4fc;strokeWidth=1.5;opacity=60;exitX=0.5;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="api-ai" target="openai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#34d399;strokeWidth=1.5;opacity=60;exitX=0.5;exitY=1;entryX=0.5;entryY=0;curved=1;" edge="1" parent="1" source="api-sync" target="supabase">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arrow8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#6ee7b7;strokeWidth=1.5;opacity=60;exitX=0.5;exitY=1;entryX=0.7;entryY=0;curved=1;" edge="1" parent="1" source="api-content" target="supabase">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Realtime bidirectional arrow -->
+        <mxCell id="arrow-rt" value="&lt;font style=&quot;font-size: 9px; color: #059669;&quot;&gt;&lt;b&gt;Realtime&lt;br&gt;WebSocket&lt;/b&gt;&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;strokeColor=#34d399;strokeWidth=2.5;startArrow=classic;endArrow=classic;dashed=1;dashPattern=8 4;curved=1;opacity=55;" edge="1" parent="1" source="state-mgmt" target="supabase">
+          <mxGeometry x="0.1" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2000" y="880" />
+              <mxPoint x="200" y="880" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========== LAYER 5: DATABASE TABLES ========== -->
+        <mxCell id="layer5-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#94a3b8;strokeWidth=1.5;arcSize=5;opacity=20;glass=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1220" width="2340" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="layer5-label" value="&lt;font style=&quot;font-size: 15px; color: #059669;&quot;&gt;&lt;b&gt;🗄 DATABASE TABLES&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px; color: #94a3b8;&quot;&gt;Supabase PostgreSQL with RLS&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1228" width="220" height="38" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-finance" value="&lt;font color=&quot;#9d174d&quot;&gt;&lt;b&gt;Finance (14)&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #64748b;&quot;&gt;transactions • budgets&lt;br&gt;savings_goals • investments&lt;br&gt;net_worth_entries • subscriptions&lt;br&gt;user_subscriptions&lt;br&gt;subscription_services / plans&lt;br&gt;pay_stubs • employers&lt;br&gt;part_time_jobs / hours&lt;br&gt;work_schedules • enhanced_work_schedules&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce7f3;strokeColor=#f9a8d4;strokeWidth=1;opacity=55;glass=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1272" width="260" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-edu" value="&lt;font color=&quot;#581c87&quot;&gt;&lt;b&gt;Education (4)&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #64748b;&quot;&gt;study_sessions&lt;br&gt;courses&lt;br&gt;edu_notes&lt;br&gt;edu_projects&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#d8b4fe;strokeWidth=1;opacity=55;glass=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1272" width="135" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-habits" value="&lt;font color=&quot;#9a3412&quot;&gt;&lt;b&gt;Habits (3)&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #64748b;&quot;&gt;habits&lt;br&gt;habit_logs&lt;br&gt;habit_chains&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#fdba74;strokeWidth=1;opacity=55;glass=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="515" y="1272" width="115" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-content" value="&lt;font color=&quot;#065f46&quot;&gt;&lt;b&gt;Content (5)&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #64748b;&quot;&gt;blog_posts • vlogs&lt;br&gt;user_projects&lt;br&gt;comments&lt;br&gt;newsletter_subscribers&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=1;opacity=55;glass=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="660" y="1272" width="165" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-system" value="&lt;font color=&quot;#155e75&quot;&gt;&lt;b&gt;System (4)&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px; color: #64748b;&quot;&gt;page_views&lt;br&gt;embeddings (vector)&lt;br&gt;user_profiles&lt;br&gt;education-files (Storage)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=#67e8f9;strokeWidth=1;opacity=55;glass=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="855" y="1272" width="175" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ========== LEGEND ========== -->
+        <mxCell id="legend-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#e2e8f0;strokeWidth=1;opacity=30;glass=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="642" width="370" height="195" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="&lt;font style=&quot;font-size: 12px; color: #334155;&quot;&gt;&lt;b&gt;Color Legend&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="650" width="100" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg1" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fce7f3;strokeColor=#f9a8d4;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="680" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Finance&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="677" width="55" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#d8b4fe;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="705" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Education&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="702" width="70" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=#fdba74;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="730" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Habits&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="727" width="50" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg4" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="755" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Content / Supabase&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="752" width="120" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg5" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e7ff;strokeColor=#a5b4fc;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="780" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;AI / Intelligence&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="777" width="105" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg6" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=#67e8f9;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1515" y="805" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg6t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Auth / Sync / System&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="802" width="125" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg7" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef9c3;strokeColor=#fde047;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1680" y="680" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg7t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Middleware / Feature&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1705" y="677" width="125" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="leg8" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;strokeColor=#fca5a5;strokeWidth=1;opacity=70;glass=1;arcSize=20;" vertex="1" parent="1">
+          <mxGeometry x="1680" y="705" width="18" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg8t" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Admin / Error&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1705" y="702" width="85" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- Dashed legend arrow -->
+        <mxCell id="leg-arrow" value="" style="endArrow=classic;startArrow=classic;html=1;strokeColor=#34d399;strokeWidth=2;dashed=1;dashPattern=6 3;opacity=55;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1680" y="745" as="sourcePoint" />
+            <mxPoint x="1730" y="745" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg-arrowt" value="&lt;font style=&quot;font-size: 10px; color: #64748b;&quot;&gt;Realtime WebSocket&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1738" y="733" width="120" height="24" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

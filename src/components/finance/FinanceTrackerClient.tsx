@@ -828,6 +828,8 @@ export function FinanceTrackerClient() {
               payrollIncome={monthlyPayrollIncome}
               partTimeIncome={monthlyPartTimeIncome}
               subscriptionExpenses={monthlySubTotal + userSubMonthlyTotal}
+              subscriptions={subscriptions}
+              userSubscriptions={userSubscriptions}
             />
             <div className="glass-card rounded-2xl p-5">
               <CurrencySettings

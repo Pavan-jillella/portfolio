@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!url || !key) {
-      console.log("Newsletter signup (Supabase not configured):", email);
+      // Supabase not configured – silently accept
       return NextResponse.json({ success: true });
     }
 
