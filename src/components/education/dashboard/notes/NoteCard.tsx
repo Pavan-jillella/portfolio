@@ -39,8 +39,10 @@ export function NoteCard({ note, isSelected, onClick, onDelete }: NoteCardProps)
             {tag}
           </span>
         ))}
-        {note.linked_course_id && (
-          <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px]">Course</span>
+        {(note.linked_course_ids?.length > 0) && (
+          <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px]">
+            {note.linked_course_ids.length} Course{note.linked_course_ids.length > 1 ? "s" : ""}
+          </span>
         )}
         {note.linked_project_id && (
           <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">Project</span>

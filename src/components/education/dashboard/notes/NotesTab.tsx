@@ -32,8 +32,15 @@ export function NotesTab({
 }: NotesTabProps) {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterCourseId, setFilterCourseId] = useState<string | null>(null);
 
-  const filteredNotes = useMemo(() => searchNotes(notes, searchQuery), [notes, searchQuery]);
+  const filteredNotes = useMemo(() => {
+    let result = searchNotes(notes, searchQuery);
+    if (filterCourseId) {
+      result = result.filter((n) => n.linked_course_ids?.includes(filterCourseId));
+    }
+    return result;
+  }, [notes, searchQuery, filterCourseId]);
   const sortedNotes = useMemo(
     () => [...filteredNotes].sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
     [filteredNotes]
@@ -41,7 +48,7 @@ export function NotesTab({
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
 
   function handleNewNote() {
-    onAddNote({ title: "Untitled Note", content_html: "", linked_course_id: null, linked_project_id: null, tags: [] });
+    onAddNote({ title: "Untitled Note", content_html: "", linked_course_ids: [], linked_project_id: null, tags: [] });
   }
 
   return (
@@ -62,6 +69,16 @@ export function NotesTab({
         {/* Left panel - note list */}
         <div className="flex flex-col gap-4">
           <NoteSearch value={searchQuery} onChange={setSearchQuery} />
+          <select
+            value={filterCourseId || ""}
+            onChange={(e) => setFilterCourseId(e.target.value || null)}
+            className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 font-body text-xs focus:outline-none focus:border-blue-500/50 appearance-none"
+          >
+            <option value="">All Courses</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
           <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto">
             {sortedNotes.length === 0 ? (
               <p className="font-body text-sm text-white/20 text-center py-8">

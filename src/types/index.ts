@@ -400,7 +400,7 @@ export interface Note {
   id: string;
   title: string;
   content_html: string;
-  linked_course_id: string | null;
+  linked_course_ids: string[];
   linked_project_id: string | null;
   tags: string[];
   created_at: string;
@@ -422,7 +422,7 @@ export interface UploadedFile {
   file_size: number;
   storage_path: string;
   linked_entity_type: "course" | "project" | "note" | "standalone";
-  linked_entity_id: string | null;
+  linked_entity_ids: string[];
   created_at: string;
 }
 

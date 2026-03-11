@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Note, NoteVersion, Course, DashboardProject } from "@/types";
 import { NoteVersionHistory } from "./NoteVersionHistory";
+import { MultiCourseSelect } from "./MultiCourseSelect";
 
 const TipTapEditor = dynamic(
   () => import("./TipTapEditor").then((m) => ({ default: m.TipTapEditor })),
@@ -113,19 +114,14 @@ export function NoteEditor({
       </div>
 
       {/* Link to course/project */}
-      <div className="flex items-center gap-4">
-        <div>
-          <label className="font-body text-[10px] text-white/30 block mb-1">Link to Course</label>
-          <select
-            value={note.linked_course_id || ""}
-            onChange={(e) => onUpdate(note.id, { linked_course_id: e.target.value || null, updated_at: new Date().toISOString() })}
-            className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 font-body text-xs focus:outline-none focus:border-blue-500/50 appearance-none w-48"
-          >
-            <option value="">None</option>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+      <div className="flex items-start gap-4">
+        <div className="flex-1">
+          <label className="font-body text-[10px] text-white/30 block mb-1">Link to Courses</label>
+          <MultiCourseSelect
+            courses={courses}
+            selectedIds={note.linked_course_ids || []}
+            onChange={(ids) => onUpdate(note.id, { linked_course_ids: ids, updated_at: new Date().toISOString() })}
+          />
         </div>
         <div>
           <label className="font-body text-[10px] text-white/30 block mb-1">Link to Project</label>

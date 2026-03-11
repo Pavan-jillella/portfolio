@@ -147,6 +147,11 @@ export async function POST(req: NextRequest) {
       dataWithUserId = enrichedRows.map(({ service: _svc, plan: _plan, ...rest }) => rest);
     }
 
+    // Strip deprecated linked_course_id from edu_notes (replaced by linked_course_ids jsonb)
+    if (table === "edu_notes") {
+      dataWithUserId = dataWithUserId.map(({ linked_course_id: _old, ...rest }) => rest);
+    }
+
     const { error } = await supabase.from(table).upsert(dataWithUserId, { onConflict: "id" });
     if (error) {
       // Skip "relation does not exist" errors — table migration may not have run yet

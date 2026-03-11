@@ -30,7 +30,7 @@ export function FileUploader({ onUpload, onFileAdded }: FileUploaderProps) {
         file_size: file.size,
         storage_path: result.path,
         linked_entity_type: "standalone",
-        linked_entity_id: null,
+        linked_entity_ids: [],
       });
     } else {
       // Fallback: use local URL
@@ -41,7 +41,7 @@ export function FileUploader({ onUpload, onFileAdded }: FileUploaderProps) {
         file_size: file.size,
         storage_path: "",
         linked_entity_type: "standalone",
-        linked_entity_id: null,
+        linked_entity_ids: [],
       });
     }
     setIsUploading(false);

@@ -3,6 +3,7 @@ import {
   StudyGoal,
   CourseModule,
   Note,
+  UploadedFile,
   DashboardProject,
   RecentActivity,
   Skill,
@@ -202,6 +203,28 @@ export function formatFileSize(bytes: number): string {
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+export function migrateNoteToCourseIds(note: Note & { linked_course_id?: string | null }): Note {
+  if ("linked_course_id" in note && !Array.isArray(note.linked_course_ids)) {
+    const ids = note.linked_course_id ? [note.linked_course_id] : [];
+    return { id: note.id, title: note.title, content_html: note.content_html, linked_course_ids: ids, linked_project_id: note.linked_project_id, tags: note.tags, created_at: note.created_at, updated_at: note.updated_at };
+  }
+  if (!Array.isArray(note.linked_course_ids)) {
+    return { ...note, linked_course_ids: [] };
+  }
+  return note;
+}
+
+export function migrateFileToEntityIds(file: UploadedFile & { linked_entity_id?: string | null }): UploadedFile {
+  if ("linked_entity_id" in file && !Array.isArray(file.linked_entity_ids)) {
+    const ids = file.linked_entity_id ? [file.linked_entity_id] : [];
+    return { id: file.id, file_name: file.file_name, file_url: file.file_url, file_type: file.file_type, file_size: file.file_size, storage_path: file.storage_path, linked_entity_type: file.linked_entity_type, linked_entity_ids: ids, created_at: file.created_at };
+  }
+  if (!Array.isArray(file.linked_entity_ids)) {
+    return { ...file, linked_entity_ids: [] };
+  }
+  return file;
 }
 
 // ===== Skill Tree Utilities =====

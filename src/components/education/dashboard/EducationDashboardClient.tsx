@@ -1,10 +1,11 @@
 "use client";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { generateId } from "@/lib/finance-utils";
+import { migrateNoteToCourseIds, migrateFileToEntityIds } from "@/lib/education-utils";
 import {
   StudySession,
   StudyGoal,
@@ -41,6 +42,7 @@ import { LearningPlannerTab } from "./planner/LearningPlannerTab";
 import { StudyAssistantChat } from "./ai/StudyAssistantChat";
 import { CourseRoadmap } from "./ai/CourseRoadmap";
 import { RoadmapTab } from "./roadmap/RoadmapTab";
+import { MindMapTab } from "./mindmap/MindMapTab";
 
 export function EducationDashboardClient() {
   // ===== State (Realtime-synced) =====
@@ -65,6 +67,26 @@ export function EducationDashboardClient() {
   const { isAvailable: isStorageAvailable, upload: uploadFile } = useSupabaseStorage();
   const { user } = useAuth();
   const isRealtimeConnected = sessionsConnected || notesConnected || coursesConnected || projectsConnected;
+
+  // Auto-migrate old note format (linked_course_id -> linked_course_ids)
+  useEffect(() => {
+    if (notes.length > 0) {
+      const migrated = notes.map(migrateNoteToCourseIds);
+      const needsMigration = migrated.some((n, i) => n !== notes[i]);
+      if (needsMigration) setNotes(migrated);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes.length]);
+
+  // Auto-migrate old file format (linked_entity_id -> linked_entity_ids)
+  useEffect(() => {
+    if (files.length > 0) {
+      const migrated = files.map(migrateFileToEntityIds);
+      const needsMigration = migrated.some((f, i) => f !== files[i]);
+      if (needsMigration) setFiles(migrated);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files.length]);
 
   const visibleTabs = useMemo(() =>
     DASHBOARD_TABS.filter((tab) =>
@@ -181,6 +203,9 @@ export function EducationDashboardClient() {
       fetch(`/api/education/upload/${encodeURIComponent(storagePath)}`, { method: "DELETE" }).catch(() => {});
     }
   }
+  const updateFile = useCallback((id: string, updates: Partial<UploadedFile>) => {
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+  }, [setFiles]);
 
   // ===== Project Handlers =====
   function addProject(project: Omit<DashboardProject, "id" | "created_at" | "updated_at">) {
@@ -301,6 +326,8 @@ export function EducationDashboardClient() {
               modules={courseModules}
               courseNotes={courseNotes}
               courseFiles={courseFiles}
+              generalFiles={files}
+              isStorageAvailable={isStorageAvailable}
               onAddCourse={addCourse}
               onDeleteCourse={deleteCourse}
               onAddModule={addCourseModule}
@@ -309,6 +336,9 @@ export function EducationDashboardClient() {
               onSaveCourseNote={saveCourseNote}
               onAddCourseFile={addCourseFile}
               onDeleteCourseFile={deleteCourseFile}
+              onUploadFile={handleFileUpload}
+              onAddGeneralFile={addFile}
+              onUpdateGeneralFile={updateFile}
             />
           </ErrorBoundary>
         </FadeIn>
@@ -430,6 +460,20 @@ export function EducationDashboardClient() {
         <FadeIn>
           <ErrorBoundary module="Roadmap">
             <RoadmapTab sessions={studySessions} />
+          </ErrorBoundary>
+        </FadeIn>
+      )}
+
+      {activeTab === "mindmap" && (
+        <FadeIn>
+          <ErrorBoundary module="Mind Map">
+            <MindMapTab
+              courses={courses}
+              notes={notes}
+              files={files}
+              onNavigateToCourse={() => setActiveTab("courses")}
+              onNavigateToNote={() => setActiveTab("notes")}
+            />
           </ErrorBoundary>
         </FadeIn>
       )}

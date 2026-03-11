@@ -1,11 +1,12 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Course, CourseModule, CourseNote, CourseFile, StudySession } from "@/types";
+import { Course, CourseModule, CourseNote, CourseFile, StudySession, UploadedFile } from "@/types";
 import { calculateModuleProgress } from "@/lib/education-utils";
 import { COURSE_STATUS_CONFIG } from "@/lib/constants";
 import { CourseModuleList } from "./CourseModuleList";
 import { CourseNotesEditor } from "./CourseNotesEditor";
 import { CourseFileUpload } from "./CourseFileUpload";
+import { CourseLinkedFiles } from "./CourseLinkedFiles";
 import { CourseForm } from "@/components/education/CourseForm";
 import { CourseRecommendations } from "../ai/CourseRecommendations";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
@@ -17,6 +18,8 @@ interface CourseTrackerTabProps {
   modules: CourseModule[];
   courseNotes: CourseNote[];
   courseFiles: CourseFile[];
+  generalFiles: UploadedFile[];
+  isStorageAvailable: boolean;
   onAddCourse: (course: Omit<Course, "id" | "created_at">) => void;
   onDeleteCourse: (id: string) => void;
   onAddModule: (module: Omit<CourseModule, "id" | "created_at">) => void;
@@ -25,6 +28,9 @@ interface CourseTrackerTabProps {
   onSaveCourseNote: (note: Omit<CourseNote, "id" | "created_at">) => void;
   onAddCourseFile: (file: Omit<CourseFile, "id" | "created_at">) => void;
   onDeleteCourseFile: (id: string) => void;
+  onUploadFile: (file: File) => Promise<{ url: string; path: string } | null>;
+  onAddGeneralFile: (file: Omit<UploadedFile, "id" | "created_at">) => void;
+  onUpdateGeneralFile: (id: string, updates: Partial<UploadedFile>) => void;
 }
 
 export function CourseTrackerTab({
@@ -33,6 +39,8 @@ export function CourseTrackerTab({
   modules,
   courseNotes,
   courseFiles,
+  generalFiles,
+  isStorageAvailable,
   onAddCourse,
   onDeleteCourse,
   onAddModule,
@@ -41,6 +49,9 @@ export function CourseTrackerTab({
   onSaveCourseNote,
   onAddCourseFile,
   onDeleteCourseFile,
+  onUploadFile,
+  onAddGeneralFile,
+  onUpdateGeneralFile,
 }: CourseTrackerTabProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -282,6 +293,17 @@ export function CourseTrackerTab({
               files={selectedFiles}
               onAdd={onAddCourseFile}
               onDelete={onDeleteCourseFile}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <CourseLinkedFiles
+              courseId={selectedCourse.id}
+              courses={courses}
+              files={generalFiles}
+              isStorageAvailable={isStorageAvailable}
+              onUpload={onUploadFile}
+              onAddFile={onAddGeneralFile}
+              onUpdateFile={onUpdateGeneralFile}
             />
           </div>
         </motion.div>
