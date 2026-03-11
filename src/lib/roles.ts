@@ -10,13 +10,16 @@
  * This module only controls UI-level feature gating.
  */
 
-const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL || process.env.OWNER_EMAIL || "";
-
 export type UserRole = "owner" | "admin" | "user" | "anonymous";
+
+function getOwnerEmail(): string {
+  return process.env.NEXT_PUBLIC_OWNER_EMAIL || process.env.OWNER_EMAIL || "";
+}
 
 export function getUserRole(email: string | null | undefined): UserRole {
   if (!email) return "anonymous";
-  if (OWNER_EMAIL && email === OWNER_EMAIL) return "owner";
+  const ownerEmail = getOwnerEmail();
+  if (ownerEmail && email === ownerEmail) return "owner";
   return "user";
 }
 

@@ -97,7 +97,7 @@ export function CourseTrackerTab({
         <h2 className="font-display font-semibold text-xl text-white">Course Tracker</h2>
         <div className="flex items-center gap-3">
           <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-          {isOwnerUser && onImportSeedCourse && (
+          {onImportSeedCourse && (
             <button
               onClick={async () => {
                 setImporting(true);
