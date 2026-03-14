@@ -76,6 +76,7 @@ export function DailyStudyTracker({
 }: DailyStudyTrackerProps) {
   const today = getTodayISO();
   const plan = useMemo(() => getTodaysStudyPlan(progress, ROADMAP_PHASES), [progress]);
+  const [showAllTopics, setShowAllTopics] = useState(false);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
   const [addingProblem, setAddingProblem] = useState<string | null>(null);
   const [customTitle, setCustomTitle] = useState("");
@@ -232,6 +233,10 @@ export function DailyStudyTracker({
 
   const { currentPhase, todaysTopics, nextTopics, phaseProgress, daysRemaining, isAheadOfSchedule, isBehindSchedule } = plan;
 
+  // All topics in this phase (for "Show All" mode)
+  const allPhaseTopics = currentPhase.topics;
+  const displayTopics = showAllTopics ? allPhaseTopics : todaysTopics;
+
   // Get solution files for today's topics
   const topicFiles = (topicId: string) =>
     files.filter((f) => f.linked_entity_type === "roadmap-solution" && f.linked_entity_ids.includes(topicId));
@@ -289,14 +294,27 @@ export function DailyStudyTracker({
 
       {/* ── Today's Topics ──────────────────────────────── */}
       <div className="px-5 pb-5">
-        {todaysTopics.length === 0 ? (
+        {/* Toggle: Today's / All Topics */}
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest">
+            {showAllTopics ? `All Topics (${allPhaseTopics.length})` : `Today's Topics (${todaysTopics.length})`}
+          </p>
+          <button
+            onClick={() => setShowAllTopics((v) => !v)}
+            className="font-mono text-[10px] text-white/30 hover:text-white/60 transition-colors px-2 py-0.5 rounded-md bg-white/[0.03] border border-white/5 hover:border-white/10"
+          >
+            {showAllTopics ? "Show Today Only" : "Show All Topics"}
+          </button>
+        </div>
+
+        {displayTopics.length === 0 ? (
           <div className="text-center py-6">
             <p className={cn("font-display font-bold text-sm", currentPhase.color)}>Phase Complete!</p>
             <p className="font-body text-xs text-white/40 mt-1">All topics in this phase are done.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {todaysTopics.map((topic) => {
+            {displayTopics.map((topic) => {
               const done = isTopicCompleted(progress, currentPhase.id, topic.id);
               const isExpanded = expandedTopic === topic.id;
               const problems = TOPIC_LEETCODE_MAP[topic.id] || [];
