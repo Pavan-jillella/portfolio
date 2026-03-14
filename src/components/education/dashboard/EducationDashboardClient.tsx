@@ -136,28 +136,7 @@ export function EducationDashboardClient() {
     setCourseFiles((prev) => prev.filter((f) => f.course_id !== id));
   }
 
-  // Import a pre-built course from the seed API (owner only)
-  async function importSeedCourse(): Promise<string | null> {
-    try {
-      const res = await fetch("/api/education/seed", { method: "POST" });
-      if (!res.ok) {
-        const err = await res.json();
-        return err.error || "Import failed";
-      }
-      const data = await res.json();
-      // Add course to local state (will also sync to Supabase via realtime)
-      setCourses((prev) => {
-        // Avoid duplicates
-        if (prev.some((c) => c.name === data.course.name)) return prev;
-        return [...prev, data.course];
-      });
-      // Add modules to localStorage
-      setCourseModules((prev) => [...prev, ...data.modules]);
-      return null; // no error
-    } catch {
-      return "Network error during import";
-    }
-  }
+  // ===== Course Module Handlers =====
 
   // ===== Course Module Handlers =====
   function addCourseModule(module: Omit<CourseModule, "id" | "created_at">) {
@@ -352,10 +331,8 @@ export function EducationDashboardClient() {
               courseFiles={courseFiles}
               generalFiles={files}
               isStorageAvailable={isStorageAvailable}
-              isOwnerUser={isOwner(user?.email)}
               onAddCourse={addCourse}
               onDeleteCourse={deleteCourse}
-              onImportSeedCourse={importSeedCourse}
               onAddModule={addCourseModule}
               onToggleModule={toggleCourseModule}
               onDeleteModule={deleteCourseModule}

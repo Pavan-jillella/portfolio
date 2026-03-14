@@ -26,116 +26,370 @@ interface Phase {
 }
 
 const PHASES: Phase[] = [
+  /* ── Phase 1: Python Mastery ──────────────────────────────── */
   {
     id: 1,
-    title: "Programming Foundations",
-    duration: "Month 1",
-    goal: "Build basic programming knowledge",
+    title: "Python Programming Mastery",
+    duration: "Mar 14 – Apr 27",
+    goal: "Master Python as your primary interview language",
     color: "text-emerald-400",
     bgColor: "bg-emerald-500",
     borderColor: "border-emerald-500/20",
     topics: [
-      { id: "p1-variables", label: "Variables" },
-      { id: "p1-conditions", label: "Conditions" },
-      { id: "p1-loops", label: "Loops" },
-      { id: "p1-functions", label: "Functions" },
-      { id: "p1-arrays", label: "Lists / Arrays" },
-      { id: "p1-hashmaps", label: "Dictionaries / HashMaps" },
-      { id: "p1-strings", label: "Strings" },
-      { id: "p1-recursion", label: "Recursion" },
-      { id: "p1-oop", label: "Object Oriented Programming" },
+      // Basics
+      { id: "p1-variables", label: "Variables & Data Types (int, float, str, bool)" },
+      { id: "p1-type-casting", label: "Type Casting & Type Checking" },
+      { id: "p1-operators", label: "Operators (arithmetic, comparison, logical, bitwise)" },
+      { id: "p1-string-formatting", label: "String Formatting (f-strings, .format)" },
+      { id: "p1-input-output", label: "Input / Output & File I/O" },
+      // Control Flow
+      { id: "p1-conditionals", label: "Conditionals (if / elif / else)" },
+      { id: "p1-for-loops", label: "For Loops & Range" },
+      { id: "p1-while-loops", label: "While Loops & Break / Continue / Pass" },
+      { id: "p1-comprehensions", label: "List / Dict / Set Comprehensions" },
+      // Data Structures (built-in)
+      { id: "p1-lists", label: "Lists (slicing, methods, copying)" },
+      { id: "p1-tuples", label: "Tuples & Named Tuples" },
+      { id: "p1-sets", label: "Sets & Frozen Sets" },
+      { id: "p1-dicts", label: "Dictionaries (methods, defaultdict, Counter)" },
+      { id: "p1-strings", label: "String Methods & Manipulation" },
+      // Functions
+      { id: "p1-functions", label: "Functions (params, return, default args)" },
+      { id: "p1-args-kwargs", label: "*args, **kwargs & Unpacking" },
+      { id: "p1-lambda", label: "Lambda Functions & map / filter / reduce" },
+      { id: "p1-closures", label: "Closures & Decorators" },
+      { id: "p1-generators", label: "Generators & Iterators (yield)" },
+      // OOP
+      { id: "p1-classes", label: "Classes & Objects" },
+      { id: "p1-inheritance", label: "Inheritance & Polymorphism" },
+      { id: "p1-encapsulation", label: "Encapsulation & Abstraction" },
+      { id: "p1-dunder", label: "Dunder Methods (__init__, __str__, __repr__, __eq__)" },
+      { id: "p1-dataclasses", label: "Dataclasses & @property" },
+      // Advanced Python
+      { id: "p1-exceptions", label: "Exception Handling (try/except/finally/raise)" },
+      { id: "p1-collections", label: "Collections Module (deque, OrderedDict, ChainMap)" },
+      { id: "p1-itertools", label: "itertools (permutations, combinations, product)" },
+      { id: "p1-functools", label: "functools (lru_cache, partial, reduce)" },
+      { id: "p1-regex", label: "Regular Expressions (re module)" },
+      { id: "p1-sorting", label: "Custom Sorting (key, cmp_to_key, lambda)" },
+      { id: "p1-bisect", label: "bisect Module (binary search helpers)" },
+      { id: "p1-heapq", label: "heapq Module (min-heap operations)" },
     ],
   },
+  /* ── Phase 2: Data Structures Deep Dive ───────────────────── */
   {
     id: 2,
-    title: "Data Structures",
-    duration: "Months 2-3",
-    goal: "Learn core data structures used in interviews",
+    title: "Data Structures Deep Dive",
+    duration: "Apr 28 – Jun 15",
+    goal: "Master every data structure asked in Google interviews",
     color: "text-blue-400",
     bgColor: "bg-blue-500",
     borderColor: "border-blue-500/20",
     topics: [
-      { id: "p2-arrays", label: "Arrays" },
-      { id: "p2-strings", label: "Strings" },
-      { id: "p2-linked-lists", label: "Linked Lists" },
-      { id: "p2-stack", label: "Stack" },
-      { id: "p2-queue", label: "Queue" },
-      { id: "p2-hash-tables", label: "Hash Tables" },
-      { id: "p2-trees", label: "Trees" },
-      { id: "p2-bst", label: "Binary Search Trees" },
-      { id: "p2-heap", label: "Heap / Priority Queue" },
-      { id: "p2-graphs", label: "Graphs" },
+      // Arrays
+      { id: "p2-arrays-basics", label: "Arrays: Static vs Dynamic, Memory Layout" },
+      { id: "p2-arrays-ops", label: "Arrays: Insert, Delete, Search, Rotate" },
+      { id: "p2-arrays-2d", label: "2D Arrays / Matrices & Traversal Patterns" },
+      { id: "p2-prefix-sum", label: "Prefix Sums & Difference Arrays" },
+      // Strings
+      { id: "p2-string-ops", label: "Strings: Immutability, StringBuilder Pattern" },
+      { id: "p2-string-encoding", label: "String Encoding (ASCII, Unicode, UTF-8)" },
+      { id: "p2-anagram", label: "Anagram, Palindrome & Substring Problems" },
+      // Linked Lists
+      { id: "p2-singly-ll", label: "Singly Linked List (insert, delete, reverse)" },
+      { id: "p2-doubly-ll", label: "Doubly Linked List & Circular Linked List" },
+      { id: "p2-ll-patterns", label: "LL Patterns: Fast/Slow Pointer, Merge, Cycle Detection" },
+      { id: "p2-lru-cache", label: "LRU Cache (HashMap + Doubly Linked List)" },
+      // Stacks
+      { id: "p2-stack-basics", label: "Stack: Implementation & Operations" },
+      { id: "p2-monotonic-stack", label: "Monotonic Stack (Next Greater Element)" },
+      { id: "p2-stack-apps", label: "Stack Applications: Parentheses, Calculator, Decode" },
+      // Queues
+      { id: "p2-queue-basics", label: "Queue: Implementation, Circular Queue" },
+      { id: "p2-deque", label: "Deque (Double-Ended Queue)" },
+      { id: "p2-monotonic-queue", label: "Monotonic Deque (Sliding Window Maximum)" },
+      // Hash Tables
+      { id: "p2-hash-basics", label: "Hash Tables: Hash Functions, Collision Handling" },
+      { id: "p2-hash-chaining", label: "Open Addressing vs Separate Chaining" },
+      { id: "p2-hash-apps", label: "Hash Map Applications: Two Sum, Group Anagrams" },
+      { id: "p2-hash-design", label: "Design HashMap from Scratch" },
+      // Trees
+      { id: "p2-binary-tree", label: "Binary Tree: Traversals (Inorder, Pre, Post, Level)" },
+      { id: "p2-bst", label: "Binary Search Tree: Insert, Delete, Search, Validate" },
+      { id: "p2-balanced-trees", label: "Balanced Trees: AVL, Red-Black Tree (concepts)" },
+      { id: "p2-tree-patterns", label: "Tree Patterns: LCA, Diameter, Path Sum, Serialize" },
+      { id: "p2-nary-tree", label: "N-ary Trees & Tree Reconstruction" },
+      // Heaps
+      { id: "p2-heap-basics", label: "Heap: Min-Heap, Max-Heap, Heapify" },
+      { id: "p2-heap-sort", label: "Heap Sort & Priority Queue" },
+      { id: "p2-heap-apps", label: "Heap Apps: Top K, Median Finder, Merge K Sorted" },
+      // Tries
+      { id: "p2-trie-basics", label: "Trie: Insert, Search, StartsWith" },
+      { id: "p2-trie-apps", label: "Trie Apps: Autocomplete, Word Search, Word Break" },
+      // Graphs
+      { id: "p2-graph-basics", label: "Graph: Adjacency List vs Matrix, Directed/Undirected" },
+      { id: "p2-graph-weighted", label: "Weighted Graphs & Edge Lists" },
+      { id: "p2-graph-representations", label: "Graph: In-degree, Out-degree, Connected Components" },
+      // Advanced DS
+      { id: "p2-union-find", label: "Disjoint Set / Union-Find (Path Compression, Union by Rank)" },
+      { id: "p2-segment-tree", label: "Segment Tree (Range Queries & Updates)" },
+      { id: "p2-bit", label: "Binary Indexed Tree / Fenwick Tree" },
     ],
   },
+  /* ── Phase 3: Core Algorithms & Patterns ──────────────────── */
   {
     id: 3,
-    title: "Algorithms",
-    duration: "Months 4-5",
-    goal: "Master common interview problem patterns",
+    title: "Core Algorithms & Patterns",
+    duration: "Jun 16 – Jul 27",
+    goal: "Master the 15 essential coding interview patterns",
     color: "text-violet-400",
     bgColor: "bg-violet-500",
     borderColor: "border-violet-500/20",
     topics: [
-      { id: "p3-binary-search", label: "Binary Search" },
-      { id: "p3-sliding-window", label: "Sliding Window" },
-      { id: "p3-two-pointers", label: "Two Pointers" },
-      { id: "p3-recursion", label: "Recursion" },
-      { id: "p3-backtracking", label: "Backtracking" },
-      { id: "p3-dp", label: "Dynamic Programming" },
-      { id: "p3-bfs-dfs", label: "Graph Traversal (BFS / DFS)" },
+      // Sorting
+      { id: "p3-sort-basic", label: "Sorting: Bubble, Selection, Insertion" },
+      { id: "p3-sort-efficient", label: "Sorting: Merge Sort & Quick Sort (in-depth)" },
+      { id: "p3-sort-noncomp", label: "Non-Comparison Sorts: Counting, Radix, Bucket" },
+      { id: "p3-sort-custom", label: "Custom Sorting: Comparators, Stability, Timsort" },
+      // Searching
+      { id: "p3-binary-search", label: "Binary Search: Standard, Lower/Upper Bound" },
+      { id: "p3-bs-variants", label: "Binary Search on Answer, Rotated Array, Matrix" },
+      { id: "p3-bs-advanced", label: "Binary Search: Kth Element, Peak Finding" },
+      // Two Pointers
+      { id: "p3-two-ptr-opposite", label: "Two Pointers: Opposite Direction (3Sum, Container)" },
+      { id: "p3-two-ptr-same", label: "Two Pointers: Same Direction (Remove Duplicates)" },
+      { id: "p3-two-ptr-partition", label: "Two Pointers: Partition, Dutch National Flag" },
+      // Sliding Window
+      { id: "p3-sw-fixed", label: "Sliding Window: Fixed Size (Max Sum Subarray)" },
+      { id: "p3-sw-variable", label: "Sliding Window: Variable Size (Min Window Substring)" },
+      { id: "p3-sw-hash", label: "Sliding Window + Hash Map Patterns" },
+      // Recursion & Backtracking
+      { id: "p3-recursion", label: "Recursion: Base Case, Recursive Tree, Call Stack" },
+      { id: "p3-backtrack-subsets", label: "Backtracking: Subsets, Permutations, Combinations" },
+      { id: "p3-backtrack-constraints", label: "Backtracking: N-Queens, Sudoku, Word Search" },
+      { id: "p3-backtrack-pruning", label: "Pruning & Optimization Techniques" },
+      // Greedy
+      { id: "p3-greedy-intervals", label: "Greedy: Interval Scheduling, Merge Intervals" },
+      { id: "p3-greedy-general", label: "Greedy: Jump Game, Gas Station, Task Scheduler" },
+      { id: "p3-greedy-proof", label: "Greedy: When to Use & Proof of Correctness" },
+      // Divide & Conquer
+      { id: "p3-dnc-merge", label: "Divide & Conquer: Merge Sort, Quick Select" },
+      { id: "p3-dnc-closest", label: "Divide & Conquer: Closest Pair, Count Inversions" },
+      // Bit Manipulation
+      { id: "p3-bit-basics", label: "Bit Manipulation: AND, OR, XOR, NOT, Shifts" },
+      { id: "p3-bit-tricks", label: "Bit Tricks: Power of 2, Count Bits, Single Number" },
+      { id: "p3-bit-masks", label: "Bitmask: Subset Generation, States" },
+      // Math & Number Theory
+      { id: "p3-math-gcd", label: "Math: GCD, LCM, Euclidean Algorithm" },
+      { id: "p3-math-primes", label: "Math: Sieve of Eratosthenes, Prime Factorization" },
+      { id: "p3-math-modular", label: "Modular Arithmetic & Fast Exponentiation" },
+      { id: "p3-math-combinatorics", label: "Combinatorics (nCr, Pascal's Triangle)" },
     ],
   },
+  /* ── Phase 4: Dynamic Programming Mastery ─────────────────── */
   {
     id: 4,
+    title: "Dynamic Programming Mastery",
+    duration: "Jul 28 – Aug 24",
+    goal: "Master DP — Google's most-asked algorithm category",
+    color: "text-fuchsia-400",
+    bgColor: "bg-fuchsia-500",
+    borderColor: "border-fuchsia-500/20",
+    topics: [
+      // Foundations
+      { id: "p4-dp-intro", label: "DP Foundations: Memoization vs Tabulation" },
+      { id: "p4-dp-identify", label: "Identifying DP Problems: Overlapping Subproblems" },
+      { id: "p4-dp-state", label: "State Definition & Transition Formulation" },
+      // 1D DP
+      { id: "p4-dp-fibonacci", label: "1D DP: Fibonacci, Climbing Stairs, House Robber" },
+      { id: "p4-dp-jump", label: "1D DP: Jump Game, Decode Ways, Word Break" },
+      { id: "p4-dp-lis", label: "Longest Increasing Subsequence (LIS)" },
+      // 2D DP
+      { id: "p4-dp-grid", label: "2D DP: Unique Paths, Grid Min Path, Matrix Chain" },
+      { id: "p4-dp-lcs", label: "Longest Common Subsequence / Substring (LCS)" },
+      { id: "p4-dp-edit", label: "Edit Distance (Levenshtein Distance)" },
+      // Knapsack
+      { id: "p4-dp-01-knapsack", label: "0/1 Knapsack: Subset Sum, Partition Equal Subset" },
+      { id: "p4-dp-unbounded", label: "Unbounded Knapsack: Coin Change, Rod Cutting" },
+      { id: "p4-dp-bounded", label: "Bounded Knapsack & Variations" },
+      // Interval DP
+      { id: "p4-dp-interval", label: "Interval DP: Burst Balloons, Matrix Chain Multiply" },
+      { id: "p4-dp-palindrome", label: "Palindrome DP: Longest Palindromic Subsequence" },
+      // State Machine DP
+      { id: "p4-dp-stock", label: "State Machine DP: Buy & Sell Stock (all variants)" },
+      { id: "p4-dp-state-machine", label: "State Machine DP: Paint House, Paint Fence" },
+      // Advanced DP
+      { id: "p4-dp-bitmask", label: "Bitmask DP: TSP, Assign Tasks, Matching" },
+      { id: "p4-dp-tree", label: "DP on Trees: House Robber III, Binary Tree Cameras" },
+      { id: "p4-dp-digit", label: "Digit DP: Count Numbers with Specific Properties" },
+      { id: "p4-dp-string", label: "String DP: Regular Expression, Wildcard Matching" },
+      { id: "p4-dp-optimization", label: "Space Optimization: Rolling Array Technique" },
+    ],
+  },
+  /* ── Phase 5: Graph Algorithms ────────────────────────────── */
+  {
+    id: 5,
+    title: "Graph Algorithms",
+    duration: "Aug 25 – Sep 14",
+    goal: "Master graph algorithms — frequent in Google interviews",
+    color: "text-orange-400",
+    bgColor: "bg-orange-500",
+    borderColor: "border-orange-500/20",
+    topics: [
+      // Traversals
+      { id: "p5-bfs", label: "BFS: Level Order, Shortest Path (Unweighted)" },
+      { id: "p5-dfs", label: "DFS: Connected Components, Cycle Detection" },
+      { id: "p5-multi-source-bfs", label: "Multi-Source BFS (Rotting Oranges, 01 Matrix)" },
+      { id: "p5-bidirectional-bfs", label: "Bidirectional BFS (Word Ladder)" },
+      // Shortest Path
+      { id: "p5-dijkstra", label: "Dijkstra's Algorithm (Weighted Shortest Path)" },
+      { id: "p5-bellman-ford", label: "Bellman-Ford (Negative Weights)" },
+      { id: "p5-floyd-warshall", label: "Floyd-Warshall (All-Pairs Shortest Path)" },
+      { id: "p5-astar", label: "A* Search (Heuristic Shortest Path)" },
+      // Topological Sort
+      { id: "p5-topo-kahn", label: "Topological Sort: Kahn's Algorithm (BFS)" },
+      { id: "p5-topo-dfs", label: "Topological Sort: DFS-based" },
+      { id: "p5-topo-apps", label: "Applications: Course Schedule, Build Order, Alien Dict" },
+      // MST
+      { id: "p5-kruskal", label: "Minimum Spanning Tree: Kruskal's Algorithm" },
+      { id: "p5-prim", label: "Minimum Spanning Tree: Prim's Algorithm" },
+      // Connectivity
+      { id: "p5-tarjan", label: "Tarjan's SCC (Strongly Connected Components)" },
+      { id: "p5-articulation", label: "Articulation Points & Bridges" },
+      { id: "p5-bipartite", label: "Bipartite Check (Graph Coloring)" },
+      // Advanced
+      { id: "p5-union-find-apps", label: "Union-Find Applications: Accounts Merge, Redundant" },
+      { id: "p5-euler", label: "Euler Path / Circuit (Reconstruct Itinerary)" },
+      { id: "p5-network-flow", label: "Network Flow Basics (Max Flow / Min Cut)" },
+      // String Algorithms (Graph-like)
+      { id: "p5-kmp", label: "KMP Algorithm (Pattern Matching)" },
+      { id: "p5-rabin-karp", label: "Rabin-Karp (Rolling Hash)" },
+      { id: "p5-manacher", label: "Manacher's Algorithm (Longest Palindromic Substring)" },
+    ],
+  },
+  /* ── Phase 6: System Design ───────────────────────────────── */
+  {
+    id: 6,
     title: "System Design",
-    duration: "Month 6",
-    goal: "Learn how large-scale systems work",
+    duration: "Sep 15 – Oct 12",
+    goal: "Learn to design scalable systems — required for Google L4+",
     color: "text-amber-400",
     bgColor: "bg-amber-500",
     borderColor: "border-amber-500/20",
     topics: [
-      { id: "p4-client-server", label: "Client-Server Architecture" },
-      { id: "p4-databases", label: "Databases (SQL / NoSQL)" },
-      { id: "p4-caching", label: "Caching" },
-      { id: "p4-load-balancers", label: "Load Balancers" },
-      { id: "p4-microservices", label: "Microservices" },
-      { id: "p4-message-queues", label: "Message Queues" },
-      { id: "p4-rate-limiting", label: "Rate Limiting" },
-      { id: "p4-design-instagram", label: "Design Instagram" },
-      { id: "p4-design-uber", label: "Design Uber" },
-      { id: "p4-design-whatsapp", label: "Design WhatsApp" },
-      { id: "p4-design-youtube", label: "Design YouTube" },
-      { id: "p4-design-netflix", label: "Design Netflix" },
+      // Fundamentals
+      { id: "p6-scalability", label: "Scalability: Vertical vs Horizontal Scaling" },
+      { id: "p6-latency", label: "Latency, Throughput & Availability (SLAs)" },
+      { id: "p6-cap-theorem", label: "CAP Theorem & PACELC" },
+      { id: "p6-consistency", label: "Consistency Models: Strong, Eventual, Causal" },
+      // Networking
+      { id: "p6-tcp-udp", label: "TCP vs UDP, HTTP/HTTPS, HTTP/2, HTTP/3" },
+      { id: "p6-rest-grpc", label: "REST vs gRPC vs GraphQL" },
+      { id: "p6-websockets", label: "WebSockets & Server-Sent Events" },
+      { id: "p6-dns-cdn", label: "DNS Resolution & CDN (CloudFront, Akamai)" },
+      // Databases
+      { id: "p6-sql", label: "SQL Databases: Indexing, Transactions, ACID" },
+      { id: "p6-nosql", label: "NoSQL: Key-Value, Document, Column, Graph DBs" },
+      { id: "p6-sharding", label: "Sharding Strategies & Partition Keys" },
+      { id: "p6-replication", label: "Replication: Leader-Follower, Multi-Leader, Leaderless" },
+      // Caching
+      { id: "p6-caching", label: "Caching: Redis, Memcached, LRU/LFU Policies" },
+      { id: "p6-cache-strategies", label: "Cache Strategies: Write-Through, Write-Back, Aside" },
+      { id: "p6-cache-invalidation", label: "Cache Invalidation & Consistency" },
+      // Infrastructure
+      { id: "p6-load-balancer", label: "Load Balancing: Round Robin, Consistent Hashing" },
+      { id: "p6-message-queues", label: "Message Queues: Kafka, RabbitMQ, Pub/Sub" },
+      { id: "p6-rate-limiting", label: "Rate Limiting: Token Bucket, Leaky Bucket, Fixed Window" },
+      { id: "p6-api-gateway", label: "API Gateway & Service Discovery" },
+      { id: "p6-microservices", label: "Microservices: Circuit Breaker, Saga, CQRS" },
+      // Storage
+      { id: "p6-blob-storage", label: "Blob / Object Storage (S3, GCS)" },
+      { id: "p6-file-systems", label: "Distributed File Systems (GFS, HDFS)" },
+      // Monitoring
+      { id: "p6-logging", label: "Logging, Metrics & Distributed Tracing" },
+      // Design Exercises
+      { id: "p6-design-url", label: "Design: URL Shortener (TinyURL)" },
+      { id: "p6-design-twitter", label: "Design: Twitter / News Feed" },
+      { id: "p6-design-instagram", label: "Design: Instagram" },
+      { id: "p6-design-whatsapp", label: "Design: WhatsApp / Chat System" },
+      { id: "p6-design-youtube", label: "Design: YouTube / Video Streaming" },
+      { id: "p6-design-uber", label: "Design: Uber / Ride Sharing" },
+      { id: "p6-design-netflix", label: "Design: Netflix / Content Delivery" },
+      { id: "p6-design-google-drive", label: "Design: Google Drive / Dropbox" },
+      { id: "p6-design-google-maps", label: "Design: Google Maps" },
+      { id: "p6-design-search", label: "Design: Web Crawler / Search Engine" },
+      { id: "p6-design-notification", label: "Design: Notification System" },
+      { id: "p6-design-rate-limiter", label: "Design: Distributed Rate Limiter" },
     ],
   },
+  /* ── Phase 7: Google-Specific & Behavioral ────────────────── */
   {
-    id: 5,
-    title: "Portfolio Projects",
-    duration: "Month 7",
-    goal: "Build strong projects to showcase skills",
+    id: 7,
+    title: "Google-Specific & Behavioral",
+    duration: "Oct 13 – Nov 2",
+    goal: "Prepare for Google's unique interview process & culture fit",
     color: "text-rose-400",
     bgColor: "bg-rose-500",
     borderColor: "border-rose-500/20",
     topics: [
-      { id: "p5-ai-resume", label: "AI Resume Analyzer" },
-      { id: "p5-uber-clone", label: "Mini Uber Clone" },
-      { id: "p5-llm-chat", label: "LLM Chat Application" },
+      // Google Process
+      { id: "p7-google-process", label: "Google Hiring: Phone Screen → Onsite → HC → Team Match" },
+      { id: "p7-google-levels", label: "Google Levels: L3 (SDE I), L4 (SDE II), L5 (Senior)" },
+      { id: "p7-google-interviewer", label: "What Interviewers Look For: Signals & Rubrics" },
+      // Googleyness
+      { id: "p7-googleyness", label: "Googleyness: Collaboration, Intellectual Humility" },
+      { id: "p7-ambiguity", label: "Navigating Ambiguity & Asking Clarifying Questions" },
+      { id: "p7-pushback", label: "Pushing Back Respectfully & Defending Decisions" },
+      // Behavioral (STAR)
+      { id: "p7-star-method", label: "STAR Method: Situation, Task, Action, Result" },
+      { id: "p7-leadership", label: "Leadership Stories (3-5 prepared)" },
+      { id: "p7-conflict", label: "Conflict Resolution Stories (3-5 prepared)" },
+      { id: "p7-failure", label: "Failure & Learning Stories (3-5 prepared)" },
+      { id: "p7-project-deep-dive", label: "Past Project Deep Dives (2-3 projects)" },
+      // Google-Specific Design
+      { id: "p7-design-docs", label: "Design: Google Docs (Collaborative Editing)" },
+      { id: "p7-design-gmail", label: "Design: Gmail (Email System at Scale)" },
+      { id: "p7-design-calendar", label: "Design: Google Calendar" },
+      { id: "p7-design-youtube-rec", label: "Design: YouTube Recommendations (ML Pipeline)" },
+      // Portfolio Projects
+      { id: "p7-project-1", label: "Project 1: Full-Stack App (demonstrate system design)" },
+      { id: "p7-project-2", label: "Project 2: Algorithm-Heavy App (demonstrate DSA)" },
+      { id: "p7-project-3", label: "Project 3: Open Source Contribution or API Project" },
+      { id: "p7-resume", label: "Resume: Quantified Impact, Google-Friendly Format" },
     ],
   },
+  /* ── Phase 8: Final Sprint & Mock Interviews ──────────────── */
   {
-    id: 6,
-    title: "Interview Preparation",
-    duration: "Month 8",
-    goal: "Prepare for real interviews",
+    id: 8,
+    title: "Final Sprint & Mock Interviews",
+    duration: "Nov 3 – Nov 17",
+    goal: "Peak performance for interview day — simulate real conditions",
     color: "text-cyan-400",
     bgColor: "bg-cyan-500",
     borderColor: "border-cyan-500/20",
     topics: [
-      { id: "p6-daily-lc", label: "Daily LeetCode Practice" },
-      { id: "p6-system-mock", label: "System Design Mocks" },
-      { id: "p6-behavioral", label: "Behavioral Prep" },
-      { id: "p6-resume", label: "Resume Polished" },
-      { id: "p6-applications", label: "FAANG Applications Sent" },
+      // LeetCode Mastery
+      { id: "p8-blind75", label: "Solve Blind 75 (all reviewed)" },
+      { id: "p8-neetcode150", label: "Solve NeetCode 150 (all reviewed)" },
+      { id: "p8-google-tagged", label: "LeetCode Google-Tagged Problems (Top 50)" },
+      { id: "p8-hard-problems", label: "Hard Problem Sprint (2-3 hards per day)" },
+      { id: "p8-timed-practice", label: "Timed Practice: 2 mediums in 45 min" },
+      // Mock Interviews
+      { id: "p8-mock-coding-1", label: "Mock Interview: Coding Round 1" },
+      { id: "p8-mock-coding-2", label: "Mock Interview: Coding Round 2" },
+      { id: "p8-mock-coding-3", label: "Mock Interview: Coding Round 3" },
+      { id: "p8-mock-sd-1", label: "Mock Interview: System Design Round 1" },
+      { id: "p8-mock-sd-2", label: "Mock Interview: System Design Round 2" },
+      { id: "p8-mock-behavioral", label: "Mock Interview: Behavioral / Googleyness" },
+      { id: "p8-mock-full-loop", label: "Full Mock Loop: 4 Rounds Back-to-Back" },
+      // Weak Area Review
+      { id: "p8-review-dp", label: "Review Weak Area: DP Problems" },
+      { id: "p8-review-graphs", label: "Review Weak Area: Graph Problems" },
+      { id: "p8-review-sd", label: "Review Weak Area: System Design Gaps" },
+      // Applications
+      { id: "p8-referral", label: "Secure Referral(s) from Google Employees" },
+      { id: "p8-application", label: "Submit Google Application" },
+      { id: "p8-other-apps", label: "Submit Backup Applications (Meta, Amazon, Microsoft)" },
     ],
   },
 ];
@@ -389,7 +643,7 @@ function LearningTreeDiagram({ progress }: { progress: RoadmapProgress }) {
         {/* Root node */}
         <div className="flex justify-center mb-2">
           <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500/20 to-violet-500/20 border border-blue-500/20">
-            <span className="font-display font-bold text-sm text-white">FAANG Preparation</span>
+            <span className="font-display font-bold text-sm text-white">Google SDE Preparation</span>
           </div>
         </div>
 
@@ -525,7 +779,7 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
   // Compute study hours from education sessions by relevant subjects
   const studyStats = useMemo(() => {
     const subjectMap: Record<string, number> = {};
-    const relevantSubjects = ["DSA", "Python", "JavaScript", "TypeScript", "System Design", "React", "Next.js", "Databases"];
+    const relevantSubjects = ["DSA", "Python", "Java", "Algorithms", "Data Structures", "System Design", "LeetCode", "Graphs", "Dynamic Programming", "Trees", "Databases", "OOP", "Coding"];
     sessions.forEach((s) => {
       if (relevantSubjects.some((rs) => s.subject.toLowerCase().includes(rs.toLowerCase()))) {
         subjectMap[s.subject] = (subjectMap[s.subject] || 0) + s.duration_minutes;
@@ -622,7 +876,7 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
           <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">Problems</p>
           <p className="font-display font-bold text-2xl text-white">
             {totalProblems}
-            <span className="text-xs text-white/20 font-mono ml-1">/ 300</span>
+            <span className="text-xs text-white/20 font-mono ml-1">/ 400</span>
           </p>
           {leetcodeData && (
             <p className="font-mono text-[9px] text-emerald-400 mt-1">Synced from LeetCode</p>
@@ -633,7 +887,7 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
           <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">Mock Interviews</p>
           <p className="font-display font-bold text-2xl text-white">
             {progress.mockInterviewsDone}
-            <span className="text-xs text-white/20 font-mono ml-1">/ 20</span>
+            <span className="text-xs text-white/20 font-mono ml-1">/ 25</span>
           </p>
         </div>
 
@@ -641,7 +895,7 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
           <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-1">System Designs</p>
           <p className="font-display font-bold text-2xl text-white">
             {progress.systemDesignsDone}
-            <span className="text-xs text-white/20 font-mono ml-1">/ 15</span>
+            <span className="text-xs text-white/20 font-mono ml-1">/ 20</span>
           </p>
         </div>
 
@@ -754,13 +1008,13 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="font-mono text-[10px] text-white/30">Total: {lcTotal} / 300</span>
-                  <span className="font-mono text-[10px] text-blue-400">{Math.min(100, Math.round((lcTotal / 300) * 100))}%</span>
+                  <span className="font-mono text-[10px] text-white/30">Total: {lcTotal} / 400</span>
+                  <span className="font-mono text-[10px] text-blue-400">{Math.min(100, Math.round((lcTotal / 400) * 100))}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
-                  <div className="h-full bg-emerald-500/50" style={{ width: `${(lcEasy / 300) * 100}%` }} />
-                  <div className="h-full bg-amber-500/50" style={{ width: `${(lcMedium / 300) * 100}%` }} />
-                  <div className="h-full bg-red-500/50" style={{ width: `${(lcHard / 300) * 100}%` }} />
+                  <div className="h-full bg-emerald-500/50" style={{ width: `${(lcEasy / 400) * 100}%` }} />
+                  <div className="h-full bg-amber-500/50" style={{ width: `${(lcMedium / 400) * 100}%` }} />
+                  <div className="h-full bg-red-500/50" style={{ width: `${(lcHard / 400) * 100}%` }} />
                 </div>
               </div>
               <p className="font-body text-xs text-white/20">Auto-synced from your LeetCode profile ({leetcodeUsername})</p>
@@ -770,9 +1024,9 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
               <p className="font-body text-xs text-white/20 mb-2">
                 Link your LeetCode username in the LeetCode tab to auto-sync, or track manually below.
               </p>
-              <CounterInput label="Easy" value={progress.problemsSolved.easy} onChange={(v) => updateProblems("easy", v)} color="text-emerald-400" target={100} />
-              <CounterInput label="Medium" value={progress.problemsSolved.medium} onChange={(v) => updateProblems("medium", v)} color="text-amber-400" target={150} />
-              <CounterInput label="Hard" value={progress.problemsSolved.hard} onChange={(v) => updateProblems("hard", v)} color="text-red-400" target={50} />
+              <CounterInput label="Easy" value={progress.problemsSolved.easy} onChange={(v) => updateProblems("easy", v)} color="text-emerald-400" target={120} />
+              <CounterInput label="Medium" value={progress.problemsSolved.medium} onChange={(v) => updateProblems("medium", v)} color="text-amber-400" target={200} />
+              <CounterInput label="Hard" value={progress.problemsSolved.hard} onChange={(v) => updateProblems("hard", v)} color="text-red-400" target={80} />
             </div>
           )}
         </div>
@@ -784,14 +1038,14 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
             value={progress.mockInterviewsDone}
             onChange={(v) => updateCounter("mockInterviewsDone", v)}
             color="text-cyan-400"
-            target={20}
+            target={25}
           />
           <CounterInput
             label="System Designs Practiced"
             value={progress.systemDesignsDone}
             onChange={(v) => updateCounter("systemDesignsDone", v)}
             color="text-amber-400"
-            target={15}
+            target={20}
           />
 
           {/* Study hours by subject from education tracker */}
@@ -820,13 +1074,13 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] text-blue-400 uppercase tracking-widest mb-1">Target</p>
-            <h3 className="font-display font-bold text-lg text-white">FAANG-Ready by Nov 17</h3>
+            <h3 className="font-display font-bold text-lg text-white">Google SDE-Ready by Nov 17</h3>
           </div>
           <div className="flex gap-3 flex-wrap">
             {[
-              { label: "Problems", current: totalProblems, target: 300, color: "border-violet-500/20" },
-              { label: "Mocks", current: progress.mockInterviewsDone, target: 20, color: "border-cyan-500/20" },
-              { label: "Designs", current: progress.systemDesignsDone, target: 15, color: "border-amber-500/20" },
+              { label: "Problems", current: totalProblems, target: 400, color: "border-violet-500/20" },
+              { label: "Mocks", current: progress.mockInterviewsDone, target: 25, color: "border-cyan-500/20" },
+              { label: "Designs", current: progress.systemDesignsDone, target: 20, color: "border-amber-500/20" },
             ].map((stat) => (
               <div key={stat.label} className={cn("glass-card rounded-xl px-3 py-2 border text-center min-w-[80px]", stat.color)}>
                 <p className="font-display font-bold text-lg text-white">

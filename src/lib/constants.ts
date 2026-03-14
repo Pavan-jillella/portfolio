@@ -782,7 +782,7 @@ export const DASHBOARD_TABS = [
   { id: "planner", label: "Planner" },
   { id: "github", label: "GitHub" },
   { id: "leetcode", label: "LeetCode" },
-  { id: "roadmap", label: "FAANG Roadmap" },
+  { id: "roadmap", label: "Google SDE Roadmap" },
   { id: "mindmap", label: "Mind Map" },
   { id: "files", label: "Files" },
 ] as const;
