@@ -72,6 +72,26 @@ Give specific, actionable recommendations about:
 2. How to improve their learning efficiency
 3. Skills gaps to address
 Keep response under 300 words. Be encouraging but honest.`,
+
+  "solution-feedback": `You are a coding interview coach AI. Analyze the student's solution approach for the given LeetCode/coding problem.
+
+Consider:
+1. Time and space complexity
+2. Code cleanliness and Python best practices
+3. Edge cases that might be missed
+4. Alternative approaches
+5. How this would be received in a Google interview
+
+Return a JSON object with this exact structure:
+{
+  "complexity": { "time": "O(...)", "space": "O(...)" },
+  "strengths": ["strength1", "strength2"],
+  "improvements": ["improvement1", "improvement2"],
+  "alternative_approaches": ["approach1"],
+  "interview_tip": "A brief Google-specific interview tip",
+  "rating": "beginner|intermediate|interview-ready"
+}
+Only return valid JSON.`,
 };
 
 const MAX_TOKENS: Record<string, number> = {
@@ -81,6 +101,7 @@ const MAX_TOKENS: Record<string, number> = {
   summarize: 600,
   planner: 800,
   mentor: 600,
+  "solution-feedback": 800,
 };
 
 export async function POST(req: NextRequest) {
