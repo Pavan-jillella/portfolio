@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { cn } from "@/lib/utils";
 import { isOwner } from "@/lib/roles";
+import {
+  buildRoadmapMindMap,
+  PHASE_COLORS,
+  PHASE_CLUSTERS,
+  type RoadmapMindMapNode,
+  type RoadmapMindMapEdge,
+} from "@/lib/roadmap-mindmap-utils";
 
 /* ─── constants ─────────────────────────────────────────────── */
 
@@ -48,28 +55,31 @@ const phases: Phase[] = [
       "Tuples & Named Tuples",
       "Sets & Frozen Sets",
       "Dictionaries (methods, defaultdict, Counter)",
-      "String Methods & Manipulation",
-      "Functions (params, return, default args)",
-      "*args, **kwargs & Unpacking",
-      "Lambda Functions & map / filter / reduce",
-      "Closures & Decorators",
-      "Generators & Iterators (yield)",
-      "Classes & Objects",
-      "Inheritance & Polymorphism",
-      "Encapsulation & Abstraction",
-      "Dunder Methods (__init__, __str__, __eq__)",
-      "Dataclasses & @property",
-      "Exception Handling (try/except/finally)",
-      "Collections Module (deque, OrderedDict)",
-      "itertools (permutations, combinations, product)",
-      "functools (lru_cache, partial, reduce)",
-      "Regular Expressions (re module)",
-      "Custom Sorting (key, cmp_to_key)",
-      "bisect & heapq Modules",
+      "Strings (methods, slicing, regex basics)",
+      "Functions (args, kwargs, return values)",
+      "Lambda, Map, Filter, Reduce",
+      "Recursion & Memoization",
+      "Decorators & Closures",
+      "Classes & OOP (init, methods, inheritance, polymorphism)",
+      "Magic Methods (__str__, __repr__, __eq__, __hash__)",
+      "Error Handling (try/except/finally, custom exceptions)",
+      "File I/O & Context Managers",
+      "Iterators & Generators (yield, next)",
+      "Collections Module (deque, OrderedDict, defaultdict, Counter)",
+      "Sorting (sorted, key functions, custom comparators)",
+      "Binary Search (bisect module)",
+      "Time & Space Complexity Analysis",
+      "Built-in Functions Mastery (enumerate, zip, any, all)",
+      "Virtual Environments & pip basics",
+      "heapq module",
     ],
-    practice: "Solve 10-15 easy coding problems daily on HackerRank/LeetCode.",
-    milestones: ["Write clean Pythonic code", "Solve 80+ beginner problems", "Comfortable with all built-in data structures"],
-    platforms: ["HackerRank", "LeetCode (Easy)", "Codewars", "Python.org Docs"],
+    practice: "Solve 3–5 easy LeetCode problems daily in Python. Focus on clean syntax.",
+    milestones: [
+      "Comfortable writing Python without docs",
+      "50+ easy problems solved",
+      "Can implement basic data structures from scratch",
+    ],
+    platforms: ["LeetCode", "HackerRank", "Python.org Docs"],
   },
   {
     id: 2,
@@ -80,35 +90,40 @@ const phases: Phase[] = [
     color: "text-blue-400",
     gradient: "from-blue-500/20 to-blue-500/0",
     borderColor: "border-blue-500/20",
-    goal: "Master every data structure asked in Google interviews.",
+    goal: "Implement and deeply understand every core data structure.",
     topics: [
-      "Arrays: Static vs Dynamic, Memory Layout",
-      "2D Arrays / Matrices & Traversal Patterns",
-      "Prefix Sums & Difference Arrays",
-      "Strings: Immutability, Encoding (ASCII, UTF-8)",
-      "Anagram, Palindrome & Substring Problems",
-      "Singly & Doubly Linked Lists (insert, delete, reverse)",
-      "LL Patterns: Fast/Slow Pointer, Merge, Cycle Detection",
-      "LRU Cache (HashMap + Doubly Linked List)",
-      "Stack: Implementation & Monotonic Stack",
-      "Stack Apps: Parentheses, Calculator, Decode String",
-      "Queue, Deque & Monotonic Deque",
-      "Hash Tables: Hash Functions, Collision Handling",
-      "Design HashMap from Scratch",
-      "Binary Tree: Traversals (Inorder, Pre, Post, Level)",
-      "BST: Insert, Delete, Search, Validate",
-      "Balanced Trees: AVL, Red-Black (concepts)",
-      "Tree Patterns: LCA, Diameter, Path Sum, Serialize",
-      "Heap: Min/Max, Heapify, Heap Sort",
-      "Heap Apps: Top K, Median Finder, Merge K Sorted",
-      "Trie: Insert, Search, Autocomplete, Word Break",
-      "Graph: Adjacency List vs Matrix, Directed/Undirected",
-      "Weighted Graphs, In-degree, Out-degree",
-      "Union-Find (Path Compression, Union by Rank)",
-      "Segment Tree & Binary Indexed Tree (Fenwick)",
+      "Arrays & Dynamic Arrays (operations, resizing)",
+      "Array Manipulation (prefix sums, kadane's, sliding window)",
+      "Strings (pattern matching, anagram detection, palindromes)",
+      "Linked Lists (singly, doubly, circular)",
+      "Linked List Operations (reverse, merge, cycle detection)",
+      "Stacks (implementation, applications, monotonic stack)",
+      "Queues (implementation, circular queue, priority queue)",
+      "Hash Tables / Hash Maps (collision handling, load factor)",
+      "Hash Sets & Hash-based problem solving",
+      "Binary Trees (traversals: in/pre/post/level order)",
+      "Binary Search Trees (insert, delete, search, balance)",
+      "AVL Trees & Red-Black Trees (concepts)",
+      "Heaps / Priority Queues (min-heap, max-heap, heapify)",
+      "Heap Applications (top-K, median finding, merge K lists)",
+      "Tries (prefix trees, autocomplete, word search)",
+      "Graphs: Adjacency List vs Matrix representation",
+      "Graph Traversals (BFS, DFS iterative & recursive)",
+      "Union-Find / Disjoint Set Union (DSU)",
+      "Segment Trees (range queries, lazy propagation basics)",
+      "Binary Indexed Trees / Fenwick Trees",
+      "Bloom Filters & Skip Lists (concepts)",
+      "Matrix operations & 2D array patterns",
+      "Deques & Double-ended operations",
+      "Bit manipulation & bitwise data structures",
     ],
-    practice: "Solve 5-8 LeetCode problems daily (Easy + Medium mix).",
-    milestones: ["Master Big-O for all operations", "Implement each DS from scratch", "Solve 200 problems total"],
+    practice: "5+ medium problems daily. Implement each structure from scratch at least once.",
+    milestones: [
+      "150+ total problems (50 medium+)",
+      "Can explain time complexity of all operations",
+      "Implement any structure in <20 minutes",
+    ],
+    platforms: ["LeetCode", "NeetCode.io", "Visualgo.net"],
   },
   {
     id: 3,
@@ -119,30 +134,35 @@ const phases: Phase[] = [
     color: "text-violet-400",
     gradient: "from-violet-500/20 to-violet-500/0",
     borderColor: "border-violet-500/20",
-    goal: "Master the 15 essential coding interview patterns.",
+    goal: "Master algorithm design patterns used in 80% of interview problems.",
     topics: [
-      "Sorting: Bubble, Selection, Insertion, Merge, Quick",
-      "Non-Comparison Sorts: Counting, Radix, Bucket",
-      "Binary Search: Standard, Lower/Upper Bound",
-      "Binary Search on Answer, Rotated Array, Matrix",
-      "Two Pointers: Opposite (3Sum, Container with Water)",
-      "Two Pointers: Same Direction, Dutch National Flag",
-      "Sliding Window: Fixed & Variable Size",
-      "Sliding Window + Hash Map Patterns",
-      "Recursion: Base Cases, Recursive Tree, Call Stack",
-      "Backtracking: Subsets, Permutations, Combinations",
-      "Backtracking: N-Queens, Sudoku, Word Search",
-      "Greedy: Interval Scheduling, Merge Intervals",
-      "Greedy: Jump Game, Gas Station, Task Scheduler",
-      "Divide & Conquer: Merge Sort, Quick Select",
-      "Bit Manipulation: AND, OR, XOR, Shifts",
-      "Bit Tricks: Power of 2, Count Bits, Single Number",
-      "Bitmask: Subset Generation & State Encoding",
-      "Math: GCD, LCM, Sieve of Eratosthenes",
-      "Modular Arithmetic & Combinatorics (nCr)",
+      "Sorting: Bubble, Selection, Insertion, Merge, Quick, Counting, Radix",
+      "Efficient Sorting (TimSort concepts, when to use what)",
+      "Binary Search Variations (rotated array, first/last position, sqrt)",
+      "Two Pointers (same direction, opposite direction, fast/slow)",
+      "Sliding Window (fixed size, variable size, with hash map)",
+      "Prefix Sum & Difference Array",
+      "Greedy Algorithms (interval scheduling, activity selection)",
+      "Greedy: Jump Game, Gas Station, Huffman-like patterns",
+      "Backtracking (permutations, combinations, subsets, N-Queens)",
+      "Backtracking with pruning & constraint satisfaction",
+      "Divide and Conquer (merge sort analysis, closest pair)",
+      "Recursion patterns & tail recursion",
+      "Interval Problems (merge, insert, overlap detection)",
+      "Cyclic Sort pattern",
+      "Top-K Pattern (heap-based, quickselect)",
+      "Modified Binary Search patterns",
+      "Mathematical algorithms (GCD, primes, modular arithmetic)",
+      "Math: Permutations, combinations, probability basics",
+      "Bit Manipulation algorithms (XOR tricks, counting bits)",
     ],
-    practice: "Focus on medium problems. Target: Easy 120 | Medium 200 | Hard 80 = 400 total.",
-    milestones: ["Master all 15 key patterns", "Solve medium problems in < 25 min"],
+    practice: "5 medium + 1 hard problem daily. Time yourself: 20min/medium, 40min/hard.",
+    milestones: [
+      "250+ total problems",
+      "Recognize patterns within 2 minutes",
+      "Solve most mediums in <25 minutes",
+    ],
+    platforms: ["LeetCode", "NeetCode Roadmap", "Codeforces (Div 2A-B)"],
   },
   {
     id: 4,
@@ -153,27 +173,32 @@ const phases: Phase[] = [
     color: "text-fuchsia-400",
     gradient: "from-fuchsia-500/20 to-fuchsia-500/0",
     borderColor: "border-fuchsia-500/20",
-    goal: "Master DP — Google's most-asked algorithm category.",
+    goal: "Conquer DP — the most common hard-problem category at Google.",
     topics: [
-      "DP Foundations: Memoization vs Tabulation",
-      "1D DP: Fibonacci, Climbing Stairs, House Robber",
-      "1D DP: Jump Game, Decode Ways, Word Break",
-      "Longest Increasing Subsequence (LIS)",
-      "2D DP: Unique Paths, Grid Min Path",
-      "Longest Common Subsequence / Substring (LCS)",
-      "Edit Distance (Levenshtein Distance)",
-      "0/1 Knapsack: Subset Sum, Partition Equal Subset",
-      "Unbounded Knapsack: Coin Change, Rod Cutting",
-      "Interval DP: Burst Balloons, Matrix Chain",
-      "Palindrome DP: Longest Palindromic Subsequence",
-      "State Machine DP: Buy & Sell Stock (all variants)",
-      "Bitmask DP: TSP, Assign Tasks",
-      "DP on Trees: House Robber III, Binary Tree Cameras",
-      "Digit DP & String DP (Regex, Wildcard)",
-      "Space Optimization: Rolling Array Technique",
+      "DP Fundamentals (overlapping subproblems, optimal substructure)",
+      "DP Identification (when to use DP vs greedy vs backtracking)",
+      "1D DP (climbing stairs, house robber, fibonacci variations)",
+      "1D String DP (decode ways, word break, palindrome partitioning)",
+      "2D DP (unique paths, minimum path sum, edit distance)",
+      "0/1 Knapsack & Variations (subset sum, partition equal subset)",
+      "Unbounded Knapsack (coin change, rod cutting)",
+      "Longest Common Subsequence (LCS) & variants",
+      "Longest Increasing Subsequence (LIS) & patience sorting",
+      "Matrix Chain Multiplication pattern",
+      "DP on Trees (diameter, max path sum, house robber III)",
+      "DP on Strings (regex matching, wildcard matching, interleaving)",
+      "Bitmask DP (TSP, assignment problem)",
+      "State Machine DP (buy/sell stock series)",
+      "Digit DP basics",
+      "DP Optimization (space optimization, rolling arrays)",
     ],
-    practice: "Complete DP Study Plan on LeetCode. 3-5 DP problems daily.",
-    milestones: ["Solve 80+ DP problems", "Identify DP patterns within 5 min", "Optimize space for all solutions"],
+    practice: "3 DP problems daily (mix medium+hard). Always write recurrence before coding.",
+    milestones: [
+      "320+ total problems",
+      "Solve DP mediums in <20 minutes",
+      "Can derive recurrence relations confidently",
+    ],
+    platforms: ["LeetCode DP Study Plan", "AtCoder DP Contest", "CSES Problem Set"],
   },
   {
     id: 5,
@@ -184,27 +209,38 @@ const phases: Phase[] = [
     color: "text-orange-400",
     gradient: "from-orange-500/20 to-orange-500/0",
     borderColor: "border-orange-500/20",
-    goal: "Master graph algorithms — frequent in Google interviews.",
+    goal: "Master graph algorithms — a Google interview staple.",
     topics: [
-      "BFS: Level Order, Shortest Path (Unweighted)",
-      "DFS: Connected Components, Cycle Detection",
-      "Multi-Source BFS (Rotting Oranges, 01 Matrix)",
-      "Bidirectional BFS (Word Ladder)",
-      "Dijkstra's Algorithm (Weighted Shortest Path)",
-      "Bellman-Ford & Floyd-Warshall",
-      "Topological Sort: Kahn's (BFS) & DFS-based",
-      "Applications: Course Schedule, Alien Dictionary",
-      "MST: Kruskal's & Prim's Algorithm",
-      "Tarjan's SCC & Articulation Points",
-      "Bipartite Check (Graph Coloring)",
-      "Union-Find Apps: Accounts Merge, Redundant Edge",
-      "Euler Path / Circuit",
-      "KMP, Rabin-Karp (String Pattern Matching)",
-      "Manacher's Algorithm (Palindromic Substring)",
+      "BFS Applications (shortest path unweighted, multi-source BFS)",
+      "DFS Applications (connected components, cycle detection, topological sort)",
+      "Topological Sort (Kahn's BFS, DFS-based)",
+      "Dijkstra's Algorithm (priority queue implementation)",
+      "Bellman-Ford Algorithm (negative weights, negative cycle detection)",
+      "Floyd-Warshall (all pairs shortest paths)",
+      "Minimum Spanning Tree (Kruskal's, Prim's)",
+      "Union-Find advanced (path compression, union by rank)",
+      "Network Flow basics (Ford-Fulkerson concept)",
+      "Bipartite Graph checking",
+      "Strongly Connected Components (Tarjan's, Kosaraju's)",
+      "Articulation Points & Bridges",
+      "Eulerian Path/Circuit",
+      "String Algorithms: KMP Pattern Matching",
+      "Rabin-Karp Rolling Hash",
+      "Trie-based string algorithms",
+      "Suffix Array basics",
+      "Z-Algorithm",
+      "Aho-Corasick basics",
+      "Advanced: A* Search (concept + heuristic design)",
+      "Johnson's Algorithm (concept)",
+      "Manacher's Algorithm for palindromes",
     ],
-    practice: "Complete Graph Study Plan on LeetCode. Focus on Google-tagged graph problems.",
-    milestones: ["Solve 60+ graph problems", "Master BFS/DFS variations", "Handle weighted graph problems"],
-    platforms: ["LeetCode (Graph Tag)", "NeetCode Graphs Section"],
+    practice: "3–4 graph + string problems daily. Draw out examples before coding.",
+    milestones: [
+      "350+ total problems",
+      "Can implement Dijkstra & BFS from memory",
+      "Comfortable with graph modeling for real-world problems",
+    ],
+    platforms: ["LeetCode Graph Tag", "CSES Graph Problems", "CP-Algorithms.com"],
   },
   {
     id: 6,
@@ -215,34 +251,34 @@ const phases: Phase[] = [
     color: "text-amber-400",
     gradient: "from-amber-500/20 to-amber-500/0",
     borderColor: "border-amber-500/20",
-    goal: "Design scalable systems — required for Google L4+.",
+    goal: "Build strong system design fundamentals for Google's design rounds.",
     topics: [
-      "Scalability: Vertical vs Horizontal",
-      "CAP Theorem, PACELC & Consistency Models",
-      "TCP/UDP, HTTP, REST vs gRPC vs GraphQL",
-      "WebSockets, DNS, CDN",
-      "SQL: Indexing, Transactions, ACID",
-      "NoSQL: Key-Value, Document, Column, Graph DBs",
-      "Sharding, Replication & Partitioning",
-      "Caching: Redis, LRU/LFU, Write-Through/Back/Aside",
-      "Load Balancing: Round Robin, Consistent Hashing",
-      "Message Queues: Kafka, Pub/Sub",
-      "Rate Limiting: Token Bucket, Sliding Window",
-      "Microservices: API Gateway, Circuit Breaker, Saga",
-      "Blob Storage, Distributed File Systems",
-      "Design: URL Shortener, Twitter, Instagram",
-      "Design: WhatsApp, YouTube, Uber",
-      "Design: Netflix, Google Drive, Google Maps",
-      "Design: Web Crawler, Notification System",
-      "Design: Distributed Rate Limiter",
+      "Scalability Concepts (vertical vs horizontal scaling)",
+      "Latency vs Throughput trade-offs",
+      "CAP Theorem & consistency models",
+      "Load Balancing (round-robin, least connections, consistent hashing)",
+      "Caching Strategies (CDN, Redis, cache invalidation, write policies)",
+      "Database Design (SQL vs NoSQL, indexing, sharding, replication)",
+      "Database Sharding strategies & consistent hashing",
+      "Message Queues (Kafka, RabbitMQ concepts, pub/sub)",
+      "Microservices vs Monolith trade-offs",
+      "API Design (REST, GraphQL, gRPC)",
+      "Rate Limiting & Throttling",
+      "Design: URL Shortener (like TinyURL)",
+      "Design: Twitter / News Feed",
+      "Design: Web Crawler",
+      "Design: Chat System (WhatsApp-like)",
+      "Design: Video Streaming (YouTube-like)",
+      "Design: Distributed File Storage (Google Drive-like)",
+      "Design: Rate Limiter",
     ],
-    practice: "Practice 2-3 system designs per week. Draw architecture diagrams.",
+    practice: "1 full system design per day. Present designs out loud to practice communication.",
     milestones: [
-      "Design 15+ systems end-to-end",
-      "Master trade-offs articulation",
-      "Handle back-of-envelope estimation",
+      "20+ system designs completed",
+      "Can structure a 45-minute design discussion",
+      "Comfortable with trade-off discussions",
     ],
-    platforms: ["System Design Primer", "Designing Data-Intensive Apps", "ByteByteGo"],
+    platforms: ["ByteByteGo", "SystemDesign.one", "Exponent"],
   },
   {
     id: 7,
@@ -253,27 +289,27 @@ const phases: Phase[] = [
     color: "text-rose-400",
     gradient: "from-rose-500/20 to-rose-500/0",
     borderColor: "border-rose-500/20",
-    goal: "Prepare for Google's unique process & culture fit.",
+    goal: "Prepare specifically for Google's interview process and culture.",
     topics: [
-      "Google Hiring: Phone Screen → Onsite → HC → Team Match",
-      "Google Levels: L3 (SDE I), L4 (SDE II), L5 (Senior)",
-      "What Interviewers Look For: Signals & Rubrics",
-      "Googleyness: Collaboration, Intellectual Humility",
-      "Navigating Ambiguity & Clarifying Questions",
-      "STAR Method (Situation, Task, Action, Result)",
-      "Leadership & Conflict Resolution Stories",
-      "Failure & Learning Stories",
-      "Past Project Deep Dives (2-3 projects)",
-      "Design: Google Docs, Gmail, Calendar",
-      "Design: YouTube Recommendations (ML Pipeline)",
-      "Portfolio Projects (3 strong projects)",
-      "Resume: Quantified Impact, Google-Friendly Format",
+      "Google Interview Process (phone screen, onsite, team match)",
+      "Google Levels (L3-L5) & what's expected at each level",
+      "Googleyness & Leadership: what Google looks for",
+      "STAR Method for behavioral answers",
+      "Common behavioral questions & prepared stories",
+      "Technical Communication (thinking out loud, structured approach)",
+      "Code Quality (clean code, naming, edge cases in interviews)",
+      "Google's coding style preferences",
+      "How to handle hints and collaborate with interviewer",
+      "Time management during interviews",
+      "Handling unknown problems (breaking down, partial solutions)",
+      "Whiteboarding best practices",
+      "Resume optimization for Google",
     ],
-    practice: "Record yourself answering behavioral questions. Practice with peers.",
+    practice: "Mock interviews 3x/week. Record yourself solving problems.",
     milestones: [
-      "15+ behavioral stories prepared",
-      "3 portfolio projects deployed",
-      "Resume reviewed by 2+ people",
+      "15+ mock interviews completed",
+      "5 prepared STAR stories ready",
+      "Confident in structured problem-solving approach",
     ],
     platforms: ["Pramp", "Interviewing.io", "Exponent"],
   },
@@ -286,17 +322,16 @@ const phases: Phase[] = [
     color: "text-cyan-400",
     gradient: "from-cyan-500/20 to-cyan-500/0",
     borderColor: "border-cyan-500/20",
-    goal: "Peak performance — simulate real Google interview conditions.",
+    goal: "Final review and intense mock interview practice.",
     topics: [
-      "Blind 75 — all reviewed & solved",
-      "NeetCode 150 — all reviewed & solved",
-      "LeetCode Google-Tagged Top 50 problems",
-      "Hard Problem Sprint: 2-3 hards per day",
-      "Timed Practice: 2 mediums in 45 min",
-      "Mock Coding Interviews (7+ sessions)",
-      "Mock System Design Interviews (3+ sessions)",
-      "Mock Behavioral Interview",
-      "Full Mock Loop: 4 Rounds Back-to-Back",
+      "Blind 75 Complete Review",
+      "NeetCode 150 Complete Review",
+      "Google Tagged Problems (recent 6 months)",
+      "Timed Practice: 2 problems in 45 minutes",
+      "System Design Mock Interviews",
+      "Behavioral Mock Interviews",
+      "Full Interview Simulation (4-5 rounds back to back)",
+      "Weak Area Review: DP + Graphs focus",
       "Review Weak Areas: DP, Graphs, System Design",
       "Secure Referral(s) from Google employees",
       "Submit Google Application",
@@ -369,144 +404,508 @@ function ProgressBar({ label, value, color }: { label: string; value: number; co
   );
 }
 
-function TimelineNode({ phase, index, isExpanded, onToggle }: {
-  phase: Phase;
+/* ─── Mind Map SVG Rendering ─────────────────────────────── */
+
+function MindMapEdge({
+  edge,
+  nodes,
+  index,
+}: {
+  edge: RoadmapMindMapEdge;
+  nodes: RoadmapMindMapNode[];
   index: number;
-  isExpanded: boolean;
-  onToggle: () => void;
 }) {
+  const source = nodes.find((n) => n.id === edge.source);
+  const target = nodes.find((n) => n.id === edge.target);
+  if (!source || !target) return null;
+
+  const midX = (source.x + target.x) / 2;
+  const midY = (source.y + target.y) / 2;
+  const dx = target.x - source.x;
+  const dy = target.y - source.y;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+  // Perpendicular offset for curve
+  const curvature = edge.type === "phase-dependency" ? 0.15 : 0.1;
+  const offsetX = (-dy / len) * len * curvature;
+  const offsetY = (dx / len) * len * curvature;
+
+  const isDependency = edge.type === "phase-dependency";
+  const isCluster = edge.type === "phase-cluster";
+
+  const color = isDependency
+    ? "rgba(255,255,255,0.08)"
+    : isCluster
+    ? source.strokeColor || "rgba(255,255,255,0.1)"
+    : source.strokeColor || "rgba(59,130,246,0.3)";
+
   return (
-    <FadeIn delay={index * 0.08}>
-      <div className="relative flex gap-6">
-        {/* Timeline line */}
-        <div className="flex flex-col items-center">
-          <motion.button
-            onClick={onToggle}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className={cn(
-              "relative z-10 w-12 h-12 rounded-xl flex items-center justify-center font-mono text-sm font-bold transition-all duration-300 cursor-pointer",
-              isExpanded
-                ? `bg-gradient-to-br ${phase.gradient} ${phase.color} border ${phase.borderColor} shadow-lg`
-                : "bg-white/5 text-white/40 border border-white/10 hover:border-white/20"
-            )}
+    <motion.path
+      d={`M ${source.x} ${source.y} Q ${midX + offsetX} ${midY + offsetY}, ${target.x} ${target.y}`}
+      fill="none"
+      stroke={color}
+      strokeWidth={isDependency ? 1 : isCluster ? 1.2 : 1.8}
+      strokeDasharray={isDependency ? "6 4" : "none"}
+      initial={{ pathLength: 0, opacity: 0 }}
+      animate={{ pathLength: 1, opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.3 + index * 0.03, ease: "easeOut" }}
+    />
+  );
+}
+
+function MindMapNodeSVG({
+  node,
+  index,
+  isSelected,
+  isHovered,
+  onSelect,
+  onHover,
+  onLeave,
+}: {
+  node: RoadmapMindMapNode;
+  index: number;
+  isSelected: boolean;
+  isHovered: boolean;
+  onSelect: () => void;
+  onHover: () => void;
+  onLeave: () => void;
+}) {
+  const isHub = node.type === "hub";
+  const isPhase = node.type === "phase";
+
+  return (
+    <motion.g
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{
+        type: "spring",
+        stiffness: 200,
+        damping: 20,
+        delay: isHub ? 0.1 : 0.4 + index * 0.05,
+      }}
+      style={{ cursor: isPhase ? "pointer" : "default", transformOrigin: `${node.x}px ${node.y}px` }}
+      onClick={isPhase ? onSelect : undefined}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
+      {/* Glow effect on hover/select */}
+      {(isHovered || isSelected) && (
+        <motion.circle
+          cx={node.x}
+          cy={node.y}
+          r={node.radius + (isHub ? 14 : 10)}
+          fill="none"
+          stroke={node.color}
+          strokeWidth={2}
+          opacity={0.25}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.25 }}
+        />
+      )}
+
+      {/* Hub pulsing glow */}
+      {isHub && (
+        <motion.circle
+          cx={node.x}
+          cy={node.y}
+          r={node.radius + 20}
+          fill="none"
+          stroke="rgba(59,130,246,0.15)"
+          strokeWidth={1.5}
+          animate={{ r: [node.radius + 16, node.radius + 24, node.radius + 16] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+
+      {/* Node circle */}
+      <circle
+        cx={node.x}
+        cy={node.y}
+        r={node.radius}
+        fill={node.bgFill}
+        stroke={isSelected ? node.color : node.strokeColor}
+        strokeWidth={isSelected ? 2.5 : isHub ? 2 : 1.5}
+      />
+
+      {/* Hub text */}
+      {isHub && (
+        <>
+          <text
+            x={node.x}
+            y={node.y - 8}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="#3b82f6"
+            fontSize={11}
+            fontWeight={700}
+            fontFamily="var(--font-display), system-ui"
           >
-            {phase.icon}
-          </motion.button>
-          {index < phases.length - 1 && (
-            <div className={cn(
-              "w-px flex-1 min-h-[20px] transition-colors duration-300",
-              isExpanded ? phase.borderColor.replace("border-", "bg-") : "bg-white/10"
-            )} />
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 pb-8">
-          <button
-            onClick={onToggle}
-            className="w-full text-left group cursor-pointer"
+            Google SDE
+          </text>
+          <text
+            x={node.x}
+            y={node.y + 10}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="rgba(59,130,246,0.6)"
+            fontSize={9}
+            fontFamily="var(--font-body), system-ui"
           >
-            <div className="flex items-center gap-3 mb-1">
-              <h3 className={cn(
-                "font-display font-bold text-lg transition-colors",
-                isExpanded ? phase.color : "text-white/70 group-hover:text-white"
-              )}>
-                {phase.title}
-              </h3>
-              <span className="font-mono text-[10px] text-white/30 uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5">
-                {phase.duration}
-              </span>
-              <motion.svg
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="w-4 h-4 text-white/30 ml-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </motion.svg>
-            </div>
-            <p className="font-body text-sm text-white/40">{phase.goal}</p>
-          </button>
+            Preparation
+          </text>
+        </>
+      )}
 
-          <AnimatePresence>
-            {isExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden"
-              >
-                <div className={cn("mt-4 glass-card rounded-xl p-5 border", phase.borderColor)}>
-                  {/* Topics */}
-                  <div className="mb-4">
-                    <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-3">
-                      {phase.id === 5 ? "Projects" : "Topics"}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {phase.topics.map((topic) => (
-                        <span
-                          key={topic}
-                          className={cn(
-                            "px-2.5 py-1 rounded-lg font-mono text-xs border",
-                            phase.borderColor,
-                            `bg-gradient-to-r ${phase.gradient}`
-                          )}
-                        >
-                          <span className={phase.color}>{topic}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+      {/* Phase icon + label */}
+      {isPhase && (
+        <>
+          <text
+            x={node.x}
+            y={node.y - 6}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill={node.color}
+            fontSize={14}
+            fontWeight={800}
+            fontFamily="var(--font-mono), monospace"
+          >
+            {node.icon}
+          </text>
+          <text
+            x={node.x}
+            y={node.y + 12}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="rgba(255,255,255,0.5)"
+            fontSize={7}
+            fontFamily="var(--font-mono), monospace"
+          >
+            Phase
+          </text>
+        </>
+      )}
 
-                  {/* Practice */}
-                  <div className="mb-4">
-                    <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-2">
-                      Practice
-                    </p>
-                    <p className="font-body text-sm text-white/60">{phase.practice}</p>
-                  </div>
+      {/* Cluster label */}
+      {node.type === "cluster" && (
+        <text
+          x={node.x}
+          y={node.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={node.color}
+          fontSize={7}
+          fontWeight={600}
+          fontFamily="var(--font-body), system-ui"
+        >
+          {node.label.length > 16 ? node.label.slice(0, 14) + "…" : node.label}
+        </text>
+      )}
+    </motion.g>
+  );
+}
 
-                  {/* Platforms */}
-                  {phase.platforms && (
-                    <div className="mb-4">
-                      <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-2">
-                        Platforms
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {phase.platforms.map((p) => (
-                          <span key={p} className="px-2.5 py-1 rounded-lg font-mono text-xs bg-white/5 text-white/50 border border-white/10">
-                            {p}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+function MindMapTooltip({
+  node,
+  phase,
+  containerRef,
+  svgWidth,
+  svgHeight,
+  scale,
+  pan,
+}: {
+  node: RoadmapMindMapNode;
+  phase: Phase | undefined;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  svgWidth: number;
+  svgHeight: number;
+  scale: number;
+  pan: { x: number; y: number };
+}) {
+  if (!phase) return null;
 
-                  {/* Milestones */}
-                  <div>
-                    <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-2">
-                      Milestones
-                    </p>
-                    <div className="space-y-1.5">
-                      {phase.milestones.map((m) => (
-                        <div key={m} className="flex items-center gap-2">
-                          <div className={cn("w-1.5 h-1.5 rounded-full", phase.color.replace("text-", "bg-"))} />
-                          <span className="font-body text-sm text-white/60">{m}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+  const container = containerRef.current;
+  if (!container) return null;
+
+  const rect = container.getBoundingClientRect();
+  const svgDisplayW = rect.width;
+  const svgDisplayH = rect.height;
+
+  // Map SVG coordinates to screen coordinates
+  const scaleX = svgDisplayW / svgWidth;
+  const scaleY = svgDisplayH / svgHeight;
+  const baseScale = Math.min(scaleX, scaleY);
+
+  const screenX = node.x * baseScale * scale + pan.x;
+  const screenY = node.y * baseScale * scale + pan.y;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 5 }}
+      transition={{ duration: 0.15 }}
+      className="absolute pointer-events-none z-50"
+      style={{
+        left: screenX,
+        top: screenY - node.radius * baseScale * scale - 12,
+        transform: "translate(-50%, -100%)",
+      }}
+    >
+      <div className="glass-card rounded-xl px-4 py-3 border border-white/10 max-w-[240px] shadow-2xl">
+        <p className="font-display font-bold text-sm text-white">{phase.title}</p>
+        <p className="font-mono text-[10px] text-white/40 mt-0.5">{phase.duration}</p>
+        <p className="font-body text-xs text-white/50 mt-1.5">{phase.goal}</p>
+        <p className="font-mono text-[10px] text-white/25 mt-2">{phase.topics.length} topics • Click to view</p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Mind Map Container ─────────────────────────────────── */
+
+function RoadmapMindMap({
+  selectedPhaseId,
+  onSelectPhase,
+}: {
+  selectedPhaseId: number | null;
+  onSelectPhase: (id: number) => void;
+}) {
+  const mapData = useMemo(() => buildRoadmapMindMap(8), []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("g[style*='pointer']")) return;
+    setIsDragging(true);
+    dragStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+  }, [pan]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPan({
+      x: dragStart.current.panX + (e.clientX - dragStart.current.x),
+      y: dragStart.current.panY + (e.clientY - dragStart.current.y),
+    });
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => setIsDragging(false), []);
+
+  const zoomIn = () => setScale((s) => Math.min(s + 0.15, 2));
+  const zoomOut = () => setScale((s) => Math.max(s - 0.15, 0.3));
+  const resetView = () => { setScale(1); setPan({ x: 0, y: 0 }); };
+
+  const hoveredPhaseNode = hoveredNode
+    ? mapData.nodes.find((n) => n.id === hoveredNode && n.type === "phase")
+    : null;
+  const hoveredPhase = hoveredPhaseNode?.phaseId
+    ? phases.find((p) => p.id === hoveredPhaseNode.phaseId)
+    : undefined;
+
+  return (
+    <div className="glass-card rounded-2xl p-4 sm:p-6 relative overflow-hidden">
+      <div className="flex items-center justify-between mb-4">
+        <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+          Interactive Mind Map
+        </p>
+        <div className="flex items-center gap-1.5">
+          <button onClick={zoomOut} className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/70 hover:border-white/20 transition-all text-sm font-bold">−</button>
+          <button onClick={resetView} className="px-2 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/30 hover:text-white/60 hover:border-white/20 transition-all font-mono text-[10px]">{Math.round(scale * 100)}%</button>
+          <button onClick={zoomIn} className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/70 hover:border-white/20 transition-all text-sm font-bold">+</button>
         </div>
       </div>
-    </FadeIn>
+
+      <div
+        ref={containerRef}
+        className="relative w-full overflow-hidden rounded-xl bg-black/20 border border-white/5"
+        style={{ height: "min(70vh, 600px)", cursor: isDragging ? "grabbing" : "grab" }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <svg
+          viewBox={`0 0 ${mapData.width} ${mapData.height}`}
+          className="w-full h-full"
+          style={{
+            transform: `scale(${scale}) translate(${pan.x / scale}px, ${pan.y / scale}px)`,
+            transformOrigin: "center center",
+          }}
+        >
+          {/* Edges */}
+          {mapData.edges.map((edge, i) => (
+            <MindMapEdge key={`${edge.source}-${edge.target}`} edge={edge} nodes={mapData.nodes} index={i} />
+          ))}
+
+          {/* Nodes */}
+          {mapData.nodes.map((node, i) => (
+            <MindMapNodeSVG
+              key={node.id}
+              node={node}
+              index={i}
+              isSelected={node.phaseId === selectedPhaseId}
+              isHovered={hoveredNode === node.id}
+              onSelect={() => node.phaseId && onSelectPhase(node.phaseId)}
+              onHover={() => setHoveredNode(node.id)}
+              onLeave={() => setHoveredNode(null)}
+            />
+          ))}
+        </svg>
+
+        {/* Tooltip */}
+        <AnimatePresence>
+          {hoveredPhaseNode && hoveredPhase && (
+            <MindMapTooltip
+              key={hoveredPhaseNode.id}
+              node={hoveredPhaseNode}
+              phase={hoveredPhase}
+              containerRef={containerRef}
+              svgWidth={mapData.width}
+              svgHeight={mapData.height}
+              scale={scale}
+              pan={pan}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-4 mt-4">
+        {phases.map((p) => {
+          const colors = PHASE_COLORS[p.id];
+          return (
+            <button
+              key={p.id}
+              onClick={() => onSelectPhase(p.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all text-left",
+                selectedPhaseId === p.id
+                  ? "bg-white/10 border border-white/15"
+                  : "hover:bg-white/5"
+              )}
+            >
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.color }} />
+              <span className="font-mono text-[10px] text-white/40">{p.title.length > 18 ? p.title.slice(0, 16) + "…" : p.title}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Phase Detail Panel ─────────────────────────────────── */
+
+function PhaseDetailPanel({ phase }: { phase: Phase }) {
+  const clusters = PHASE_CLUSTERS[phase.id] || [];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className={cn("glass-card rounded-2xl p-6 border", phase.borderColor)}
+    >
+      <div className="flex items-center gap-4 mb-5">
+        <div
+          className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center font-mono text-sm font-bold border",
+            `bg-gradient-to-br ${phase.gradient} ${phase.color} ${phase.borderColor}`
+          )}
+        >
+          {phase.icon}
+        </div>
+        <div>
+          <h3 className={cn("font-display font-bold text-lg", phase.color)}>
+            {phase.title}
+          </h3>
+          <p className="font-mono text-[10px] text-white/30 uppercase tracking-wider">
+            {phase.duration}
+          </p>
+        </div>
+      </div>
+
+      <p className="font-body text-sm text-white/50 mb-5">{phase.goal}</p>
+
+      {/* Topic Clusters */}
+      <div className="mb-5">
+        <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-3">
+          Topics ({phase.topics.length})
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {clusters.map((cluster) => (
+            <div key={cluster} className="glass-card rounded-xl p-3 border border-white/5">
+              <p className={cn("font-mono text-[10px] uppercase tracking-wider mb-2", phase.color)}>
+                {cluster}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {phase.topics
+                  .filter((_, ti) => {
+                    const perCluster = Math.ceil(phase.topics.length / clusters.length);
+                    const clusterIdx = clusters.indexOf(cluster);
+                    return ti >= clusterIdx * perCluster && ti < (clusterIdx + 1) * perCluster;
+                  })
+                  .map((topic) => (
+                    <span
+                      key={topic}
+                      className={cn(
+                        "px-2 py-0.5 rounded-md font-mono text-[10px] border",
+                        phase.borderColor,
+                        `bg-gradient-to-r ${phase.gradient}`
+                      )}
+                    >
+                      <span className={cn("opacity-80", phase.color)}>{topic}</span>
+                    </span>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Practice */}
+      <div className="mb-4">
+        <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-2">
+          Practice
+        </p>
+        <p className="font-body text-sm text-white/60">{phase.practice}</p>
+      </div>
+
+      {/* Platforms */}
+      {phase.platforms && (
+        <div className="mb-4">
+          <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-2">
+            Platforms
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {phase.platforms.map((p) => (
+              <span key={p} className="px-2.5 py-1 rounded-lg font-mono text-xs bg-white/5 text-white/50 border border-white/10">
+                {p}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Milestones */}
+      <div>
+        <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest mb-2">
+          Milestones
+        </p>
+        <div className="space-y-1.5">
+          {phase.milestones.map((m) => (
+            <div key={m} className="flex items-center gap-2">
+              <div className={cn("w-1.5 h-1.5 rounded-full", phase.color.replace("text-", "bg-"))} />
+              <span className="font-body text-sm text-white/60">{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -514,19 +913,16 @@ function TimelineNode({ phase, index, isExpanded, onToggle }: {
 
 export function FAANGRoadmapClient() {
   const { user, loading } = useAuth();
-  const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set([1]));
+  const [selectedPhaseId, setSelectedPhaseId] = useState<number | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
 
-  const togglePhase = (id: number) => {
-    setExpandedPhases((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const expandAll = () => setExpandedPhases(new Set(phases.map((p) => p.id)));
-  const collapseAll = () => setExpandedPhases(new Set());
+  const handleSelectPhase = useCallback((id: number) => {
+    setSelectedPhaseId((prev) => (prev === id ? null : id));
+    // Scroll to detail after a tick
+    setTimeout(() => {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 100);
+  }, []);
 
   if (loading) {
     return (
@@ -554,6 +950,7 @@ export function FAANGRoadmapClient() {
     );
   }
 
+  const selectedPhase = selectedPhaseId ? phases.find((p) => p.id === selectedPhaseId) : null;
   const totalHours = dailyCommitment.reduce((sum, d) => sum + d.hours, 0);
 
   return (
@@ -625,42 +1022,22 @@ export function FAANGRoadmapClient() {
         </div>
       </FadeIn>
 
-      {/* ── Timeline Roadmap ────────────────────────── */}
+      {/* ── Mind Map ─────────────────────────────────── */}
       <FadeIn delay={0.15}>
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
-              8-Phase Roadmap
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={expandAll}
-                className="font-mono text-[10px] text-white/30 hover:text-white/60 px-2 py-1 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-all"
-              >
-                Expand all
-              </button>
-              <button
-                onClick={collapseAll}
-                className="font-mono text-[10px] text-white/30 hover:text-white/60 px-2 py-1 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-all"
-              >
-                Collapse all
-              </button>
-            </div>
-          </div>
-
-          <div>
-            {phases.map((phase, index) => (
-              <TimelineNode
-                key={phase.id}
-                phase={phase}
-                index={index}
-                isExpanded={expandedPhases.has(phase.id)}
-                onToggle={() => togglePhase(phase.id)}
-              />
-            ))}
-          </div>
-        </div>
+        <RoadmapMindMap
+          selectedPhaseId={selectedPhaseId}
+          onSelectPhase={handleSelectPhase}
+        />
       </FadeIn>
+
+      {/* ── Phase Detail Panel ───────────────────────── */}
+      <div ref={detailRef}>
+        <AnimatePresence mode="wait">
+          {selectedPhase && (
+            <PhaseDetailPanel key={selectedPhase.id} phase={selectedPhase} />
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* ── Weekly Study Plan ───────────────────────── */}
       <FadeIn delay={0.2}>
