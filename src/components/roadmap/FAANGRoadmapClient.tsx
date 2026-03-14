@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -18,6 +18,7 @@ import {
   getPhaseProgress,
   isTopicCompleted,
   toggleTopicProgress,
+  migrateProgress,
   type RoadmapPhase,
 } from "@/lib/roadmap-data";
 import {
@@ -507,6 +508,19 @@ export function FAANGRoadmapClient() {
   const { upload: uploadFile } = useSupabaseStorage();
   const [selectedPhaseId, setSelectedPhaseId] = useState<number | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
+
+  // Migrate stored progress to match current ROADMAP_PHASES (handles old data)
+  useEffect(() => {
+    const migrated = migrateProgress(progress);
+    const needsMigration = ROADMAP_PHASES.some((phase) => {
+      const stored = progress.phases.find((p) => p.phaseId === phase.id);
+      return !stored || stored.topicProgress.length !== phase.topics.length;
+    });
+    if (needsMigration) {
+      setProgress(migrated);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectPhase = useCallback((id: number) => {
     setSelectedPhaseId((prev) => (prev === id ? null : id));

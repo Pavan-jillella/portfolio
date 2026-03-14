@@ -478,6 +478,33 @@ export const DEFAULT_ROADMAP_PROGRESS: RoadmapProgress = {
   updatedAt: new Date().toISOString(),
 };
 
+/**
+ * Migrate/sync stored progress to match current ROADMAP_PHASES.
+ * Ensures every phase and every topic has an entry even if the stored
+ * data is from an older version with different/fewer topic IDs.
+ * Preserves any existing completion state for topics that still exist.
+ */
+export function migrateProgress(stored: RoadmapProgress): RoadmapProgress {
+  const migrated: RoadmapProgress = {
+    ...stored,
+    phases: ROADMAP_PHASES.map((phase) => {
+      const existing = stored.phases.find((p) => p.phaseId === phase.id);
+      return {
+        phaseId: phase.id,
+        topicProgress: phase.topics.map((topic) => {
+          const existingTopic = existing?.topicProgress.find(
+            (t) => t.topicId === topic.id
+          );
+          return existingTopic ?? { topicId: topic.id, completed: false };
+        }),
+        notes: existing?.notes ?? "",
+        updatedAt: existing?.updatedAt ?? new Date().toISOString(),
+      };
+    }),
+  };
+  return migrated;
+}
+
 export function getPhaseProgress(progress: RoadmapProgress, phaseId: number): number {
   const phase = progress.phases.find((p) => p.phaseId === phaseId);
   if (!phase || phase.topicProgress.length === 0) return 0;

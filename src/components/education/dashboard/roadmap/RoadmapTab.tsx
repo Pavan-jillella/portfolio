@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
@@ -12,6 +12,7 @@ import {
   getPhaseProgress,
   isTopicCompleted,
   toggleTopicProgress,
+  migrateProgress,
   type RoadmapPhase,
 } from "@/lib/roadmap-data";
 import { DailyStudyTracker } from "@/components/roadmap/DailyStudyTracker";
@@ -370,6 +371,18 @@ export function RoadmapTab({ sessions }: RoadmapTabProps) {
   const [expandedPhases, setExpandedPhases] = useState<Set<number>>(new Set([1]));
   const [leetcodeUsername] = useLocalStorage<string>("pj-leetcode-username", "");
   const { data: leetcodeData } = useLeetCodeData(leetcodeUsername);
+
+  // Migrate stored progress to match current ROADMAP_PHASES (handles old/stale data)
+  useEffect(() => {
+    const needsMigration = ROADMAP_PHASES.some((phase) => {
+      const stored = progress.phases.find((p) => p.phaseId === phase.id);
+      return !stored || stored.topicProgress.length !== phase.topics.length;
+    });
+    if (needsMigration) {
+      setProgress(migrateProgress(progress));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Compute study hours from education sessions by relevant subjects
   const studyStats = useMemo(() => {
