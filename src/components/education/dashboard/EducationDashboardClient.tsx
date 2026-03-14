@@ -1,12 +1,11 @@
 "use client";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { generateId } from "@/lib/finance-utils";
 import { migrateNoteToCourseIds, migrateFileToEntityIds } from "@/lib/education-utils";
-import { isOwner } from "@/lib/roles";
 import {
   StudySession,
   StudyGoal,
@@ -89,12 +88,7 @@ export function EducationDashboardClient() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files.length]);
 
-  const visibleTabs = useMemo(() =>
-    DASHBOARD_TABS.filter((tab) =>
-      tab.id !== "roadmap" || isOwner(user?.email)
-    ),
-    [user?.email]
-  );
+  const visibleTabs = DASHBOARD_TABS;
 
   function copyProfileLink() {
     if (!user?.id) return;
