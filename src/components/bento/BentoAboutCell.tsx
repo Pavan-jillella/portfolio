@@ -4,11 +4,10 @@ import Link from "next/link";
 import { bentoItem } from "./BentoGrid";
 
 const timeline = [
-  { year: "2021", label: "First Lines of Code", active: false },
-  { year: "2022", label: "Web Development", active: false },
-  { year: "2023", label: "Full-Stack Projects", active: false },
-  { year: "2024", label: "Full-Stack Developer", active: false },
-  { year: "2026", label: "Google SDE Prep", active: true },
+  { year: "2019", label: "Data Analyst — Walmart", active: false },
+  { year: "2021", label: "Business Analyst — Stryker", active: false },
+  { year: "2022", label: "M.S. at George Mason", active: false },
+  { year: "2024", label: "Data Analyst — Morgan Stanley", active: true },
 ];
 
 const stagger = {
@@ -35,8 +34,8 @@ export function BentoAboutCell() {
           <span className="font-mono text-xs text-white/40 uppercase tracking-wider">About</span>
         </div>
         <p className="font-body text-sm text-white/50 leading-relaxed mb-4">
-          Developer focused on building tools that compound knowledge. Currently
-          preparing for Google SDE roles while creating open-source projects.
+          Data Analyst at Morgan Stanley. M.S. in Data Analytics from George
+          Mason. Passionate about turning data into decisions.
         </p>
       </div>
 

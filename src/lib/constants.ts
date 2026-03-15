@@ -748,13 +748,12 @@ export const PROJECT_STATUS_CONFIG: Record<ProjectStatus, { label: string; color
 };
 
 export const SOCIAL_LINKS = [
-  { label: "GitHub", href: "https://github.com/pavanjillella", abbr: "GH" },
-  { label: "LinkedIn", href: "https://linkedin.com/in/pavanjillella", abbr: "LI" },
-  { label: "LeetCode", href: "https://leetcode.com/pavanjillella", abbr: "LC" },
-  { label: "YouTube", href: "https://youtube.com/@pavanjillella", abbr: "YT" },
+  { label: "GitHub", href: "https://github.com/Pavan-jillella", abbr: "GH" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/pavan-jillella", abbr: "LI" },
+  { label: "LeetCode", href: "https://leetcode.com/Punisher_17", abbr: "LC" },
 ] as const;
 
-export const CONTACT_EMAIL = "pavan@pavanjillella.com";
+export const CONTACT_EMAIL = "pavanjillella.1711@gmail.com";
 
 export const GITHUB_PROFILE_URL = SOCIAL_LINKS[0].href;
 

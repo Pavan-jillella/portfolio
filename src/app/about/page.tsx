@@ -13,30 +13,37 @@ import {
 // ─── Fallback defaults (used when DB has no data yet) ────
 
 const DEFAULT_BIO: AboutBioData = {
-  heading: "Building at the intersection.",
+  heading: "Data-Driven Problem Solver.",
   description:
-    "Developer, writer, and lifelong learner focused on technology, education, and financial independence.",
+    "Data Analyst at Morgan Stanley with expertise in Python, SQL, cloud platforms, and machine learning — turning complex data into actionable insights.",
   paragraphs: [
-    "I'm Pavan — a developer who believes in building things that matter. My work spans across technology, education, and personal finance, driven by the conviction that these three domains are deeply interconnected.",
-    "When I'm not writing code, I'm usually reading, documenting what I learn, or optimizing some system in my life. I believe in compounding — in knowledge, in skills, and in investments. This portfolio is a reflection of that philosophy: everything here is built incrementally, one commit at a time.",
+    "I'm Pavan — a Data Analyst at Morgan Stanley with a Master's in Data Analytics Engineering from George Mason University. I specialize in building scalable data pipelines, predictive models, and interactive dashboards that drive business decisions.",
+    "With experience spanning Morgan Stanley, Stryker, and Walmart Global Tech, I've worked across financial analytics, healthcare operations, and retail intelligence. I'm certified as a Google Cloud Professional Data Engineer and AWS Certified ML Specialist.",
   ],
 };
 
 const DEFAULT_SKILLS: AboutSkillGroup[] = [
-  { category: "Languages", items: ["TypeScript", "Python", "Go", "JavaScript", "SQL"] },
-  { category: "Frontend", items: ["React", "Next.js", "Tailwind CSS", "Framer Motion"] },
-  { category: "Backend", items: ["Node.js", "FastAPI", "PostgreSQL", "Redis"] },
-  { category: "Tools", items: ["Git", "Docker", "AWS", "Vercel", "Figma"] },
+  { category: "Languages", items: ["Python", "R", "SQL", "JavaScript", "TypeScript", "Scala"] },
+  { category: "Data & ML", items: ["TensorFlow", "PyTorch", "scikit-learn", "Pandas", "PySpark", "Hadoop"] },
+  { category: "Cloud & Tools", items: ["AWS", "GCP", "Azure", "Docker", "Kubernetes", "Airflow"] },
+  { category: "Visualization", items: ["Tableau", "Power BI", "Plotly", "D3.js", "Looker"] },
 ];
 
 const DEFAULT_TIMELINE: AboutTimelineEntry[] = [
-  { year: "2026", title: "Google SDE Prep", description: "Focused preparation for Google SDE roles. Building systems, solving 500+ LeetCode problems, and documenting everything." },
-  { year: "2025", title: "Full-Stack Portfolio & Tools", description: "Built this portfolio platform with bento grid homepage, blog, finance tracker, education dashboard, and more." },
-  { year: "2024", title: "Full-Stack Developer", description: "Building products at the intersection of education, finance, and technology." },
+  { year: "2024", title: "Data Analyst — Morgan Stanley", description: "Building data pipelines and predictive models for financial analytics in New York." },
+  { year: "2022", title: "M.S. Data Analytics Engineering", description: "George Mason University, GPA: 3.8/4.0. Focus on machine learning and big data systems." },
+  { year: "2021", title: "Business Analyst — Stryker", description: "Optimized healthcare operations through advanced analytics and BI dashboards." },
+  { year: "2019", title: "Data Analyst — Walmart Global Tech", description: "Built retail intelligence pipelines processing millions of transactions daily." },
 ];
 
-const DEFAULT_EXPERIENCE: AboutExperienceEntry[] = [];
-const DEFAULT_EDUCATION: AboutEducationEntry[] = [];
+const DEFAULT_EXPERIENCE: AboutExperienceEntry[] = [
+  { company: "Morgan Stanley", role: "Data Analyst", period: "Jan 2024 – Present", description: "Building data pipelines and predictive models for financial analytics. Streamlined reporting with automated ETL workflows.", current: true },
+  { company: "Stryker", role: "Business Analyst", period: "Mar 2021 – Jul 2022", description: "Optimized healthcare supply chain operations using advanced analytics and Tableau dashboards." },
+  { company: "Walmart Global Tech", role: "Data Analyst", period: "Feb 2019 – Feb 2021", description: "Built retail intelligence pipelines, implemented ML models for demand forecasting, and created executive dashboards." },
+];
+const DEFAULT_EDUCATION: AboutEducationEntry[] = [
+  { institution: "George Mason University", degree: "M.S. Data Analytics Engineering", period: "Aug 2022 – May 2024", description: "GPA: 3.8/4.0. Coursework in Machine Learning, Big Data, NLP, and Statistical Methods." },
+];
 const DEFAULT_META: AboutMetaData = { photoUrl: "", resumeUrl: "", resumeFileName: "" };
 
 // ─── Fetch from Supabase (server-side, no auth needed) ───

@@ -13,10 +13,10 @@ import { CookieConsent } from "@/components/ui/CookieConsent";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: "Pavan Jillella — Building. Thinking. Documenting.",
+  title: "Pavan Jillella — Data Analyst | Morgan Stanley",
   description:
-    "Personal brand platform at the intersection of education, finance, and technology. Sharing systems, stories, and software.",
-  keywords: ["developer", "finance", "education", "technology", "portfolio"],
+    "Data Analyst at Morgan Stanley. M.S. in Data Analytics Engineering from George Mason University. Python, SQL, ML, and cloud-certified.",
+  keywords: ["data analyst", "machine learning", "python", "sql", "portfolio", "Morgan Stanley"],
   authors: [{ name: "Pavan Jillella" }],
   manifest: "/manifest.json",
   appleWebApp: {
@@ -26,26 +26,26 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pavanjillella.com"),
   openGraph: {
-    title: "Pavan Jillella — Building. Thinking. Documenting.",
+    title: "Pavan Jillella — Data Analyst | Morgan Stanley",
     description:
-      "Personal brand platform at the intersection of education, finance, and technology.",
+      "Data Analyst at Morgan Stanley. M.S. Data Analytics Engineering, George Mason University.",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "/api/og?title=Pavan+Jillella&subtitle=Full-Stack+Developer+%7C+Education+%C2%B7+Finance+%C2%B7+Technology",
+        url: "/api/og?title=Pavan+Jillella&subtitle=Data+Analyst+%7C+Morgan+Stanley",
         width: 1200,
         height: 630,
-        alt: "Pavan Jillella — Full-Stack Developer",
+        alt: "Pavan Jillella — Data Analyst",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pavan Jillella — Building. Thinking. Documenting.",
+    title: "Pavan Jillella — Data Analyst | Morgan Stanley",
     description:
-      "Personal brand platform at the intersection of education, finance, and technology.",
-    images: ["/api/og?title=Pavan+Jillella&subtitle=Full-Stack+Developer+%7C+Education+%C2%B7+Finance+%C2%B7+Technology"],
+      "Data Analyst at Morgan Stanley. M.S. Data Analytics Engineering, George Mason University.",
+    images: ["/api/og?title=Pavan+Jillella&subtitle=Data+Analyst+%7C+Morgan+Stanley"],
   },
   icons: {
     icon: [

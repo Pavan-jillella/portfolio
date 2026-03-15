@@ -36,7 +36,7 @@ export function BentoStatusCell() {
           >
             <span className="font-mono text-[10px] text-emerald-400/60 mt-0.5 shrink-0">NOW</span>
             <p className="font-body text-xs text-white/40 group-hover:text-emerald-400 transition-colors">
-              Google SDE Interview Prep
+              Data Analytics @ Morgan Stanley
               <span className="inline-block ml-1 opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
             </p>
           </a>
@@ -48,7 +48,7 @@ export function BentoStatusCell() {
           >
             <span className="font-mono text-[10px] text-white/20 mt-0.5 shrink-0">NEXT</span>
             <p className="font-body text-xs text-white/30 group-hover:text-white/50 transition-colors">
-              Open-source contributions
+              ML & Cloud Engineering
               <span className="inline-block ml-1 opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
             </p>
           </a>
@@ -57,7 +57,7 @@ export function BentoStatusCell() {
 
       {/* Interests tags */}
       <div className="flex flex-wrap gap-1.5 mt-4">
-        {["SDE Roles", "Full-Stack", "Systems Design"].map((tag) => (
+        {["Data Analytics", "Machine Learning", "Cloud"].map((tag) => (
           <span
             key={tag}
             className="px-2 py-0.5 rounded-full text-[10px] font-mono text-emerald-400/60 border border-emerald-400/15 bg-emerald-400/[0.04]"

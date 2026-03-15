@@ -56,11 +56,11 @@ export function BentoHeroCell() {
 
         <motion.div variants={fadeUp}>
           <p className="font-display font-semibold text-xl sm:text-2xl text-white/60 mb-4">
-            Full-Stack Developer
+            Data Analyst @ Morgan Stanley
           </p>
           <p className="font-body text-base text-white/40 max-w-md leading-relaxed mb-8">
-            I build systems at the intersection of education, finance, and
-            technology. I invest in knowledge and document everything.
+            I turn complex data into actionable insights. M.S. in Data Analytics
+            from George Mason. Google Cloud &amp; AWS ML certified.
           </p>
         </motion.div>
 
