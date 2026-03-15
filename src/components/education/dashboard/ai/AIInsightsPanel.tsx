@@ -2,43 +2,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StudySession, Course, Note, DashboardProject } from "@/types";
+import { getCached, setCache } from "@/lib/ai-cache";
 
 interface AIInsightsData {
   best_time: string;
   velocity: string;
   estimated_completion: string;
   tips: string[];
-}
-
-interface CachedData<T> {
-  data: T;
-  timestamp: number;
-}
-
-const CACHE_TTL = 86400000; // 24 hours
-
-function getCached<T>(key: string): T | null {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    const parsed: CachedData<T> = JSON.parse(raw);
-    if (Date.now() - parsed.timestamp > CACHE_TTL) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return parsed.data;
-  } catch {
-    return null;
-  }
-}
-
-function setCache<T>(key: string, data: T): void {
-  try {
-    const entry: CachedData<T> = { data, timestamp: Date.now() };
-    localStorage.setItem(key, JSON.stringify(entry));
-  } catch {
-    // localStorage full or unavailable
-  }
 }
 
 interface AIInsightsPanelProps {

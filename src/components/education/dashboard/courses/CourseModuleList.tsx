@@ -76,7 +76,7 @@ export function CourseModuleList({ modules, courseId, onAdd, onToggle, onDelete 
               </span>
               <button
                 onClick={() => onDelete(mod.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
+                className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
               >
                 &times;
               </button>

@@ -4,6 +4,7 @@ import { StudySession } from "@/types";
 import { SUBJECT_COLORS } from "@/lib/constants";
 import { formatDuration } from "@/lib/education-utils";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
+import { ConfirmDelete } from "@/components/ui/ConfirmDelete";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface StudySessionListProps {
@@ -112,19 +113,14 @@ export function StudySessionList({ sessions, onEdit, onDelete }: StudySessionLis
                 <span className="font-body text-xs text-white/20 truncate flex-1 min-w-0">
                   {session.notes || "\u2014"}
                 </span>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0">
                   <button
                     onClick={() => onEdit(session)}
                     className="glass-card px-3 py-1.5 rounded-lg text-xs font-body text-white/60 hover:text-white transition-all hover:border-blue-500/30"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => onDelete(session.id)}
-                    className="glass-card px-3 py-1.5 rounded-lg text-xs font-body text-red-400/60 hover:text-red-400 transition-all hover:border-red-500/30"
-                  >
-                    Delete
-                  </button>
+                  <ConfirmDelete onConfirm={() => onDelete(session.id)} />
                 </div>
               </motion.div>
             ))}
@@ -157,19 +153,14 @@ export function StudySessionList({ sessions, onEdit, onDelete }: StudySessionLis
                 <p className="font-body text-xs text-white/30 mb-2 line-clamp-2">{session.notes || "\u2014"}</p>
                 <p className="font-mono text-[10px] text-white/20">{formatDate(session.date)}</p>
               </div>
-              <div className="flex items-center gap-1 pt-3 border-t border-white/5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 pt-3 border-t border-white/5 mt-3 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                 <button
                   onClick={() => onEdit(session)}
                   className="px-2 py-1 rounded-lg text-[10px] font-body text-white/30 hover:text-blue-400 hover:bg-white/5 transition-all"
                 >
                   Edit
                 </button>
-                <button
-                  onClick={() => onDelete(session.id)}
-                  className="px-2 py-1 rounded-lg text-[10px] font-body text-white/30 hover:text-red-400 hover:bg-white/5 transition-all ml-auto"
-                >
-                  Delete
-                </button>
+                <ConfirmDelete onConfirm={() => onDelete(session.id)} className="ml-auto" />
               </div>
             </motion.div>
           ))}

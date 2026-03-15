@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Course, CourseModule, CourseNote, CourseFile, StudySession, UploadedFile } from "@/types";
+import { Course, CourseModule, CourseNote, CourseFile, StudySession, UploadedFile, Certificate } from "@/types";
 import { calculateModuleProgress } from "@/lib/education-utils";
 import { COURSE_STATUS_CONFIG } from "@/lib/constants";
 import { CourseModuleList } from "./CourseModuleList";
@@ -8,7 +8,9 @@ import { CourseNotesEditor } from "./CourseNotesEditor";
 import { CourseFileUpload } from "./CourseFileUpload";
 import { CourseLinkedFiles } from "./CourseLinkedFiles";
 import { CourseForm } from "@/components/education/CourseForm";
+import { ConfirmDelete } from "@/components/ui/ConfirmDelete";
 import { CourseRecommendations } from "../ai/CourseRecommendations";
+import { CertificatesPanel } from "./CertificatesPanel";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { motion } from "framer-motion";
 
@@ -31,6 +33,9 @@ interface CourseTrackerTabProps {
   onUploadFile: (file: File) => Promise<{ url: string; path: string } | null>;
   onAddGeneralFile: (file: Omit<UploadedFile, "id" | "created_at">) => void;
   onUpdateGeneralFile: (id: string, updates: Partial<UploadedFile>) => void;
+  certificates: Certificate[];
+  onAddCertificate: (cert: Omit<Certificate, "id" | "created_at">) => void;
+  onDeleteCertificate: (id: string) => void;
 }
 
 export function CourseTrackerTab({
@@ -52,6 +57,9 @@ export function CourseTrackerTab({
   onUploadFile,
   onAddGeneralFile,
   onUpdateGeneralFile,
+  certificates,
+  onAddCertificate,
+  onDeleteCertificate,
 }: CourseTrackerTabProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -143,12 +151,11 @@ export function CourseTrackerTab({
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteCourse(course.id); }}
-                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
-                >
-                  &times;
-                </button>
+                <ConfirmDelete
+                  onConfirm={() => onDeleteCourse(course.id)}
+                  label="&times;"
+                  className="absolute top-3 right-3 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
+                />
                 <h4 className="font-display font-semibold text-sm text-white mb-2 truncate">{course.name}</h4>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="tag-badge px-2 py-0.5 rounded-full border border-white/8 bg-white/4 text-white/30 text-[10px]">
@@ -199,7 +206,7 @@ export function CourseTrackerTab({
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteCourse(course.id); }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
+                    className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
                   >
                     &times;
                   </button>
@@ -254,7 +261,7 @@ export function CourseTrackerTab({
                       <td className="px-2 py-2.5">
                         <button
                           onClick={(e) => { e.stopPropagation(); onDeleteCourse(course.id); }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
+                          className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
                         >
                           &times;
                         </button>
@@ -308,6 +315,13 @@ export function CourseTrackerTab({
           </div>
         </motion.div>
       )}
+
+      {/* Certificates */}
+      <CertificatesPanel
+        certificates={certificates}
+        onAdd={onAddCertificate}
+        onDelete={onDeleteCertificate}
+      />
 
       {/* AI Course Recommendations */}
       <CourseRecommendations courses={courses} sessions={sessions} onAddCourse={onAddCourse} />

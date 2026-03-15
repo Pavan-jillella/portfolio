@@ -24,7 +24,7 @@ export function NoteCard({ note, isSelected, onClick, onDelete }: NoteCardProps)
           e.stopPropagation();
           onDelete(note.id);
         }}
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
+        className="absolute top-2 right-2 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
       >
         &times;
       </button>

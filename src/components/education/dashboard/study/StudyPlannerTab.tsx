@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { StudySession, StudyGoal } from "@/types";
+import { StudySession, StudyGoal, Course } from "@/types";
 import {
   getStudyStreak,
   getDailyStudyData,
@@ -14,6 +14,8 @@ import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { StudySessionForm } from "./StudySessionForm";
 import { StudySessionList } from "./StudySessionList";
 import { StudyGoalsTracker } from "./StudyGoalsTracker";
+import { StudyStreakCounter } from "./StudyStreakCounter";
+import { LearningPlannerTab } from "../planner/LearningPlannerTab";
 import { motion } from "framer-motion";
 
 const StudyBarChart = dynamic(() => import("./StudyBarChart").then((m) => m.StudyBarChart), {
@@ -29,6 +31,7 @@ const SubjectBreakdownChart = dynamic(() => import("./SubjectBreakdownChart").th
 interface StudyPlannerTabProps {
   sessions: StudySession[];
   goals: StudyGoal[];
+  courses: Course[];
   onAddSession: (session: Omit<StudySession, "id" | "created_at">) => void;
   onEditSession: (id: string, session: Omit<StudySession, "id" | "created_at">) => void;
   onDeleteSession: (id: string) => void;
@@ -39,6 +42,7 @@ interface StudyPlannerTabProps {
 export function StudyPlannerTab({
   sessions,
   goals,
+  courses,
   onAddSession,
   onEditSession,
   onDeleteSession,
@@ -156,6 +160,9 @@ export function StudyPlannerTab({
         </motion.div>
       </div>
 
+      {/* Study Streak Heatmap + Milestones */}
+      <StudyStreakCounter streak={streak} sessions={sessions} />
+
       {/* Charts row - 2 columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <StudyBarChart data={dailyData} />
@@ -176,6 +183,9 @@ export function StudyPlannerTab({
         onEdit={handleEdit}
         onDelete={onDeleteSession}
       />
+
+      {/* AI Learning Planner (merged from standalone Planner tab) */}
+      <LearningPlannerTab sessions={sessions} courses={courses} />
 
       {/* Session form modal */}
       <StudySessionForm

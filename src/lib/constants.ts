@@ -779,11 +779,8 @@ export const DASHBOARD_TABS = [
   { id: "projects", label: "Projects" },
   { id: "skills", label: "Skills" },
   { id: "quiz", label: "Quiz" },
-  { id: "planner", label: "Planner" },
   { id: "github", label: "GitHub" },
   { id: "leetcode", label: "LeetCode" },
-  { id: "roadmap", label: "Google SDE Roadmap" },
-  { id: "mindmap", label: "Mind Map" },
   { id: "files", label: "Files" },
 ] as const;
 

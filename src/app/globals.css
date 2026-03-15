@@ -143,6 +143,15 @@ body {
   background: var(--scrollbar-thumb-hover);
 }
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Grain overlay */
 .grain-overlay {
   position: fixed;

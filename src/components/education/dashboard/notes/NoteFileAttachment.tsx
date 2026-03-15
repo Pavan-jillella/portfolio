@@ -25,7 +25,7 @@ export function NoteFileAttachment({ files, onRemove }: NoteFileAttachmentProps)
           <span className="font-mono text-[10px] text-white/20">{formatFileSize(f.file_size)}</span>
           <button
             onClick={() => onRemove(f.id)}
-            className="text-xs text-red-400/50 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+            className="text-xs text-red-400/50 hover:text-red-400 transition-colors sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100"
           >
             &times;
           </button>

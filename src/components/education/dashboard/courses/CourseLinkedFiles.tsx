@@ -169,7 +169,7 @@ export function CourseLinkedFiles({
 
               {/* Quick-link to another course */}
               <select
-                className="bg-transparent text-[9px] text-white/20 border-none focus:outline-none w-16 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="bg-transparent text-[9px] text-white/20 border-none focus:outline-none w-16 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
                 value=""
                 onChange={(e) => {
                   if (e.target.value) addCourseLink(f.id, e.target.value);
@@ -186,7 +186,7 @@ export function CourseLinkedFiles({
 
               <button
                 onClick={() => unlinkFile(f.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
+                className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
               >
                 &times;
               </button>

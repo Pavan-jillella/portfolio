@@ -65,7 +65,7 @@ export function CourseFileUpload({ courseId, files, onAdd, onDelete }: CourseFil
               <span className="font-mono text-xs text-white/30 shrink-0">{formatFileSize(f.file_size)}</span>
               <button
                 onClick={() => onDelete(f.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
+                className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
               >
                 &times;
               </button>

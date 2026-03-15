@@ -6,6 +6,7 @@ import {
   Note,
   DashboardProject,
   DashboardOverviewStats,
+  ReadingListItem,
 } from "@/types";
 import {
   getStudyStreak,
@@ -15,21 +16,33 @@ import {
   getWeekStart,
   generateSkillsFromData,
 } from "@/lib/education-utils";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useGitHubData } from "@/hooks/queries/useGitHubData";
+import { useLeetCodeData } from "@/hooks/queries/useLeetCodeData";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { motion } from "framer-motion";
 import { AIInsightsPanel } from "../ai/AIInsightsPanel";
 import { LearningAnalyticsPanel } from "../analytics/LearningAnalyticsPanel";
 import { LearningResumeTab } from "../resume/LearningResumeTab";
+import { ReadingList } from "./ReadingList";
 
 interface OverviewTabProps {
   sessions: StudySession[];
   courses: Course[];
   notes: Note[];
   projects: DashboardProject[];
+  readingList: ReadingListItem[];
+  onAddReadingItem: (item: Omit<ReadingListItem, "id" | "created_at">) => void;
+  onDeleteReadingItem: (id: string) => void;
+  onUpdateReadingItem: (id: string, updates: Partial<ReadingListItem>) => void;
 }
 
-export function OverviewTab({ sessions, courses, notes, projects }: OverviewTabProps) {
+export function OverviewTab({ sessions, courses, notes, projects, readingList, onAddReadingItem, onDeleteReadingItem, onUpdateReadingItem }: OverviewTabProps) {
   const [showResume, setShowResume] = useState(false);
+  const [githubUsername] = useLocalStorage<string>("pj-github-username", "");
+  const [leetcodeUsername] = useLocalStorage<string>("pj-leetcode-username", "");
+  const { data: githubData } = useGitHubData(githubUsername);
+  const { data: leetcodeData } = useLeetCodeData(leetcodeUsername);
   const streak = useMemo(() => getStudyStreak(sessions), [sessions]);
   const dailyData = useMemo(() => getDailyStudyData(sessions, 7), [sessions]);
   const recentActivity = useMemo(() => getRecentActivity(sessions, notes, projects), [sessions, notes, projects]);
@@ -43,13 +56,13 @@ export function OverviewTab({ sessions, courses, notes, projects }: OverviewTabP
       studyHoursThisWeek: parseFloat((studyMinutes / 60).toFixed(1)),
       coursesCompleted: courses.filter((c) => c.status === "completed").length,
       coursesTotal: courses.length,
-      githubRepos: 0,
-      githubStars: 0,
-      leetcodeSolved: 0,
+      githubRepos: githubData?.stats.totalRepos ?? 0,
+      githubStars: githubData?.stats.totalStars ?? 0,
+      leetcodeSolved: leetcodeData?.solved ?? 0,
       activeProjects: projects.filter((p) => p.status === "in-progress").length,
       notesCount: notes.length,
     };
-  }, [sessions, courses, notes, projects]);
+  }, [sessions, courses, notes, projects, githubData, leetcodeData]);
 
   const maxMinutes = Math.max(...dailyData.map((d) => d.minutes), 1);
 
@@ -66,8 +79,8 @@ export function OverviewTab({ sessions, courses, notes, projects }: OverviewTabP
           { label: "Active Projects", value: stats.activeProjects, suffix: "" },
           { label: "Courses Completed", value: stats.coursesCompleted, suffix: "" },
           { label: "Notes", value: stats.notesCount, suffix: "" },
-          { label: "Sessions All Time", value: sessions.length, suffix: "" },
-          { label: "Total Study", value: parseFloat((sessions.reduce((s, x) => s + x.duration_minutes, 0) / 60).toFixed(0)), suffix: "h" },
+          { label: "GitHub Repos", value: stats.githubRepos, suffix: "" },
+          { label: "LeetCode Solved", value: stats.leetcodeSolved, suffix: "" },
         ].map((s, i) => (
           <motion.div
             key={s.label}
@@ -155,6 +168,14 @@ export function OverviewTab({ sessions, courses, notes, projects }: OverviewTabP
 
       {/* Learning Analytics */}
       <LearningAnalyticsPanel sessions={sessions} courses={courses} />
+
+      {/* Reading List */}
+      <ReadingList
+        items={readingList}
+        onAdd={onAddReadingItem}
+        onDelete={onDeleteReadingItem}
+        onUpdate={onUpdateReadingItem}
+      />
 
       {/* Learning Resume */}
       <div>

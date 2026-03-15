@@ -3,6 +3,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { DashboardProject, ProjectMilestone, ProjectNote, ProjectFile } from "@/types";
 import { PROJECT_STATUS_CONFIG } from "@/lib/constants";
+import { ConfirmDelete } from "@/components/ui/ConfirmDelete";
 import { ProjectMilestoneList } from "./ProjectMilestoneList";
 import { motion } from "framer-motion";
 
@@ -91,12 +92,7 @@ export function ProjectDetail({
             >
               Edit
             </button>
-            <button
-              onClick={onDelete}
-              className="glass-card px-4 py-2 rounded-xl text-xs font-body text-red-400/60 hover:text-red-400 transition-all hover:border-red-500/30"
-            >
-              Delete
-            </button>
+            <ConfirmDelete onConfirm={onDelete} />
           </div>
         </div>
         {project.description && (
@@ -160,7 +156,7 @@ export function ProjectDetail({
                 <span className="font-body text-sm text-white/60 flex-1 truncate">{f.file_name}</span>
                 <button
                   onClick={() => onDeleteFile(f.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
+                  className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400"
                 >
                   &times;
                 </button>

@@ -369,6 +369,27 @@ export interface StudyGoal {
   created_at: string;
 }
 
+export type ReadingStatus = "reading" | "completed" | "planned";
+
+export interface ReadingListItem {
+  id: string;
+  title: string;
+  author: string;
+  category: string;
+  status: ReadingStatus;
+  created_at: string;
+}
+
+export interface Certificate {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  url: string;
+  course_id?: string;
+  created_at: string;
+}
+
 export interface CourseModule {
   id: string;
   course_id: string;

@@ -20,6 +20,8 @@ import {
   ProjectMilestone,
   ProjectFile,
   ProjectNote,
+  ReadingListItem,
+  Certificate,
 } from "@/types";
 import { DASHBOARD_TABS, DashboardTabId } from "@/lib/constants";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -38,11 +40,9 @@ import { LeetCodeDashboardTab } from "./leetcode/LeetCodeDashboardTab";
 import { FilesTab } from "./files/FilesTab";
 import { SkillTreeTab } from "./skills/SkillTreeTab";
 import { QuizTab } from "./quiz/QuizTab";
-import { LearningPlannerTab } from "./planner/LearningPlannerTab";
 import { StudyAssistantChat } from "./ai/StudyAssistantChat";
 import { CourseRoadmap } from "./ai/CourseRoadmap";
-import { RoadmapTab } from "./roadmap/RoadmapTab";
-import { MindMapTab } from "./mindmap/MindMapTab";
+import { PomodoroTimer } from "./study/PomodoroTimer";
 
 export function EducationDashboardClient() {
   // ===== State (Realtime-synced) =====
@@ -61,6 +61,8 @@ export function EducationDashboardClient() {
   const [milestones, setMilestones] = useLocalStorage<ProjectMilestone[]>("pj-project-milestones", []);
   const [projectFiles, setProjectFiles] = useLocalStorage<ProjectFile[]>("pj-project-files", []);
   const [projectNotes, setProjectNotes] = useLocalStorage<ProjectNote[]>("pj-project-notes", []);
+  const [readingList, setReadingList] = useLocalStorage<ReadingListItem[]>("pj-reading-list", []);
+  const [certificates, setCertificates] = useLocalStorage<Certificate[]>("pj-certificates", []);
 
   const [activeTab, setActiveTab] = useState<DashboardTabId>("overview");
   const [profileCopied, setProfileCopied] = useState(false);
@@ -249,17 +251,46 @@ export function EducationDashboardClient() {
     setProjectFiles((prev) => prev.filter((f) => f.id !== id));
   }
 
+  // ===== Reading List Handlers =====
+  function addReadingItem(item: Omit<ReadingListItem, "id" | "created_at">) {
+    setReadingList((prev) => [...prev, { ...item, id: generateId(), created_at: new Date().toISOString() }]);
+  }
+  function deleteReadingItem(id: string) {
+    setReadingList((prev) => prev.filter((r) => r.id !== id));
+  }
+  function updateReadingItem(id: string, updates: Partial<ReadingListItem>) {
+    setReadingList((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
+  }
+
+  // ===== Certificate Handlers =====
+  function addCertificate(cert: Omit<Certificate, "id" | "created_at">) {
+    setCertificates((prev) => [...prev, { ...cert, id: generateId(), created_at: new Date().toISOString() }]);
+  }
+  function deleteCertificate(id: string) {
+    setCertificates((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  // ===== Pomodoro auto-log =====
+  function handlePomodoroComplete(durationMinutes: number, subject: string) {
+    addStudySession({
+      subject,
+      duration_minutes: durationMinutes,
+      date: new Date().toISOString().split("T")[0],
+      notes: "Auto-logged from Pomodoro timer",
+    });
+  }
+
   return (
     <div className="space-y-8">
       {/* Tabs */}
       <FadeIn delay={0.05}>
         <div className="flex items-center gap-4">
-          <div className="flex flex-wrap gap-2 flex-1">
+          <div className="flex gap-2 flex-1 overflow-x-auto scrollbar-hide pb-1 -mb-1 snap-x snap-mandatory">
             {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-full text-sm font-body transition-all duration-200 ${
+                className={`px-4 py-2 rounded-full text-sm font-body transition-all duration-200 whitespace-nowrap snap-start shrink-0 ${
                   activeTab === tab.id
                     ? "glass-card text-blue-400"
                     : "text-white/40 hover:text-white"
@@ -293,6 +324,10 @@ export function EducationDashboardClient() {
               courses={courses}
               notes={notes}
               projects={projects}
+              readingList={readingList}
+              onAddReadingItem={addReadingItem}
+              onDeleteReadingItem={deleteReadingItem}
+              onUpdateReadingItem={updateReadingItem}
             />
           </ErrorBoundary>
         </FadeIn>
@@ -304,6 +339,7 @@ export function EducationDashboardClient() {
             <StudyPlannerTab
               sessions={studySessions}
               goals={studyGoals}
+              courses={courses}
               onAddSession={addStudySession}
               onEditSession={editStudySession}
               onDeleteSession={deleteStudySession}
@@ -336,6 +372,9 @@ export function EducationDashboardClient() {
               onUploadFile={handleFileUpload}
               onAddGeneralFile={addFile}
               onUpdateGeneralFile={updateFile}
+              certificates={certificates}
+              onAddCertificate={addCertificate}
+              onDeleteCertificate={deleteCertificate}
             />
           </ErrorBoundary>
         </FadeIn>
@@ -442,39 +481,6 @@ export function EducationDashboardClient() {
         </FadeIn>
       )}
 
-      {activeTab === "planner" && (
-        <FadeIn>
-          <ErrorBoundary module="Planner">
-            <LearningPlannerTab
-              sessions={studySessions}
-              courses={courses}
-            />
-          </ErrorBoundary>
-        </FadeIn>
-      )}
-
-      {activeTab === "roadmap" && (
-        <FadeIn>
-          <ErrorBoundary module="Roadmap">
-            <RoadmapTab sessions={studySessions} />
-          </ErrorBoundary>
-        </FadeIn>
-      )}
-
-      {activeTab === "mindmap" && (
-        <FadeIn>
-          <ErrorBoundary module="Mind Map">
-            <MindMapTab
-              courses={courses}
-              notes={notes}
-              files={files}
-              onNavigateToCourse={() => setActiveTab("courses")}
-              onNavigateToNote={() => setActiveTab("notes")}
-            />
-          </ErrorBoundary>
-        </FadeIn>
-      )}
-
       {/* AI Study Assistant - floating panel */}
       <StudyAssistantChat
         sessions={studySessions}
@@ -483,6 +489,9 @@ export function EducationDashboardClient() {
         projects={projects}
         activeTab={activeTab}
       />
+
+      {/* Pomodoro Timer - floating widget */}
+      <PomodoroTimer onSessionComplete={handlePomodoroComplete} />
     </div>
   );
 }

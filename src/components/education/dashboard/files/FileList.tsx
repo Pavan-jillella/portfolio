@@ -37,7 +37,7 @@ export function FileList({ files, onDelete, onPreview }: FileListProps) {
               e.stopPropagation();
               onDelete(f.id, f.storage_path);
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
+            className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400 shrink-0"
           >
             &times;
           </button>

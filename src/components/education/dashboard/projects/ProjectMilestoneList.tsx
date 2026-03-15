@@ -53,7 +53,7 @@ export function ProjectMilestoneList({ milestones, projectId, onAdd, onToggle, o
                   {m.due_date}
                 </span>
               )}
-              <button onClick={() => onDelete(m.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400">&times;</button>
+              <button onClick={() => onDelete(m.id)} className="sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity text-xs text-red-400/50 hover:text-red-400">&times;</button>
             </motion.div>
           ))}
         </AnimatePresence>

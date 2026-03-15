@@ -2,37 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Course, StudySession, CourseRecommendation } from "@/types";
-
-interface CachedData<T> {
-  data: T;
-  timestamp: number;
-}
-
-const CACHE_TTL = 86400000; // 24 hours
-
-function getCached<T>(key: string): T | null {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    const parsed: CachedData<T> = JSON.parse(raw);
-    if (Date.now() - parsed.timestamp > CACHE_TTL) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return parsed.data;
-  } catch {
-    return null;
-  }
-}
-
-function setCache<T>(key: string, data: T): void {
-  try {
-    const entry: CachedData<T> = { data, timestamp: Date.now() };
-    localStorage.setItem(key, JSON.stringify(entry));
-  } catch {
-    // localStorage full or unavailable
-  }
-}
+import { getCached, setCache } from "@/lib/ai-cache";
 
 interface CourseRecommendationsProps {
   courses: Course[];
