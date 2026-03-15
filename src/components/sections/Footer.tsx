@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
 
 const socials = [
@@ -7,6 +8,18 @@ const socials = [
   { label: "LinkedIn", href: "https://linkedin.com/in/pavanjillella" },
   { label: "LeetCode", href: "https://leetcode.com/pavanjillella" },
   { label: "YouTube", href: "https://youtube.com/@pavanjillella" },
+];
+
+const navLinks = [
+  { label: "About", href: "/about" },
+  { label: "Blog", href: "/blog" },
+  { label: "Projects", href: "/projects" },
+  { label: "Contact", href: "/contact" },
+];
+
+const legalLinks = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
 ];
 
 export function Footer() {
@@ -42,6 +55,25 @@ export function Footer() {
           PJ<span className="text-warm">.</span>
         </motion.div>
 
+        {/* Site navigation */}
+        <motion.nav
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.08 }}
+          className="flex flex-wrap justify-center gap-6"
+        >
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="font-body text-sm text-white/40 hover:text-white transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </motion.nav>
+
         {/* Social links */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -75,16 +107,29 @@ export function Footer() {
           <NewsletterForm />
         </motion.div>
 
-        {/* Copyright */}
-        <motion.p
+        {/* Copyright + Legal */}
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="font-mono text-xs text-white/20"
+          className="flex flex-col items-center gap-2"
         >
-          © {new Date().getFullYear()} Pavan Jillella. Built with Next.js & Framer Motion.
-        </motion.p>
+          <div className="flex items-center gap-4">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="font-mono text-[10px] text-white/20 hover:text-white/40 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          <p className="font-mono text-xs text-white/20">
+            © {new Date().getFullYear()} Pavan Jillella
+          </p>
+        </motion.div>
       </div>
     </footer>
   );

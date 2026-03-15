@@ -4,6 +4,7 @@ import { Navbar } from "@/components/ui/Navbar";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { CommandPalette } from "@/components/search/CommandPalette";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { Footer } from "@/components/sections/Footer";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       <main className="relative z-10">
         <PageTransition>{children}</PageTransition>
       </main>
+      {!isMinimalPage && <Footer />}
       {!isMinimalPage && (
         <>
           <ChatWidget />

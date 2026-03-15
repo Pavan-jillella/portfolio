@@ -9,6 +9,8 @@ const skills = [
 ];
 
 const timeline = [
+  { year: "2026", title: "Google SDE Prep", description: "Focused preparation for Google SDE roles. Building systems, solving 500+ LeetCode problems, and documenting everything." },
+  { year: "2025", title: "Full-Stack Portfolio & Tools", description: "Built this portfolio platform with bento grid homepage, blog, finance tracker, education dashboard, and more." },
   { year: "2024", title: "Full-Stack Developer", description: "Building products at the intersection of education, finance, and technology." },
   { year: "2023", title: "Open Source Contributor", description: "Contributed to multiple open-source projects. Started building developer tools." },
   { year: "2022", title: "Started Learning in Public", description: "Launched blog and YouTube channel to document my learning journey." },

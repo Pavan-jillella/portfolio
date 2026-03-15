@@ -6,6 +6,7 @@ import { UserProject } from "@/types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const LANGUAGES = ["All", "TypeScript", "JavaScript", "Python", "Go", "Rust", "Java", "Other"];
 
@@ -13,6 +14,7 @@ const inputClass =
   "w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 font-body text-sm placeholder-white/25 focus:outline-none focus:border-blue-500/50 transition-all";
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
   const [projects, setProjects] = useSupabaseRealtimeSync<UserProject>("pj-user-projects", "user_projects", []);
   const [activeLang, setActiveLang] = useState("All");
   const [manageMode, setManageMode] = useState(false);
@@ -123,16 +125,18 @@ export default function ProjectsPage() {
             </div>
             <div className="flex items-center gap-3">
               <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-              <button
-                onClick={() => setManageMode(!manageMode)}
-                className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
-                  manageMode
-                    ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
-                    : "border-white/8 bg-white/4 text-white/50 hover:text-white hover:border-white/15"
-                }`}
-              >
-                {manageMode ? "Done" : "Manage"}
-              </button>
+              {user && (
+                <button
+                  onClick={() => setManageMode(!manageMode)}
+                  className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
+                    manageMode
+                      ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
+                      : "border-white/8 bg-white/4 text-white/50 hover:text-white hover:border-white/15"
+                  }`}
+                >
+                  {manageMode ? "Done" : "Manage"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -356,12 +360,14 @@ export default function ProjectsPage() {
           {filtered.length === 0 && (
             <div className="text-center py-16">
               <p className="font-body text-sm text-white/30">No projects yet.</p>
-              <button
-                onClick={() => { setManageMode(true); setShowForm(true); }}
-                className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Add your first project
-              </button>
+              {user && (
+                <button
+                  onClick={() => { setManageMode(true); setShowForm(true); }}
+                  className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Add your first project
+                </button>
+              )}
             </div>
           )}
         </div>
