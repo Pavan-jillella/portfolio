@@ -15,7 +15,7 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/dashboard";
   const errorParam = searchParams.get("error");
 
   async function handleGoogleSignIn() {

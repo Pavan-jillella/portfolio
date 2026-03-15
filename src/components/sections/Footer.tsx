@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
 
 const socials = [
@@ -23,6 +24,8 @@ const legalLinks = [
 ];
 
 export function Footer() {
+  const router = useRouter();
+
   return (
     <footer className="py-20 px-6 border-t border-white/5">
       <div className="max-w-5xl mx-auto flex flex-col items-center gap-10 text-center">
@@ -44,13 +47,14 @@ export function Footer() {
           </span>
         </motion.div>
 
-        {/* Logo */}
+        {/* Logo — double-click to access login */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.05 }}
-          className="font-display font-bold text-2xl text-white"
+          className="font-display font-bold text-2xl text-white cursor-default select-none"
+          onDoubleClick={() => router.push("/login")}
         >
           PJ<span className="text-warm">.</span>
         </motion.div>
