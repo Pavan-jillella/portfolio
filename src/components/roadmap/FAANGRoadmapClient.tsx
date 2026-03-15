@@ -6,7 +6,6 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { cn } from "@/lib/utils";
-import { isOwner } from "@/lib/roles";
 import {
   ROADMAP_PHASES,
   WEEKLY_PLAN,
@@ -500,14 +499,14 @@ export function FAANGRoadmapClient() {
   if (loading) return <div className="flex justify-center py-32"><div className="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" /></div>;
 
   /* auth */
-  if (!user || !isOwner(user.email)) {
+  if (!user) {
     return (
       <div className="rounded-3xl border border-red-500/20 bg-red-500/[0.03] p-16 text-center">
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
           <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v.01M12 12v-4m0 12a8 8 0 100-16 8 8 0 000 16z" /></svg>
         </div>
         <h2 className="font-display font-bold text-xl text-white mb-2">Access Restricted</h2>
-        <p className="font-body text-sm text-white/35">This roadmap is private.</p>
+        <p className="font-body text-sm text-white/35">Sign in to view this roadmap.</p>
       </div>
     );
   }

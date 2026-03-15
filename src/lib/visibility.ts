@@ -15,9 +15,9 @@ export const DEFAULT_VISIBILITY: SectionVisibility = {
   study: true,
   activity: true,
   analytics: true,
-  financeTracker: false,
-  notes: false,
-  files: false,
+  financeTracker: true,
+  notes: true,
+  files: true,
 };
 
 export type SectionKey = keyof SectionVisibility;
