@@ -284,8 +284,9 @@ export function EducationDashboardClient() {
     <div className="space-y-8">
       {/* Tabs */}
       <FadeIn delay={0.05}>
-        <div className="flex items-center gap-4">
-          <div className="flex gap-2 flex-1 overflow-x-auto scrollbar-hide pb-1 -mb-1 snap-x snap-mandatory">
+        <div className="flex flex-col gap-3">
+          {/* Tab navigation - scrollable row */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mb-1 snap-x snap-mandatory">
             {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -300,18 +301,21 @@ export function EducationDashboardClient() {
               </button>
             ))}
           </div>
-          <RealtimeStatus isConnected={isRealtimeConnected} />
-          <button
-            onClick={copyProfileLink}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono text-white/30 bg-white/4 border border-white/5 hover:border-white/10 hover:text-white/50 transition-all"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            {profileCopied ? "Copied!" : "Profile"}
-          </button>
-          <ShareLink />
-          <VisibilityToggle />
+          {/* Utility bar */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <RealtimeStatus isConnected={isRealtimeConnected} />
+            <button
+              onClick={copyProfileLink}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono text-white/30 bg-white/4 border border-white/5 hover:border-white/10 hover:text-white/50 transition-all"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {profileCopied ? "Copied!" : "Profile"}
+            </button>
+            <ShareLink />
+            <VisibilityToggle />
+          </div>
         </div>
       </FadeIn>
 

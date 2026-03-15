@@ -17,7 +17,7 @@ export default function EducationDashboardPage() {
         description="Track your learning progress, manage projects, and organize notes."
       />
       <section className="px-6 pb-20">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <EducationDashboardClient />
         </div>
       </section>
