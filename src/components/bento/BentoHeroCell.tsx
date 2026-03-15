@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { bentoItem } from "./BentoGrid";
@@ -36,6 +37,18 @@ export function BentoHeroCell() {
       <div className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full bg-warm/[0.04] blur-[100px] pointer-events-none" />
 
       <motion.div variants={heroInner} initial="hidden" whileInView="show" viewport={{ once: true }}>
+        <motion.div variants={fadeUp} className="mb-5">
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.12)]">
+            <Image
+              src="/profile-photo.jpg"
+              alt="Pavan Jillella"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        </motion.div>
+
         <motion.p variants={fadeLeft} className="font-mono text-xs text-warm uppercase tracking-widest mb-5">
           Personal Brand
         </motion.p>
