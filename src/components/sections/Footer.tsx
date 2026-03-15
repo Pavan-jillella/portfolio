@@ -3,13 +3,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
-
-const socials = [
-  { label: "GitHub", href: "https://github.com/pavanjillella" },
-  { label: "LinkedIn", href: "https://linkedin.com/in/pavanjillella" },
-  { label: "LeetCode", href: "https://leetcode.com/pavanjillella" },
-  { label: "YouTube", href: "https://youtube.com/@pavanjillella" },
-];
+import { SOCIAL_LINKS } from "@/lib/constants";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -86,7 +80,7 @@ export function Footer() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="flex items-center gap-2"
         >
-          {socials.map((s) => (
+          {SOCIAL_LINKS.map((s) => (
             <a
               key={s.label}
               href={s.href}

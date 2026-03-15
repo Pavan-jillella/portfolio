@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { GITHUB_PROFILE_URL } from "@/lib/constants";
 
 const words = ["Building.", "Thinking.", "Documenting."];
 
@@ -81,7 +82,7 @@ export function HeroSection() {
             </span>
           </a>
           <a
-            href="https://github.com/pavanjillella"
+            href={GITHUB_PROFILE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="px-8 py-4 rounded-full text-sm font-body font-medium text-white/40 hover:text-white/70 transition-colors duration-200"

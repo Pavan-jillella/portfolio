@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { bentoItem } from "./BentoGrid";
+import { GITHUB_PROFILE_URL } from "@/lib/constants";
 
 export function BentoStatusCell() {
   return (
@@ -28,7 +29,7 @@ export function BentoStatusCell() {
         {/* Current focus — linkable */}
         <div className="space-y-3">
           <a
-            href="https://github.com/pavanjillella"
+            href={GITHUB_PROFILE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-start gap-3 group"
@@ -40,7 +41,7 @@ export function BentoStatusCell() {
             </p>
           </a>
           <a
-            href="https://github.com/pavanjillella"
+            href={GITHUB_PROFILE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-start gap-3 group"

@@ -6,6 +6,7 @@ import { BentoGrid, bentoItem } from "@/components/bento/BentoGrid";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { useGitHubData } from "@/hooks/queries/useGitHubData";
 import { useLeetCodeData } from "@/hooks/queries/useLeetCodeData";
+import { GITHUB_PROFILE_URL } from "@/lib/constants";
 
 export default function DashboardPage() {
   const [habits] = useSupabaseRealtimeSync("pj-habits", "habits", []);
@@ -110,7 +111,7 @@ export default function DashboardPage() {
       title: "GitHub",
       stat: `${githubStars} stars`,
       description: "Repos, contributions, and open source.",
-      href: "https://github.com/pavanjillella",
+      href: GITHUB_PROFILE_URL,
       color: "",
       span: "",
       icon: (

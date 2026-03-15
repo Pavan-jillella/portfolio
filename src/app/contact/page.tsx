@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ContactForm } from "@/components/ui/ContactForm";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { SOCIAL_LINKS } from "@/lib/constants";
 
 export const metadata = {
   title: "Contact | Pavan Jillella",
@@ -26,30 +27,17 @@ export default function ContactPage() {
             <div className="mt-10 text-center">
               <p className="font-body text-sm text-white/30 mb-4">Or find me on</p>
               <div className="flex items-center justify-center gap-3">
-                <a
-                  href="https://github.com/pavanjillella"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glass-card px-4 py-2 rounded-full font-mono text-xs text-white/40 hover:text-white transition-all hover:border-white/15"
-                >
-                  GitHub
-                </a>
-                <a
-                  href="https://linkedin.com/in/pavanjillella"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glass-card px-4 py-2 rounded-full font-mono text-xs text-white/40 hover:text-white transition-all hover:border-white/15"
-                >
-                  LinkedIn
-                </a>
-                <a
-                  href="https://youtube.com/@pavanjillella"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glass-card px-4 py-2 rounded-full font-mono text-xs text-white/40 hover:text-white transition-all hover:border-white/15"
-                >
-                  YouTube
-                </a>
+                {SOCIAL_LINKS.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="glass-card px-4 py-2 rounded-full font-mono text-xs text-white/40 hover:text-white transition-all hover:border-white/15"
+                  >
+                    {s.label}
+                  </a>
+                ))}
               </div>
             </div>
           </FadeIn>

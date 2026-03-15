@@ -747,6 +747,17 @@ export const PROJECT_STATUS_CONFIG: Record<ProjectStatus, { label: string; color
   "on-hold": { label: "On Hold", color: "text-amber-400", bgColor: "bg-amber-500/10" },
 };
 
+export const SOCIAL_LINKS = [
+  { label: "GitHub", href: "https://github.com/pavanjillella", abbr: "GH" },
+  { label: "LinkedIn", href: "https://linkedin.com/in/pavanjillella", abbr: "LI" },
+  { label: "LeetCode", href: "https://leetcode.com/pavanjillella", abbr: "LC" },
+  { label: "YouTube", href: "https://youtube.com/@pavanjillella", abbr: "YT" },
+] as const;
+
+export const CONTACT_EMAIL = "pavan@pavanjillella.com";
+
+export const GITHUB_PROFILE_URL = SOCIAL_LINKS[0].href;
+
 export const GITHUB_LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: "#3178c6",
   JavaScript: "#f7df1e",

@@ -3,13 +3,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
 import { bentoItem } from "./BentoGrid";
-
-const socials = [
-  { label: "GitHub", href: "https://github.com/pavanjillella", abbr: "GH" },
-  { label: "LinkedIn", href: "https://linkedin.com/in/pavanjillella", abbr: "LI" },
-  { label: "LeetCode", href: "https://leetcode.com/pavanjillella", abbr: "LC" },
-  { label: "YouTube", href: "https://youtube.com/@pavanjillella", abbr: "YT" },
-];
+import { SOCIAL_LINKS, CONTACT_EMAIL } from "@/lib/constants";
 
 const socialItem = {
   hidden: { opacity: 0, scale: 0.9 },
@@ -39,7 +33,7 @@ export function BentoContactCell() {
         {/* Left: Social links */}
         <div className="flex flex-col justify-between">
           <motion.div className="flex flex-wrap gap-2 mb-4" variants={socialContainer} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            {socials.map((s) => (
+            {SOCIAL_LINKS.map((s) => (
               <motion.a
                 key={s.label}
                 href={s.href}
@@ -85,7 +79,7 @@ export function BentoContactCell() {
               Download Resume
             </a>
             <a
-              href="mailto:pavan@pavanjillella.com"
+              href={`mailto:${CONTACT_EMAIL}`}
               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-warm/30 text-white/40 hover:text-warm font-body text-xs transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
