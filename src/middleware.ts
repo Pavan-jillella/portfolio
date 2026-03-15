@@ -9,6 +9,8 @@ const PUBLIC_PATHS = [
   "/blog",
   "/projects",
   "/contact",
+  "/finance",
+  "/education",
   "/api/auth",
   "/api/contact",
   "/api/comments",
@@ -24,7 +26,7 @@ const PUBLIC_PATHS = [
 ];
 
 /** Paths that require auth even though their parent is public */
-const PRIVATE_OVERRIDES = ["/blog/write"];
+const PRIVATE_OVERRIDES = ["/blog/write", "/finance/tracker", "/education/dashboard"];
 
 /** Files at the root that should be publicly accessible */
 const PUBLIC_FILES = [

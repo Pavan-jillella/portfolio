@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const githubStars = githubData?.stats?.totalStars ?? 0;
   const leetcodeSolved = leetcodeData?.solved ?? 0;
 
-  const cards = [
+  const cards: { title: string; stat: string | null; statLabel?: string; description: string; href: string; color: string; span: string; icon: React.ReactNode }[] = [
     {
       title: "Life Index",
       stat: null,

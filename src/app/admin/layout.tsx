@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,17 +24,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   // Block non-owners
-  if (loading) {
+  useEffect(() => {
+    if (!loading && (!user || !isOwner(user.email))) {
+      router.push("/dashboard");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user || !isOwner(user.email)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="font-body text-sm text-white/30">Loading...</p>
       </div>
     );
-  }
-
-  if (!user || !isOwner(user.email)) {
-    router.push("/dashboard");
-    return null;
   }
 
   return (
