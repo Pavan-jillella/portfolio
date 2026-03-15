@@ -50,8 +50,8 @@ const DEFAULT_EDUCATION: AboutEducationEntry[] = [
 
 const DEFAULT_META: AboutMetaData = {
   photoUrl: "",
-  resumeUrl: "",
-  resumeFileName: "",
+  resumeUrl: "/Pavan_Jillella_Resume.pdf",
+  resumeFileName: "Pavan_Jillella_Resume.pdf",
 };
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -231,6 +231,20 @@ export default function EditAboutPage() {
   }
 
   // ─── Bio draft helpers ─────────────────
+  function resetToDefaults() {
+    if (!confirm("Reset all About page content to defaults? This will overwrite any custom edits.")) return;
+    const seeded = seedDefaults();
+    setItems(seeded);
+    setBio(DEFAULT_BIO);
+    setSkills(DEFAULT_SKILLS);
+    setTimeline(DEFAULT_TIMELINE);
+    setExperience(DEFAULT_EXPERIENCE);
+    setEducation(DEFAULT_EDUCATION);
+    setMeta(DEFAULT_META);
+    setSaveStatus("all");
+    setTimeout(() => setSaveStatus(null), 2000);
+  }
+
   function updateBioField(field: keyof AboutBioData, value: string | string[]) {
     setBio((prev) => ({ ...prev, [field]: value }));
   }
@@ -320,6 +334,12 @@ export default function EditAboutPage() {
                 Edit your content below, then click <span className="text-blue-400 font-medium">Save</span> to publish to your <span className="text-blue-400">/about</span> page.
               </p>
             </div>
+            <button
+              onClick={resetToDefaults}
+              className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 font-body text-xs font-medium hover:bg-amber-500/20 transition-all shrink-0"
+            >
+              Reset to Defaults
+            </button>
           </div>
         </motion.div>
 
