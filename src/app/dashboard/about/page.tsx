@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
@@ -66,19 +66,24 @@ function seedDefaults(): AboutContent[] {
   ];
 }
 
+function extractSection<T>(items: AboutContent[], section: string, fallback: T): T {
+  return (items.find((i) => i.section === section)?.data as T) ?? fallback;
+}
+
 const inputClass =
   "w-full px-4 py-3 rounded-xl font-body text-sm text-white placeholder:text-white/20 bg-white/[0.04] border border-white/[0.08] focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all";
 const textareaClass = `${inputClass} resize-none`;
 const labelClass = "block font-body text-xs text-white/30 mb-1.5 ml-1";
 const sectionCardClass = "rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8";
 
-function SaveButton({ onClick, label = "Save" }: { onClick: () => void; label?: string }) {
+function SaveButton({ onClick, saving }: { onClick: () => void; saving?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className="px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-body text-xs font-medium hover:bg-blue-500/30 transition-all"
+      disabled={saving}
+      className="px-5 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-body text-xs font-medium hover:bg-blue-500/30 transition-all disabled:opacity-50"
     >
-      {label}
+      {saving ? "Saving..." : "Save"}
     </button>
   );
 }
@@ -103,6 +108,22 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+function SavedBadge() {
+  return (
+    <motion.span
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 font-mono text-xs text-emerald-400"
+    >
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      Saved
+    </motion.span>
+  );
+}
+
 const fadeIn = (delay = 0) => ({
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
@@ -112,8 +133,19 @@ const fadeIn = (delay = 0) => ({
 // ─── Page ────────────────────────────────────────────────
 
 export default function EditAboutPage() {
+  // Synced state (source of truth from Supabase / localStorage)
   const [items, setItems] = useSupabaseRealtimeSync<AboutContent>("pj-about-content", "about_content", []);
   const [seeded, setSeeded] = useState(false);
+
+  // Local draft state (edited freely, only pushed on Save)
+  const [bio, setBio] = useState<AboutBioData>(DEFAULT_BIO);
+  const [skills, setSkills] = useState<AboutSkillGroup[]>(DEFAULT_SKILLS);
+  const [timeline, setTimeline] = useState<AboutTimelineEntry[]>(DEFAULT_TIMELINE);
+  const [experience, setExperience] = useState<AboutExperienceEntry[]>(DEFAULT_EXPERIENCE);
+  const [education, setEducation] = useState<AboutEducationEntry[]>(DEFAULT_EDUCATION);
+  const [meta, setMeta] = useState<AboutMetaData>(DEFAULT_META);
+  const draftsInitialized = useRef(false);
+
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const { upload, remove: removeFile } = useSupabaseStorage();
@@ -128,37 +160,36 @@ export default function EditAboutPage() {
     }
   }, [items.length, seeded, setItems]);
 
-  // Extract sections
-  const bioData = (items.find((i) => i.section === "bio")?.data ?? DEFAULT_BIO) as AboutBioData;
-  const skillsData = (items.find((i) => i.section === "skills")?.data ?? DEFAULT_SKILLS) as AboutSkillGroup[];
-  const timelineData = (items.find((i) => i.section === "timeline")?.data ?? DEFAULT_TIMELINE) as AboutTimelineEntry[];
-  const experienceData = (items.find((i) => i.section === "experience")?.data ?? DEFAULT_EXPERIENCE) as AboutExperienceEntry[];
-  const educationData = (items.find((i) => i.section === "education")?.data ?? DEFAULT_EDUCATION) as AboutEducationEntry[];
-  const metaData = (items.find((i) => i.section === "meta")?.data ?? DEFAULT_META) as AboutMetaData;
+  // Initialize drafts from synced items (once data is loaded)
+  useEffect(() => {
+    if (items.length > 0 && !draftsInitialized.current) {
+      draftsInitialized.current = true;
+      setBio(extractSection(items, "bio", DEFAULT_BIO));
+      setSkills(extractSection(items, "skills", DEFAULT_SKILLS));
+      setTimeline(extractSection(items, "timeline", DEFAULT_TIMELINE));
+      setExperience(extractSection(items, "experience", DEFAULT_EXPERIENCE));
+      setEducation(extractSection(items, "education", DEFAULT_EDUCATION));
+      setMeta(extractSection(items, "meta", DEFAULT_META));
+    }
+  }, [items]);
 
-  const showSaved = useCallback(() => {
-    setSaveStatus("Saved");
+  // ─── Save handler: push draft to synced state ──────────
+  function saveSection(section: AboutContent["section"], data: AboutContent["data"]) {
+    setItems((prev) => {
+      const exists = prev.some((item) => item.section === section);
+      if (exists) {
+        return prev.map((item) =>
+          item.section === section ? { ...item, data, updated_at: new Date().toISOString() } : item
+        );
+      }
+      const now = new Date().toISOString();
+      return [...prev, { id: `about-${section}`, section, data, sort_order: prev.length, created_at: now, updated_at: now }];
+    });
+    setSaveStatus(section);
     setTimeout(() => setSaveStatus(null), 2000);
-  }, []);
+  }
 
-  const updateSection = useCallback(
-    (section: AboutContent["section"], data: AboutContent["data"]) => {
-      setItems((prev) => {
-        const exists = prev.some((item) => item.section === section);
-        if (exists) {
-          return prev.map((item) =>
-            item.section === section ? { ...item, data, updated_at: new Date().toISOString() } : item
-          );
-        }
-        const now = new Date().toISOString();
-        return [...prev, { id: `about-${section}`, section, data, sort_order: prev.length, created_at: now, updated_at: now }];
-      });
-      showSaved();
-    },
-    [setItems, showSaved]
-  );
-
-  // ─── File upload handlers ─────────────
+  // ─── File upload handlers (save immediately) ───────────
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -166,11 +197,13 @@ export default function EditAboutPage() {
     setUploading("photo");
     const result = await upload(file, `about/photo-${Date.now()}.${file.name.split(".").pop()}`);
     if (result) {
-      if (metaData.photoUrl) {
-        const oldPath = metaData.photoUrl.split("/education-files/")[1];
+      if (meta.photoUrl) {
+        const oldPath = meta.photoUrl.split("/education-files/")[1];
         if (oldPath) await removeFile(oldPath);
       }
-      updateSection("meta", { ...metaData, photoUrl: result.url });
+      const newMeta = { ...meta, photoUrl: result.url };
+      setMeta(newMeta);
+      saveSection("meta", newMeta);
     }
     setUploading(null);
     if (photoInputRef.current) photoInputRef.current.value = "";
@@ -183,93 +216,94 @@ export default function EditAboutPage() {
     setUploading("resume");
     const result = await upload(file, `about/resume-${Date.now()}.${file.name.split(".").pop()}`);
     if (result) {
-      if (metaData.resumeUrl) {
-        const oldPath = metaData.resumeUrl.split("/education-files/")[1];
+      if (meta.resumeUrl) {
+        const oldPath = meta.resumeUrl.split("/education-files/")[1];
         if (oldPath) await removeFile(oldPath);
       }
-      updateSection("meta", { ...metaData, resumeUrl: result.url, resumeFileName: file.name });
+      const newMeta = { ...meta, resumeUrl: result.url, resumeFileName: file.name };
+      setMeta(newMeta);
+      saveSection("meta", newMeta);
     }
     setUploading(null);
     if (resumeInputRef.current) resumeInputRef.current.value = "";
   }
 
-  // ─── Bio Handlers ──────────────────────
+  // ─── Bio draft helpers ─────────────────
   function updateBioField(field: keyof AboutBioData, value: string | string[]) {
-    updateSection("bio", { ...bioData, [field]: value });
+    setBio((prev) => ({ ...prev, [field]: value }));
   }
-
   function updateParagraph(index: number, value: string) {
-    const paragraphs = [...bioData.paragraphs];
-    paragraphs[index] = value;
-    updateSection("bio", { ...bioData, paragraphs });
+    setBio((prev) => {
+      const paragraphs = [...prev.paragraphs];
+      paragraphs[index] = value;
+      return { ...prev, paragraphs };
+    });
   }
-
   function addParagraph() {
-    updateSection("bio", { ...bioData, paragraphs: [...bioData.paragraphs, ""] });
+    setBio((prev) => ({ ...prev, paragraphs: [...prev.paragraphs, ""] }));
   }
-
   function removeParagraph(index: number) {
-    updateSection("bio", { ...bioData, paragraphs: bioData.paragraphs.filter((_, i) => i !== index) });
+    setBio((prev) => ({ ...prev, paragraphs: prev.paragraphs.filter((_, i) => i !== index) }));
   }
 
-  // ─── Skills Handlers ───────────────────
+  // ─── Skills draft helpers ──────────────
   function updateSkillGroup(index: number, field: "category" | "items", value: string | string[]) {
-    const groups = [...skillsData];
-    groups[index] = { ...groups[index], [field]: value };
-    updateSection("skills", groups);
+    setSkills((prev) => {
+      const groups = [...prev];
+      groups[index] = { ...groups[index], [field]: value };
+      return groups;
+    });
   }
-
   function addSkillGroup() {
-    updateSection("skills", [...skillsData, { category: "", items: [] }]);
+    setSkills((prev) => [...prev, { category: "", items: [] }]);
   }
-
   function removeSkillGroup(index: number) {
-    updateSection("skills", skillsData.filter((_, i) => i !== index));
+    setSkills((prev) => prev.filter((_, i) => i !== index));
   }
 
-  // ─── Experience Handlers ────────────────
+  // ─── Experience draft helpers ──────────
   function updateExperienceEntry(index: number, field: keyof AboutExperienceEntry, value: string | boolean) {
-    const entries = [...experienceData];
-    entries[index] = { ...entries[index], [field]: value };
-    updateSection("experience", entries);
+    setExperience((prev) => {
+      const entries = [...prev];
+      entries[index] = { ...entries[index], [field]: value };
+      return entries;
+    });
   }
-
   function addExperienceEntry() {
-    updateSection("experience", [{ company: "", role: "", period: "", description: "", current: false }, ...experienceData]);
+    setExperience((prev) => [{ company: "", role: "", period: "", description: "", current: false }, ...prev]);
   }
-
   function removeExperienceEntry(index: number) {
-    updateSection("experience", experienceData.filter((_, i) => i !== index));
+    setExperience((prev) => prev.filter((_, i) => i !== index));
   }
 
-  // ─── Education Handlers ─────────────────
+  // ─── Education draft helpers ───────────
   function updateEducationEntry(index: number, field: keyof AboutEducationEntry, value: string) {
-    const entries = [...educationData];
-    entries[index] = { ...entries[index], [field]: value };
-    updateSection("education", entries);
+    setEducation((prev) => {
+      const entries = [...prev];
+      entries[index] = { ...entries[index], [field]: value };
+      return entries;
+    });
   }
-
   function addEducationEntry() {
-    updateSection("education", [{ institution: "", degree: "", period: "", description: "" }, ...educationData]);
+    setEducation((prev) => [{ institution: "", degree: "", period: "", description: "" }, ...prev]);
   }
-
   function removeEducationEntry(index: number) {
-    updateSection("education", educationData.filter((_, i) => i !== index));
+    setEducation((prev) => prev.filter((_, i) => i !== index));
   }
 
-  // ─── Timeline Handlers ─────────────────
+  // ─── Timeline draft helpers ────────────
   function updateTimelineEntry(index: number, field: keyof AboutTimelineEntry, value: string) {
-    const entries = [...timelineData];
-    entries[index] = { ...entries[index], [field]: value };
-    updateSection("timeline", entries);
+    setTimeline((prev) => {
+      const entries = [...prev];
+      entries[index] = { ...entries[index], [field]: value };
+      return entries;
+    });
   }
-
   function addTimelineEntry() {
-    updateSection("timeline", [{ year: "", title: "", description: "" }, ...timelineData]);
+    setTimeline((prev) => [{ year: "", title: "", description: "" }, ...prev]);
   }
-
   function removeTimelineEntry(index: number) {
-    updateSection("timeline", timelineData.filter((_, i) => i !== index));
+    setTimeline((prev) => prev.filter((_, i) => i !== index));
   }
 
   return (
@@ -281,40 +315,27 @@ export default function EditAboutPage() {
             <div>
               <h1 className="font-display font-bold text-3xl text-white mb-2">Edit About Page</h1>
               <p className="font-body text-sm text-white/40">
-                Changes auto-save and sync to your public <span className="text-blue-400">/about</span> page.
+                Edit your content below, then click <span className="text-blue-400 font-medium">Save</span> to publish to your <span className="text-blue-400">/about</span> page.
               </p>
             </div>
-            <AnimatePresence>
-              {saveStatus && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 font-mono text-xs text-emerald-400"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {saveStatus}
-                </motion.span>
-              )}
-            </AnimatePresence>
           </div>
         </motion.div>
 
         {/* ─── Photo & Resume ─────────────────── */}
         <motion.div {...fadeIn(0.03)}>
           <div className={`${sectionCardClass} mb-6`}>
-            <SectionHeader title="Photo & Resume" />
+            <SectionHeader title="Photo & Resume">
+              <AnimatePresence>{saveStatus === "meta" && <SavedBadge />}</AnimatePresence>
+            </SectionHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Photo */}
               <div>
                 <label className={labelClass}>Profile Photo</label>
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-2xl border border-white/10 bg-white/[0.04] overflow-hidden flex items-center justify-center shrink-0">
-                    {metaData.photoUrl ? (
+                    {meta.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={metaData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                      <img src={meta.photoUrl} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <svg className="w-8 h-8 text-white/15" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -328,7 +349,7 @@ export default function EditAboutPage() {
                       disabled={uploading === "photo"}
                       className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 font-body text-xs text-white/60 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
                     >
-                      {uploading === "photo" ? "Uploading..." : metaData.photoUrl ? "Change Photo" : "Upload Photo"}
+                      {uploading === "photo" ? "Uploading..." : meta.photoUrl ? "Change Photo" : "Upload Photo"}
                     </button>
                     <p className="font-mono text-[10px] text-white/20 mt-1">JPG, PNG, WebP. Max 5MB.</p>
                   </div>
@@ -340,7 +361,7 @@ export default function EditAboutPage() {
                 <label className={labelClass}>Resume / CV</label>
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-2xl border border-white/10 bg-white/[0.04] flex items-center justify-center shrink-0">
-                    {metaData.resumeUrl ? (
+                    {meta.resumeUrl ? (
                       <svg className="w-8 h-8 text-emerald-400/60" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                       </svg>
@@ -357,10 +378,10 @@ export default function EditAboutPage() {
                       disabled={uploading === "resume"}
                       className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 font-body text-xs text-white/60 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50"
                     >
-                      {uploading === "resume" ? "Uploading..." : metaData.resumeUrl ? "Replace Resume" : "Upload Resume"}
+                      {uploading === "resume" ? "Uploading..." : meta.resumeUrl ? "Replace Resume" : "Upload Resume"}
                     </button>
-                    {metaData.resumeFileName ? (
-                      <p className="font-mono text-[10px] text-emerald-400/50 mt-1">{metaData.resumeFileName}</p>
+                    {meta.resumeFileName ? (
+                      <p className="font-mono text-[10px] text-emerald-400/50 mt-1">{meta.resumeFileName}</p>
                     ) : (
                       <p className="font-mono text-[10px] text-white/20 mt-1">PDF, DOC. Max 10MB.</p>
                     )}
@@ -375,14 +396,15 @@ export default function EditAboutPage() {
         <motion.div {...fadeIn(0.06)}>
           <div className={`${sectionCardClass} mb-6`}>
             <SectionHeader title="Bio">
-              <SaveButton onClick={() => updateSection("bio", bioData)} />
+              <AnimatePresence>{saveStatus === "bio" && <SavedBadge />}</AnimatePresence>
+              <SaveButton onClick={() => saveSection("bio", bio)} />
             </SectionHeader>
             <div className="space-y-4">
               <div>
                 <label className={labelClass}>Page Heading</label>
                 <input
                   type="text"
-                  value={bioData.heading}
+                  value={bio.heading}
                   onChange={(e) => updateBioField("heading", e.target.value)}
                   className={inputClass}
                   placeholder="Building at the intersection."
@@ -392,7 +414,7 @@ export default function EditAboutPage() {
                 <label className={labelClass}>Subtitle</label>
                 <input
                   type="text"
-                  value={bioData.description}
+                  value={bio.description}
                   onChange={(e) => updateBioField("description", e.target.value)}
                   className={inputClass}
                   placeholder="Developer, writer, and lifelong learner..."
@@ -406,7 +428,7 @@ export default function EditAboutPage() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {bioData.paragraphs.map((p, i) => (
+                  {bio.paragraphs.map((p, i) => (
                     <div key={i} className="relative group">
                       <textarea
                         rows={3}
@@ -415,7 +437,7 @@ export default function EditAboutPage() {
                         className={textareaClass}
                         placeholder={`Paragraph ${i + 1}`}
                       />
-                      {bioData.paragraphs.length > 1 && <RemoveButton onClick={() => removeParagraph(i)} />}
+                      {bio.paragraphs.length > 1 && <RemoveButton onClick={() => removeParagraph(i)} />}
                     </div>
                   ))}
                 </div>
@@ -431,10 +453,11 @@ export default function EditAboutPage() {
               <button onClick={addExperienceEntry} className="font-mono text-[10px] text-blue-400/70 hover:text-blue-400 transition-colors">
                 + Add
               </button>
-              <SaveButton onClick={() => updateSection("experience", experienceData)} />
+              <AnimatePresence>{saveStatus === "experience" && <SavedBadge />}</AnimatePresence>
+              <SaveButton onClick={() => saveSection("experience", experience)} />
             </SectionHeader>
             <div className="space-y-4">
-              {experienceData.map((entry, i) => (
+              {experience.map((entry, i) => (
                 <div key={i} className="relative group rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div>
@@ -494,7 +517,7 @@ export default function EditAboutPage() {
                   <RemoveButton onClick={() => removeExperienceEntry(i)} />
                 </div>
               ))}
-              {experienceData.length === 0 && (
+              {experience.length === 0 && (
                 <p className="text-center font-body text-sm text-white/20 py-8">No experience entries yet. Click + Add to start.</p>
               )}
             </div>
@@ -508,10 +531,11 @@ export default function EditAboutPage() {
               <button onClick={addEducationEntry} className="font-mono text-[10px] text-blue-400/70 hover:text-blue-400 transition-colors">
                 + Add
               </button>
-              <SaveButton onClick={() => updateSection("education", educationData)} />
+              <AnimatePresence>{saveStatus === "education" && <SavedBadge />}</AnimatePresence>
+              <SaveButton onClick={() => saveSection("education", education)} />
             </SectionHeader>
             <div className="space-y-4">
-              {educationData.map((entry, i) => (
+              {education.map((entry, i) => (
                 <div key={i} className="relative group rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div>
@@ -558,7 +582,7 @@ export default function EditAboutPage() {
                   <RemoveButton onClick={() => removeEducationEntry(i)} />
                 </div>
               ))}
-              {educationData.length === 0 && (
+              {education.length === 0 && (
                 <p className="text-center font-body text-sm text-white/20 py-8">No education entries yet. Click + Add to start.</p>
               )}
             </div>
@@ -572,10 +596,11 @@ export default function EditAboutPage() {
               <button onClick={addSkillGroup} className="font-mono text-[10px] text-blue-400/70 hover:text-blue-400 transition-colors">
                 + Add group
               </button>
-              <SaveButton onClick={() => updateSection("skills", skillsData)} />
+              <AnimatePresence>{saveStatus === "skills" && <SavedBadge />}</AnimatePresence>
+              <SaveButton onClick={() => saveSection("skills", skills)} />
             </SectionHeader>
             <div className="space-y-4">
-              {skillsData.map((group, i) => (
+              {skills.map((group, i) => (
                 <div key={i} className="relative group rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3">
                     <div>
@@ -615,10 +640,11 @@ export default function EditAboutPage() {
               <button onClick={addTimelineEntry} className="font-mono text-[10px] text-blue-400/70 hover:text-blue-400 transition-colors">
                 + Add entry
               </button>
-              <SaveButton onClick={() => updateSection("timeline", timelineData)} />
+              <AnimatePresence>{saveStatus === "timeline" && <SavedBadge />}</AnimatePresence>
+              <SaveButton onClick={() => saveSection("timeline", timeline)} />
             </SectionHeader>
             <div className="space-y-4">
-              {timelineData.map((entry, i) => (
+              {timeline.map((entry, i) => (
                 <div key={i} className="relative group rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-[80px_1fr] gap-3 mb-3">
                     <div>
