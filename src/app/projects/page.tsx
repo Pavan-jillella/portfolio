@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { isOwner } from "@/lib/roles";
 
 const LANGUAGES = ["All", "TypeScript", "JavaScript", "Python", "Go", "Rust", "Java", "Other"];
 
@@ -125,7 +126,7 @@ export default function ProjectsPage() {
             </div>
             <div className="flex items-center gap-3">
               <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-              {user && (
+              {user && isOwner(user.email) && (
                 <button
                   onClick={() => setManageMode(!manageMode)}
                   className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
@@ -360,7 +361,7 @@ export default function ProjectsPage() {
           {filtered.length === 0 && (
             <div className="text-center py-16">
               <p className="font-body text-sm text-white/30">No projects yet.</p>
-              {user && (
+              {user && isOwner(user.email) && (
                 <button
                   onClick={() => { setManageMode(true); setShowForm(true); }}
                   className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"

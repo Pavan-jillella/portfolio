@@ -30,6 +30,7 @@ export default function BlogWritePage() {
   const [showMeta, setShowMeta] = useState(true);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<string | null>(null);
 
   // Load existing post data when editing
   useEffect(() => {
@@ -48,7 +49,40 @@ export default function BlogWritePage() {
     if (!editSlug) setInitialized(true);
   }, [editSlug, posts, initialized]);
 
+  // Restore autosaved draft on mount (only for new posts)
+  useEffect(() => {
+    if (!editSlug && initialized) {
+      try {
+        const saved = localStorage.getItem("pj-blog-draft");
+        if (saved) {
+          const draft = JSON.parse(saved);
+          if (draft.title || draft.content) {
+            setTitle(draft.title || "");
+            setDescription(draft.description || "");
+            setCategory(draft.category || "Technology");
+            setTags(draft.tags || "");
+            setContent(draft.content || "");
+            setLastAutoSave(draft.savedAt || null);
+          }
+        }
+      } catch { /* ignore */ }
+    }
+  }, [editSlug, initialized]);
+
   const isEditing = !!editingPostId;
+
+  // Autosave to localStorage every 30 seconds
+  useEffect(() => {
+    if (isEditing) return; // don't autosave when editing existing post
+    const timer = setInterval(() => {
+      if (title.trim() || content.trim()) {
+        const draft = { title, description, category, tags, content, savedAt: new Date().toISOString() };
+        localStorage.setItem("pj-blog-draft", JSON.stringify(draft));
+        setLastAutoSave(draft.savedAt);
+      }
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [title, description, category, tags, content, isEditing]);
 
   const slug = useMemo(() => {
     if (isEditing) {
@@ -74,14 +108,13 @@ export default function BlogWritePage() {
     [wordCount]
   );
 
-  const handlePublish = useCallback(() => {
+  const handlePublish = useCallback((asDraft = false) => {
     if (!title.trim() || !content.trim()) return;
     setStatus("saving");
     setErrorMsg("");
 
     try {
       if (isEditing) {
-        // Update existing post
         setPosts((prev) =>
           prev.map((p) =>
             p.id === editingPostId
@@ -92,16 +125,19 @@ export default function BlogWritePage() {
                   content: content.trim(),
                   category,
                   read_time: readTime,
+                  published: asDraft ? false : p.published,
                   tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
                 }
               : p
           )
         );
         setStatus("saved");
+        localStorage.removeItem("pj-blog-draft");
         const targetSlug = posts.find((p) => p.id === editingPostId)?.slug || slug;
-        setTimeout(() => router.push(`/blog/${targetSlug}`), 1000);
+        if (!asDraft) {
+          setTimeout(() => router.push(`/blog/${targetSlug}`), 1000);
+        }
       } else {
-        // Create new post
         const newPost: BlogPost = {
           id: Date.now().toString(),
           title: title.trim(),
@@ -110,14 +146,17 @@ export default function BlogWritePage() {
           content: content.trim(),
           category,
           read_time: readTime,
-          published: true,
+          published: !asDraft,
           tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
           created_at: new Date().toISOString(),
         };
 
         setPosts((prev) => [newPost, ...prev]);
         setStatus("saved");
-        setTimeout(() => router.push(`/blog/${slug}`), 1000);
+        localStorage.removeItem("pj-blog-draft");
+        if (!asDraft) {
+          setTimeout(() => router.push(`/blog/${slug}`), 1000);
+        }
       }
     } catch {
       setErrorMsg(isEditing ? "Failed to update" : "Failed to publish");
@@ -188,14 +227,26 @@ export default function BlogWritePage() {
             </svg>
           </button>
 
-          {/* Word count */}
+          {/* Word count + autosave indicator */}
           <span className="font-mono text-[10px] text-white/20 hidden sm:block">
             {wordCount} words &middot; {readTime}
+            {lastAutoSave && (
+              <> &middot; <span className="text-emerald-400/40">draft saved</span></>
+            )}
           </span>
+
+          {/* Save as Draft */}
+          <button
+            onClick={() => handlePublish(true)}
+            disabled={status === "saving" || !title.trim() || !content.trim()}
+            className="px-4 py-2 rounded-full font-body text-xs font-medium text-white/40 hover:text-white/60 border border-white/[0.06] hover:border-white/15 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Save Draft
+          </button>
 
           {/* Publish / Update button */}
           <button
-            onClick={handlePublish}
+            onClick={() => handlePublish(false)}
             disabled={status === "saving" || !title.trim() || !content.trim()}
             className="flex items-center gap-2 px-5 py-2 rounded-full font-body text-sm font-medium text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02]"
             style={{

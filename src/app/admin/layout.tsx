@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { isOwner } from "@/lib/roles";
 
 const adminLinks = [
   { label: "Overview", href: "/admin" },
@@ -14,10 +16,26 @@ const adminLinks = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, loading } = useAuth();
 
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+
+  // Block non-owners
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="font-body text-sm text-white/30">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user || !isOwner(user.email)) {
+    router.push("/dashboard");
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">

@@ -16,6 +16,8 @@ export default function SettingsPage() {
   const [passwordMessage, setPasswordMessage] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -86,7 +88,21 @@ export default function SettingsPage() {
   }
 
   async function handleDeleteAccount() {
-    await signOut();
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        setDeleteError(data.error || "Failed to delete account");
+        setDeleting(false);
+        return;
+      }
+      await signOut();
+    } catch {
+      setDeleteError("Something went wrong. Please try again.");
+      setDeleting(false);
+    }
   }
 
   if (!user) {
@@ -260,19 +276,25 @@ export default function SettingsPage() {
                 Delete Account
               </button>
             ) : (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleDeleteAccount}
-                  className="px-5 py-2.5 rounded-xl font-body text-sm font-medium text-white bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 transition-all"
-                >
-                  Yes, delete my account
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(false)}
-                  className="px-5 py-2.5 rounded-xl font-body text-sm text-white/40 hover:text-white/60 transition-all"
-                >
-                  Cancel
-                </button>
+              <div className="space-y-3">
+                {deleteError && (
+                  <p className="font-body text-xs text-red-400/70">{deleteError}</p>
+                )}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="px-5 py-2.5 rounded-xl font-body text-sm font-medium text-white bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-40"
+                  >
+                    {deleting ? "Deleting..." : "Yes, delete my account"}
+                  </button>
+                  <button
+                    onClick={() => { setDeleteConfirm(false); setDeleteError(""); }}
+                    className="px-5 py-2.5 rounded-xl font-body text-sm text-white/40 hover:text-white/60 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </motion.div>
