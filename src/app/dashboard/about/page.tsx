@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { ToastContainer, useToast } from "@/components/ui/Toast";
 import {
   AboutContent,
   AboutBioData,
@@ -49,7 +50,7 @@ const DEFAULT_EDUCATION: AboutEducationEntry[] = [
 ];
 
 const DEFAULT_META: AboutMetaData = {
-  photoUrl: "",
+  photoUrl: "/profile-photo.jpg",
   resumeUrl: "/Pavan_Jillella_Resume.pdf",
   resumeFileName: "Pavan_Jillella_Resume.pdf",
 };
@@ -151,6 +152,7 @@ export default function EditAboutPage() {
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   const { upload, remove: removeFile } = useSupabaseStorage();
+  const { toasts, addToast, dismissToast } = useToast();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
@@ -188,6 +190,7 @@ export default function EditAboutPage() {
       return [...prev, { id: `about-${section}`, section, data, sort_order: prev.length, created_at: now, updated_at: now }];
     });
     setSaveStatus(section);
+    addToast(`${section.charAt(0).toUpperCase() + section.slice(1)} saved`, "success");
     setTimeout(() => setSaveStatus(null), 2000);
   }
 
@@ -195,17 +198,20 @@ export default function EditAboutPage() {
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert("Max 5MB"); return; }
+    if (file.size > 5 * 1024 * 1024) { addToast("Photo must be under 5MB", "error"); return; }
     setUploading("photo");
     const result = await upload(file, `about/photo-${Date.now()}.${file.name.split(".").pop()}`);
     if (result) {
-      if (meta.photoUrl) {
+      if (meta.photoUrl && meta.photoUrl.includes("/education-files/")) {
         const oldPath = meta.photoUrl.split("/education-files/")[1];
         if (oldPath) await removeFile(oldPath);
       }
       const newMeta = { ...meta, photoUrl: result.url };
       setMeta(newMeta);
       saveSection("meta", newMeta);
+      addToast("Photo updated successfully", "success");
+    } else {
+      addToast("Failed to upload photo", "error");
     }
     setUploading(null);
     if (photoInputRef.current) photoInputRef.current.value = "";
@@ -214,17 +220,20 @@ export default function EditAboutPage() {
   async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { alert("Max 10MB"); return; }
+    if (file.size > 10 * 1024 * 1024) { addToast("Resume must be under 10MB", "error"); return; }
     setUploading("resume");
     const result = await upload(file, `about/resume-${Date.now()}.${file.name.split(".").pop()}`);
     if (result) {
-      if (meta.resumeUrl) {
+      if (meta.resumeUrl && meta.resumeUrl.includes("/education-files/")) {
         const oldPath = meta.resumeUrl.split("/education-files/")[1];
         if (oldPath) await removeFile(oldPath);
       }
       const newMeta = { ...meta, resumeUrl: result.url, resumeFileName: file.name };
       setMeta(newMeta);
       saveSection("meta", newMeta);
+      addToast("Resume uploaded successfully", "success");
+    } else {
+      addToast("Failed to upload resume", "error");
     }
     setUploading(null);
     if (resumeInputRef.current) resumeInputRef.current.value = "";
@@ -241,6 +250,7 @@ export default function EditAboutPage() {
     setExperience(DEFAULT_EXPERIENCE);
     setEducation(DEFAULT_EDUCATION);
     setMeta(DEFAULT_META);
+    addToast("All sections reset to defaults", "success");
     setSaveStatus("all");
     setTimeout(() => setSaveStatus(null), 2000);
   }
@@ -324,6 +334,7 @@ export default function EditAboutPage() {
 
   return (
     <section className="px-6 pb-20">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div {...fadeIn()}>

@@ -44,7 +44,7 @@ const DEFAULT_EXPERIENCE: AboutExperienceEntry[] = [
 const DEFAULT_EDUCATION: AboutEducationEntry[] = [
   { institution: "George Mason University", degree: "M.S. Data Analytics Engineering", period: "Aug 2022 – May 2024", description: "GPA: 3.8/4.0. Coursework in Machine Learning, Big Data, NLP, and Statistical Methods." },
 ];
-const DEFAULT_META: AboutMetaData = { photoUrl: "", resumeUrl: "/Pavan_Jillella_Resume.pdf", resumeFileName: "Pavan_Jillella_Resume.pdf" };
+const DEFAULT_META: AboutMetaData = { photoUrl: "/profile-photo.jpg", resumeUrl: "/Pavan_Jillella_Resume.pdf", resumeFileName: "Pavan_Jillella_Resume.pdf" };
 
 // ─── Fetch from Supabase (server-side, no auth needed) ───
 
