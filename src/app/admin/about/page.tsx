@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FadeIn } from "@/components/ui/FadeIn";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { AboutContent, AboutBioData, AboutSkillGroup, AboutTimelineEntry } from "@/types";
 
@@ -48,6 +47,12 @@ const inputClass =
   "w-full px-4 py-3 rounded-xl font-body text-sm text-white placeholder:text-white/20 bg-white/[0.04] border border-white/[0.08] focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all";
 const textareaClass = `${inputClass} resize-none`;
 const labelClass = "block font-body text-xs text-white/30 mb-1.5 ml-1";
+
+const fadeIn = (delay = 0) => ({
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+});
 
 // ─── Page ────────────────────────────────────────────────
 
@@ -135,7 +140,7 @@ export default function AdminAboutPage() {
 
   return (
     <div className="max-w-4xl">
-      <FadeIn>
+      <motion.div {...fadeIn()}>
         <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="font-display font-bold text-3xl text-white mb-2">About Page</h1>
@@ -152,10 +157,10 @@ export default function AdminAboutPage() {
             </motion.span>
           )}
         </div>
-      </FadeIn>
+      </motion.div>
 
       {/* ─── Bio Section ─────────────────────── */}
-      <FadeIn delay={0.05}>
+      <motion.div {...fadeIn(0.05)}>
         <div className="glass-card rounded-2xl p-6 mb-6">
           <h2 className="font-display font-semibold text-lg text-white mb-6">Bio</h2>
           <div className="space-y-4">
@@ -210,10 +215,10 @@ export default function AdminAboutPage() {
             </div>
           </div>
         </div>
-      </FadeIn>
+      </motion.div>
 
       {/* ─── Skills Section ──────────────────── */}
-      <FadeIn delay={0.1}>
+      <motion.div {...fadeIn(0.1)}>
         <div className="glass-card rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-semibold text-lg text-white">Technical Skills</h2>
@@ -258,10 +263,10 @@ export default function AdminAboutPage() {
             ))}
           </div>
         </div>
-      </FadeIn>
+      </motion.div>
 
       {/* ─── Timeline Section ────────────────── */}
-      <FadeIn delay={0.15}>
+      <motion.div {...fadeIn(0.15)}>
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-semibold text-lg text-white">Journey / Timeline</h2>
@@ -314,7 +319,7 @@ export default function AdminAboutPage() {
             ))}
           </div>
         </div>
-      </FadeIn>
+      </motion.div>
     </div>
   );
 }
