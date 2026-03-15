@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
 import { BlogPost } from "@/types";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 function formatDate(dateStr: string): string {
   try {
@@ -17,9 +18,16 @@ function formatDate(dateStr: string): string {
   }
 }
 
+function formatViews(count?: number): string {
+  if (!count) return "0 views";
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}k views`;
+  return `${count} views`;
+}
+
 export function BlogFilters({ posts }: { posts: BlogPost[] }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const { user } = useAuth();
   const categories = ["All", ...Array.from(new Set(posts.map((p) => p.category)))];
 
   const filtered = activeCategory === "All"
@@ -51,15 +59,17 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
           ))}
           <div className="flex items-center gap-3 ml-auto">
             <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-            <Link
-              href="/blog/write"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-blue-500/20 bg-blue-500/[0.08] font-body text-xs text-blue-400 hover:bg-blue-500/[0.14] hover:border-blue-500/30 transition-all duration-300"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Write
-            </Link>
+            {user && (
+              <Link
+                href="/blog/write"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-blue-500/20 bg-blue-500/[0.08] font-body text-xs text-blue-400 hover:bg-blue-500/[0.14] hover:border-blue-500/30 transition-all duration-300"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Write
+              </Link>
+            )}
           </div>
         </div>
       </FadeIn>
@@ -85,6 +95,10 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                           {post.category}
                         </span>
                         <span className="font-mono text-xs text-white/20">{post.read_time}</span>
+                        <span className="font-mono text-xs text-white/20 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          {formatViews(post.view_count)}
+                        </span>
                       </div>
                     </div>
                     <span className="font-body text-sm text-white/20 group-hover:text-blue-400 transition-colors shrink-0 mt-1">
@@ -115,6 +129,7 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                   <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/5">
                     <span className="font-mono text-xs text-white/25">{formatDate(post.created_at)}</span>
                     <span className="font-mono text-xs text-white/20">{post.read_time}</span>
+                    <span className="font-mono text-xs text-white/20 ml-auto">{formatViews(post.view_count)}</span>
                   </div>
                 </div>
               </Link>
@@ -133,7 +148,8 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                   <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Title</th>
                   <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Category</th>
                   <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Date</th>
-                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Read Time</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider">Read Time</th>
+                  <th className="px-4 py-3 font-mono text-[10px] text-white/30 uppercase tracking-wider text-right">Views</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,8 +168,11 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
                     <td className="px-4 py-2.5">
                       <span className="font-mono text-xs text-white/30">{formatDate(post.created_at)}</span>
                     </td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="px-4 py-2.5">
                       <span className="font-mono text-xs text-white/20">{post.read_time}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <span className="font-mono text-xs text-white/20">{formatViews(post.view_count)}</span>
                     </td>
                   </tr>
                 ))}
@@ -167,12 +186,14 @@ export function BlogFilters({ posts }: { posts: BlogPost[] }) {
       {filtered.length === 0 && (
         <div className="text-center py-16">
           <p className="font-body text-sm text-white/30">No posts yet.</p>
-          <Link
-            href="/blog/write"
-            className="mt-3 inline-block font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            Write your first post
-          </Link>
+          {user && (
+            <Link
+              href="/blog/write"
+              className="mt-3 inline-block font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Write your first post
+            </Link>
+          )}
         </div>
       )}
     </>

@@ -28,6 +28,7 @@ export interface BlogPost {
   published: boolean;
   tags: string[];
   created_at: string;
+  view_count?: number;
 }
 
 export interface Vlog {

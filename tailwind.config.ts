@@ -33,6 +33,17 @@ const config: Config = {
           cyan: "#06b6d4",
           glow: "rgba(59,130,246,0.15)",
         },
+        warm: {
+          DEFAULT: "#f59e0b",
+          light: "#fbbf24",
+          glow: "rgba(245,158,11,0.15)",
+        },
+        section: {
+          education: "#3b82f6",
+          finance: "#10b981",
+          projects: "#8b5cf6",
+          blog: "#f97316",
+        },
         border: "var(--glass-border)",
         input: "var(--glass-border)",
         ring: "#3b82f6",

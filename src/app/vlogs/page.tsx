@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { YouTubeEmbed } from "@/components/ui/YouTubeEmbed";
 import { VlogManager } from "@/components/vlogs/VlogManager";
 import { ViewToggle, ViewMode } from "@/components/ui/ViewToggle";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const categories = ["All", "Technology", "Education", "Finance", "Lifestyle", "Other"];
 
@@ -15,6 +16,7 @@ export default function VlogsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [manageMode, setManageMode] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const { user } = useAuth();
 
   const filtered = activeCategory === "All"
     ? vlogs
@@ -61,16 +63,18 @@ export default function VlogsPage() {
             </div>
             <div className="flex items-center gap-3">
               <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-              <button
-                onClick={() => setManageMode(!manageMode)}
-                className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
-                  manageMode
-                    ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
-                    : "border-white/8 bg-white/4 text-white/50 hover:text-white hover:border-white/15"
-                }`}
-              >
-                {manageMode ? "Done" : "Manage"}
-              </button>
+              {user && (
+                <button
+                  onClick={() => setManageMode(!manageMode)}
+                  className={`px-4 py-2 rounded-full border font-body text-xs transition-all duration-200 ${
+                    manageMode
+                      ? "border-blue-500/40 bg-blue-500/10 text-blue-300"
+                      : "border-white/8 bg-white/4 text-white/50 hover:text-white hover:border-white/15"
+                  }`}
+                >
+                  {manageMode ? "Done" : "Manage"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -120,12 +124,14 @@ export default function VlogsPage() {
                 {filtered.length === 0 && (
                   <div className="col-span-2 text-center py-16">
                     <p className="font-body text-sm text-white/30">No vlogs in this category yet.</p>
-                    <button
-                      onClick={() => setManageMode(true)}
-                      className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      Add your first vlog
-                    </button>
+                    {user && (
+                      <button
+                        onClick={() => setManageMode(true)}
+                        className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        Add your first vlog
+                      </button>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -172,9 +178,11 @@ export default function VlogsPage() {
                 {filtered.length === 0 && (
                   <div className="text-center py-16">
                     <p className="font-body text-sm text-white/30">No vlogs in this category yet.</p>
-                    <button onClick={() => setManageMode(true)} className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                      Add your first vlog
-                    </button>
+                    {user && (
+                      <button onClick={() => setManageMode(true)} className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                        Add your first vlog
+                      </button>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -220,9 +228,11 @@ export default function VlogsPage() {
               {filtered.length === 0 && (
                 <div className="text-center py-16">
                   <p className="font-body text-sm text-white/30">No vlogs in this category yet.</p>
-                  <button onClick={() => setManageMode(true)} className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors">
-                    Add your first vlog
-                  </button>
+                  {user && (
+                    <button onClick={() => setManageMode(true)} className="mt-3 font-body text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                      Add your first vlog
+                    </button>
+                  )}
                 </div>
               )}
             </div>

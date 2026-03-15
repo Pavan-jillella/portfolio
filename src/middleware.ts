@@ -5,15 +5,26 @@ import { createMiddlewareClient } from "@/lib/supabase/middleware";
 /** Paths that never require authentication */
 const PUBLIC_PATHS = [
   "/login",
+  "/about",
+  "/blog",
+  "/projects",
+  "/contact",
   "/api/auth",
   "/api/contact",
   "/api/comments",
   "/api/analytics",
+  "/api/github",
+  "/api/leetcode",
+  "/api/newsletter",
+  "/api/public",
   "/api/education/profile/",
   "/education/profile/",
   "/terms",
   "/privacy",
 ];
+
+/** Paths that require auth even though their parent is public */
+const PRIVATE_OVERRIDES = ["/blog/write"];
 
 /** Files at the root that should be publicly accessible */
 const PUBLIC_FILES = [
@@ -29,6 +40,8 @@ const PUBLIC_EXTENSIONS = [
 ];
 
 function isPublicPath(pathname: string): boolean {
+  if (PRIVATE_OVERRIDES.some((p) => pathname.startsWith(p))) return false;
+  if (pathname === "/") return true;
   if (PUBLIC_FILES.includes(pathname)) return true;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
   if (PUBLIC_EXTENSIONS.some((ext) => pathname.endsWith(ext))) return true;

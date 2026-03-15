@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { GrainOverlay } from "@/components/ui/GrainOverlay";
-import { CursorGlow } from "@/components/ui/CursorGlow";
 import { FloatingBackground } from "@/components/ui/FloatingBackground";
 import { SmoothScroll } from "@/components/ui/SmoothScroll";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
@@ -25,18 +24,28 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "PJ",
   },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pavanjillella.com"),
   openGraph: {
     title: "Pavan Jillella — Building. Thinking. Documenting.",
     description:
       "Personal brand platform at the intersection of education, finance, and technology.",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/api/og?title=Pavan+Jillella&subtitle=Full-Stack+Developer+%7C+Education+%C2%B7+Finance+%C2%B7+Technology",
+        width: 1200,
+        height: 630,
+        alt: "Pavan Jillella — Full-Stack Developer",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Pavan Jillella — Building. Thinking. Documenting.",
     description:
       "Personal brand platform at the intersection of education, finance, and technology.",
+    images: ["/api/og?title=Pavan+Jillella&subtitle=Full-Stack+Developer+%7C+Education+%C2%B7+Finance+%C2%B7+Technology"],
   },
   icons: {
     icon: [
@@ -73,7 +82,6 @@ export default function RootLayout({
               <PostHogProvider>
               <SmoothScroll>
                 <GrainOverlay />
-                <CursorGlow />
                 <FloatingBackground />
                 <LayoutShell>{children}</LayoutShell>
                 <PageViewTracker />

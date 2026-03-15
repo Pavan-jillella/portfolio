@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-export function NewsletterForm() {
+export function NewsletterForm({ compact = false }: { compact?: boolean }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -30,9 +30,32 @@ export function NewsletterForm() {
 
   if (status === "success") {
     return (
-      <p className="font-body text-sm text-emerald-400">
+      <p className={`font-body text-emerald-400 ${compact ? "text-xs" : "text-sm"}`}>
         You&apos;re subscribed! Thanks for joining.
       </p>
+    );
+  }
+
+  if (compact) {
+    return (
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          aria-label="Email address for newsletter"
+          className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 font-body text-xs placeholder-white/25 focus:outline-none focus:border-warm/40 transition-all"
+        />
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className="w-full bg-white/[0.03] border border-white/[0.06] hover:border-warm/30 px-3 py-2 rounded-lg font-body text-xs text-white/60 hover:text-warm transition-all disabled:opacity-50"
+        >
+          {status === "loading" ? "..." : "Subscribe"}
+        </button>
+      </form>
     );
   }
 
