@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function SettingsPage() {
@@ -18,6 +19,8 @@ export default function SettingsPage() {
   const [exportLoading, setExportLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [location, setLocation] = useLocalStorage<string>("pj-location", "New York, NY");
+  const [locationSaved, setLocationSaved] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -158,6 +161,26 @@ export default function SettingsPage() {
                 <p className="font-mono text-xs text-white/25 ml-1">
                   {user.app_metadata?.provider === "google" ? "Google OAuth" : "Email/Password"}
                 </p>
+              </div>
+              <div>
+                <label className="block font-body text-xs text-white/30 mb-1.5 ml-1">Location</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. New York, NY"
+                    className={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setLocationSaved(true); setTimeout(() => setLocationSaved(false), 2000); }}
+                    className="shrink-0 px-4 py-2.5 rounded-xl font-body text-xs font-medium text-emerald-400/70 bg-emerald-500/[0.06] border border-emerald-500/15 hover:border-emerald-500/25 transition-all"
+                  >
+                    {locationSaved ? "Saved" : "Update"}
+                  </button>
+                </div>
+                <p className="font-body text-[11px] text-white/20 mt-1.5 ml-1">Shown on your public Status card</p>
               </div>
               <button
                 type="submit"

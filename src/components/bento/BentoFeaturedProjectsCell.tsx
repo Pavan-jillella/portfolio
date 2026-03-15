@@ -24,6 +24,36 @@ const LANG_COLORS: Record<string, string> = {
   Java: "bg-red-400",
 };
 
+const FALLBACK_PROJECTS: PublicProject[] = [
+  {
+    id: "feat-1",
+    name: "Predictive Maintenance ML Pipeline",
+    description: "End-to-end ML pipeline using XGBoost and LSTM. Real-time sensor data with Kafka, deployed via SageMaker.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0, forks: 0,
+    topics: ["machine-learning", "xgboost", "lstm"],
+  },
+  {
+    id: "feat-2",
+    name: "NLP Sentiment Analysis Engine",
+    description: "Fine-tuned BERT for sentiment analysis on financial news. 94% accuracy. FastAPI deployment.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0, forks: 0,
+    topics: ["nlp", "bert", "pytorch"],
+  },
+  {
+    id: "feat-6",
+    name: "Portfolio Analytics Platform",
+    description: "Full-stack portfolio with bento grid, analytics, education dashboard, and CMS.",
+    language: "TypeScript",
+    url: "https://github.com/Pavan-jillella/portfolio",
+    stars: 0, forks: 0,
+    topics: ["nextjs", "react", "supabase"],
+  },
+];
+
 export function BentoFeaturedProjectsCell() {
   const { data } = useQuery({
     queryKey: ["public-homepage"],
@@ -35,7 +65,8 @@ export function BentoFeaturedProjectsCell() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const featured: PublicProject[] = (data?.projects ?? []).slice(0, 3);
+  const apiProjects: PublicProject[] = data?.projects ?? [];
+  const featured = apiProjects.length > 0 ? apiProjects.slice(0, 3) : FALLBACK_PROJECTS;
 
   return (
     <motion.div
