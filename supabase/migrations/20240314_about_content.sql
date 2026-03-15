@@ -1,10 +1,10 @@
 -- About page CMS content table
--- Stores bio, skills, and timeline sections as JSONB
+-- Stores bio, skills, timeline, experience, education, and meta sections as JSONB
 
 CREATE TABLE IF NOT EXISTS about_content (
   id text PRIMARY KEY,
   user_id text NOT NULL,
-  section text NOT NULL CHECK (section IN ('bio', 'skills', 'timeline')),
+  section text NOT NULL CHECK (section IN ('bio', 'skills', 'timeline', 'experience', 'education', 'meta')),
   data jsonb NOT NULL DEFAULT '{}',
   sort_order integer NOT NULL DEFAULT 0,
   created_at text NOT NULL DEFAULT '',

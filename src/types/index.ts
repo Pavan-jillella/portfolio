@@ -997,8 +997,8 @@ export interface HabitCategoryScore {
 
 export interface AboutContent {
   id: string;
-  section: "bio" | "skills" | "timeline";
-  data: AboutBioData | AboutSkillGroup[] | AboutTimelineEntry[];
+  section: "bio" | "skills" | "timeline" | "experience" | "education" | "meta";
+  data: AboutBioData | AboutSkillGroup[] | AboutTimelineEntry[] | AboutExperienceEntry[] | AboutEducationEntry[] | AboutMetaData;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -1019,4 +1019,25 @@ export interface AboutTimelineEntry {
   year: string;
   title: string;
   description: string;
+}
+
+export interface AboutExperienceEntry {
+  company: string;
+  role: string;
+  period: string;
+  description: string;
+  current?: boolean;
+}
+
+export interface AboutEducationEntry {
+  institution: string;
+  degree: string;
+  period: string;
+  description: string;
+}
+
+export interface AboutMetaData {
+  photoUrl: string;
+  resumeUrl: string;
+  resumeFileName: string;
 }
