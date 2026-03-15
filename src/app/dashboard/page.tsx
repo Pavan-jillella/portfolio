@@ -123,7 +123,7 @@ export default function DashboardPage() {
       title: "Edit About",
       stat: null,
       description: "Update bio, skills, and timeline on your public profile.",
-      href: "/admin/about",
+      href: "/dashboard/about",
       color: "bento-card-violet",
       span: "",
       icon: (

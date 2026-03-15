@@ -11,6 +11,7 @@ const dashboardTabs = [
   { label: "Habits", href: "/dashboard/habits" },
   { label: "Activity", href: "/dashboard/activity" },
   { label: "Analytics", href: "/dashboard/analytics" },
+  { label: "Edit About", href: "/dashboard/about" },
 ];
 
 const quickLinks = [
