@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { GITHUB_PROFILE_URL } from "@/lib/constants";
 
@@ -13,6 +14,24 @@ export function HeroSection() {
       </div>
 
       <div className="max-w-5xl mx-auto text-center relative z-10">
+        {/* Profile photo */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="flex justify-center mb-6"
+        >
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-white/10 shadow-[0_0_40px_rgba(59,130,246,0.15)]">
+            <Image
+              src="/profile-photo.jpg"
+              alt="Pavan Jillella"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        </motion.div>
+
         {/* Label */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
