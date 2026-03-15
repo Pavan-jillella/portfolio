@@ -5,7 +5,7 @@ import { AnimatedCounter } from "./AnimatedCounter";
 import { bentoItem } from "./BentoGrid";
 
 export function BentoLeetCodeCell() {
-  const { data, isLoading, isError } = useLeetCodeData("pavanjillella");
+  const { data, isLoading, isError } = useLeetCodeData("Punisher_17");
 
   const difficulties = data
     ? [

@@ -5,7 +5,7 @@ import { AnimatedCounter } from "./AnimatedCounter";
 import { bentoItem } from "./BentoGrid";
 
 export function BentoGitHubCell() {
-  const { data, isLoading, isError } = useGitHubData("pavanjillella");
+  const { data, isLoading, isError } = useGitHubData("Pavan-jillella");
 
   return (
     <motion.div

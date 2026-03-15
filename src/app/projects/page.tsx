@@ -11,12 +11,85 @@ import { isOwner } from "@/lib/roles";
 
 const LANGUAGES = ["All", "TypeScript", "JavaScript", "Python", "Go", "Rust", "Java", "Other"];
 
+const FEATURED_PROJECTS: UserProject[] = [
+  {
+    id: "feat-1",
+    name: "Predictive Maintenance ML Pipeline",
+    description: "End-to-end ML pipeline for predictive equipment maintenance using XGBoost and LSTM neural networks. Processes sensor data in real-time with Apache Kafka and deploys models via AWS SageMaker.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0,
+    forks: 0,
+    topics: ["machine-learning", "xgboost", "lstm", "aws-sagemaker", "kafka"],
+    created_at: "2024-06-01T00:00:00Z",
+  },
+  {
+    id: "feat-2",
+    name: "NLP Sentiment Analysis Engine",
+    description: "Fine-tuned BERT model for multi-class sentiment analysis on financial news. Achieves 94% accuracy with custom tokenization and attention visualization. Deployed as a REST API with FastAPI.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0,
+    forks: 0,
+    topics: ["nlp", "bert", "transformers", "fastapi", "pytorch"],
+    created_at: "2024-03-15T00:00:00Z",
+  },
+  {
+    id: "feat-3",
+    name: "Real-Time Fraud Detection System",
+    description: "Streaming fraud detection using Apache Spark and Random Forest ensemble. Processes 50K+ transactions/sec with sub-100ms latency. Features adaptive thresholds and anomaly scoring.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0,
+    forks: 0,
+    topics: ["spark", "random-forest", "fraud-detection", "streaming", "mlflow"],
+    created_at: "2024-01-10T00:00:00Z",
+  },
+  {
+    id: "feat-4",
+    name: "Computer Vision Quality Inspector",
+    description: "CNN-based defect detection system for manufacturing using YOLOv8 and transfer learning. Trained on custom dataset with data augmentation. Runs inference on edge devices via ONNX Runtime.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0,
+    forks: 0,
+    topics: ["computer-vision", "yolov8", "onnx", "edge-ai", "tensorflow"],
+    created_at: "2023-11-20T00:00:00Z",
+  },
+  {
+    id: "feat-5",
+    name: "Recommendation Engine",
+    description: "Hybrid collaborative-content filtering recommendation system using matrix factorization and deep learning. Serves personalized recommendations via a GraphQL API with Redis caching.",
+    language: "Python",
+    url: "https://github.com/Pavan-jillella",
+    stars: 0,
+    forks: 0,
+    topics: ["recommendation-system", "deep-learning", "graphql", "redis", "gcp"],
+    created_at: "2023-08-05T00:00:00Z",
+  },
+  {
+    id: "feat-6",
+    name: "Portfolio Analytics Platform",
+    description: "Full-stack portfolio with bento grid homepage, personal analytics, education dashboard, finance tracker, and CMS. Built with Next.js 14, Supabase, and Tailwind CSS.",
+    language: "TypeScript",
+    url: "https://github.com/Pavan-jillella/portfolio",
+    stars: 0,
+    forks: 0,
+    topics: ["nextjs", "react", "supabase", "tailwindcss", "full-stack"],
+    created_at: "2025-01-01T00:00:00Z",
+  },
+];
+
 const inputClass =
   "w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 font-body text-sm placeholder-white/25 focus:outline-none focus:border-blue-500/50 transition-all";
 
 export default function ProjectsPage() {
   const { user } = useAuth();
   const [projects, setProjects] = useSupabaseRealtimeSync<UserProject>("pj-user-projects", "user_projects", []);
+
+  // Merge featured projects (shown alongside user projects, user's appear first)
+  const allProjects = [...projects, ...FEATURED_PROJECTS.filter((fp) => !projects.some((p) => p.id === fp.id))];
+
   const [activeLang, setActiveLang] = useState("All");
   const [manageMode, setManageMode] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -31,11 +104,11 @@ export default function ProjectsPage() {
   const [url, setUrl] = useState("");
   const [topics, setTopics] = useState("");
 
-  const languages = ["All", ...Array.from(new Set(projects.map((p) => p.language).filter(Boolean)))];
+  const languages = ["All", ...Array.from(new Set(allProjects.map((p) => p.language).filter(Boolean)))];
 
   const filtered = activeLang === "All"
-    ? projects
-    : projects.filter((p) => p.language === activeLang);
+    ? allProjects
+    : allProjects.filter((p) => p.language === activeLang);
 
   function resetForm() {
     setName("");

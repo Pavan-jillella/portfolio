@@ -50,7 +50,7 @@ const DEFAULT_EDUCATION: AboutEducationEntry[] = [
 ];
 
 const DEFAULT_META: AboutMetaData = {
-  photoUrl: "/profile-photo.jpg",
+  photoUrl: "",
   resumeUrl: "/Pavan_Jillella_Resume.pdf",
   resumeFileName: "Pavan_Jillella_Resume.pdf",
 };
