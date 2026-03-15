@@ -3,7 +3,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { SectionVisibility, SectionKey, DEFAULT_VISIBILITY } from "@/lib/visibility";
 
 export function useVisibility() {
-  const [visibility, setVisibility] = useLocalStorage<SectionVisibility>("pj-visibility", DEFAULT_VISIBILITY);
+  const [visibility, setVisibility] = useLocalStorage<SectionVisibility>("pj-visibility-v2", DEFAULT_VISIBILITY);
 
   function toggleSection(key: SectionKey) {
     setVisibility((prev) => ({

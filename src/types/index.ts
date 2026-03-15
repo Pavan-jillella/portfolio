@@ -992,3 +992,31 @@ export interface HabitCategoryScore {
   habits_count: number;
   completion_rate: number;
 }
+
+// ─── About Page CMS ─────────────────────────────────────
+
+export interface AboutContent {
+  id: string;
+  section: "bio" | "skills" | "timeline";
+  data: AboutBioData | AboutSkillGroup[] | AboutTimelineEntry[];
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AboutBioData {
+  heading: string;
+  description: string;
+  paragraphs: string[];
+}
+
+export interface AboutSkillGroup {
+  category: string;
+  items: string[];
+}
+
+export interface AboutTimelineEntry {
+  year: string;
+  title: string;
+  description: string;
+}

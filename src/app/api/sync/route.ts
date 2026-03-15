@@ -27,6 +27,7 @@ const ALLOWED_TABLES = new Set([
   "habits",
   "habit_logs",
   "habit_chains",
+  "about_content",
 ]);
 
 function getAdminSupabase() {

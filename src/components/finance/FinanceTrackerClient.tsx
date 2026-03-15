@@ -39,7 +39,6 @@ import { PayrollTracker } from "./PayrollTracker";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { RealtimeStatus } from "@/components/ui/RealtimeStatus";
-import { PrivateSection } from "@/components/ui/PrivateSection";
 
 const PieChart = dynamic(() => import("./PieChart").then((m) => m.PieChart), {
   ssr: false,
@@ -497,7 +496,6 @@ export function FinanceTrackerClient() {
   }
 
   return (
-    <PrivateSection sectionKey="financeTracker" label="Finance Tracker">
     <div className="space-y-8">
       {/* Header controls */}
       <FadeIn>
@@ -862,6 +860,5 @@ export function FinanceTrackerClient() {
         customCategories={customCategories}
       />
     </div>
-    </PrivateSection>
   );
 }

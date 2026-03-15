@@ -10,6 +10,7 @@ import { isOwner } from "@/lib/roles";
 const adminLinks = [
   { label: "Overview", href: "/admin" },
   { label: "Blog", href: "/admin/blog" },
+  { label: "About", href: "/admin/about" },
   { label: "Analytics", href: "/admin/analytics" },
   { label: "DB Setup", href: "/admin/setup" },
 ];
