@@ -21,6 +21,7 @@ import {
 } from "@/lib/roadmap-data";
 import { PHASE_CLUSTERS } from "@/lib/roadmap-mindmap-utils";
 import { DailyStudyTracker } from "./DailyStudyTracker";
+import { StudyCalendar } from "./StudyCalendar";
 import type { RoadmapProgress, UploadedFile } from "@/types";
 
 /* ================================================================
@@ -451,7 +452,7 @@ export function FAANGRoadmapClient() {
   const { user, loading } = useAuth();
   const [progress, setProgress] = useLocalStorage<RoadmapProgress>("pj-faang-roadmap", DEFAULT_ROADMAP_PROGRESS);
   const [files, setFiles] = useLocalStorage<UploadedFile[]>("pj-roadmap-solutions", []);
-  const { upload } = useSupabaseStorage();
+  const { upload, remove } = useSupabaseStorage();
   const [selId, setSelId] = useState<number | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -494,6 +495,11 @@ export function FAANGRoadmapClient() {
   const toggle = useCallback((pid: number, tid: string) => {
     setProgress((p) => toggleTopicProgress(p, pid, tid));
   }, [setProgress]);
+
+  const handleDeleteFile = useCallback((fileId: string, storagePath: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    if (storagePath) remove(storagePath).catch(() => {});
+  }, [setFiles, remove]);
 
   /* loading */
   if (loading) return <div className="flex justify-center py-32"><div className="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" /></div>;
@@ -566,7 +572,13 @@ export function FAANGRoadmapClient() {
           files={files}
           onUploadFile={(f) => upload(f, `roadmap-solutions/${Date.now()}-${f.name}`)}
           onFileAdded={(f) => setFiles((prev) => [...prev, { ...f, id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, created_at: new Date().toISOString() }])}
+          onDeleteFile={handleDeleteFile}
         />
+      </section>
+
+      {/* ─── 2b  STUDY CALENDAR ──────────────────────────── */}
+      <section>
+        <StudyCalendar progress={progress} files={files} />
       </section>
 
       {/* ─── 3  TIMELINE ──────────────────────────────────── */}

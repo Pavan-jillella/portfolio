@@ -63,6 +63,7 @@ interface DailyStudyTrackerProps {
   files: UploadedFile[];
   onUploadFile?: (file: File) => Promise<{ url: string; path: string } | null>;
   onFileAdded?: (file: Omit<UploadedFile, "id" | "created_at">) => void;
+  onDeleteFile?: (fileId: string, storagePath: string) => void;
   compact?: boolean;
 }
 
@@ -72,6 +73,7 @@ export function DailyStudyTracker({
   files,
   onUploadFile,
   onFileAdded,
+  onDeleteFile,
   compact,
 }: DailyStudyTrackerProps) {
   const today = getTodayISO();
@@ -84,6 +86,7 @@ export function DailyStudyTracker({
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cheatSheetInputRef = useRef<HTMLInputElement>(null);
 
   const handleToggleTopic = useCallback(
     (phaseId: number, topicId: string) => {
@@ -185,6 +188,30 @@ export function DailyStudyTracker({
     [onUploadFile, onFileAdded, onUpdateProgress, today]
   );
 
+  const handleCheatSheetUpload = useCallback(
+    async (topicId: string, file: File) => {
+      if (!onUploadFile || !onFileAdded) return;
+      setUploading(true);
+      try {
+        const result = await onUploadFile(file);
+        const url = result?.url || URL.createObjectURL(file);
+        const path = result?.path || "";
+        onFileAdded({
+          file_name: file.name,
+          file_url: url,
+          file_type: file.type,
+          file_size: file.size,
+          storage_path: path,
+          linked_entity_type: "cheat-sheet",
+          linked_entity_ids: [topicId],
+        });
+      } finally {
+        setUploading(false);
+      }
+    },
+    [onUploadFile, onFileAdded]
+  );
+
   const handleAIAnalysis = useCallback(
     async (topicId: string, phaseId: number) => {
       setAnalyzing(topicId);
@@ -240,6 +267,9 @@ export function DailyStudyTracker({
   // Get solution files for today's topics
   const topicFiles = (topicId: string) =>
     files.filter((f) => f.linked_entity_type === "roadmap-solution" && f.linked_entity_ids.includes(topicId));
+
+  const topicCheatSheets = (topicId: string) =>
+    files.filter((f) => f.linked_entity_type === "cheat-sheet" && f.linked_entity_ids.includes(topicId));
 
   return (
     <div className={cn("glass-card rounded-2xl border", currentPhase.borderColor)}>
@@ -320,6 +350,7 @@ export function DailyStudyTracker({
               const problems = TOPIC_LEETCODE_MAP[topic.id] || [];
               const entry = getDailyEntry(progress, today, topic.id, currentPhase.id);
               const tFiles = topicFiles(topic.id);
+              const tCheatSheets = topicCheatSheets(topic.id);
 
               return (
                 <div key={topic.id} className={cn("rounded-xl border transition-all", done ? "border-white/5 bg-white/[0.02]" : currentPhase.borderColor + " bg-white/[0.02]")}>
@@ -426,6 +457,15 @@ export function DailyStudyTracker({
                                       <svg className="w-3.5 h-3.5 text-white/25" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                       <span className="font-mono text-xs text-white/40 truncate">{f.file_name}</span>
                                       <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="font-mono text-[9px] text-blue-400 hover:underline ml-auto">View</a>
+                                      {onDeleteFile && (
+                                        <button
+                                          onClick={() => onDeleteFile(f.id, f.storage_path)}
+                                          className="font-mono text-[9px] text-red-400/60 hover:text-red-400 transition-colors ml-1"
+                                          title="Delete file"
+                                        >
+                                          ×
+                                        </button>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
@@ -442,6 +482,46 @@ export function DailyStudyTracker({
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                                 )}
                                 Upload solution
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Cheat Sheets */}
+                          {onUploadFile && onFileAdded && (
+                            <div>
+                              <p className="font-mono text-[10px] text-white/25 uppercase tracking-widest mb-2">Cheat Sheets</p>
+                              {tCheatSheets.length > 0 && (
+                                <div className="space-y-1 mb-2">
+                                  {tCheatSheets.map((f) => (
+                                    <div key={f.id} className="flex items-center gap-2 px-2 py-1 rounded-lg bg-amber-500/[0.04]">
+                                      <svg className="w-3.5 h-3.5 text-amber-400/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                      <span className="font-mono text-xs text-white/40 truncate">{f.file_name}</span>
+                                      <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="font-mono text-[9px] text-amber-400 hover:underline ml-auto">View</a>
+                                      {onDeleteFile && (
+                                        <button
+                                          onClick={() => onDeleteFile(f.id, f.storage_path)}
+                                          className="font-mono text-[9px] text-red-400/60 hover:text-red-400 transition-colors ml-1"
+                                          title="Delete cheat sheet"
+                                        >
+                                          ×
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <input ref={cheatSheetInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.txt,.md,.doc,.docx" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCheatSheetUpload(topic.id, f); e.target.value = ""; }} />
+                              <button
+                                onClick={() => cheatSheetInputRef.current?.click()}
+                                disabled={uploading}
+                                className="flex items-center gap-1.5 font-mono text-[10px] text-amber-400/40 hover:text-amber-400/70 transition-colors disabled:opacity-50"
+                              >
+                                {uploading ? (
+                                  <div className="w-3 h-3 border border-amber-400/20 border-t-amber-400/60 rounded-full animate-spin" />
+                                ) : (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                )}
+                                Upload cheat sheet
                               </button>
                             </div>
                           )}

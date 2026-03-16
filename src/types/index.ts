@@ -443,7 +443,7 @@ export interface UploadedFile {
   file_type: string;
   file_size: number;
   storage_path: string;
-  linked_entity_type: "course" | "project" | "note" | "standalone" | "roadmap-solution";
+  linked_entity_type: "course" | "project" | "note" | "standalone" | "roadmap-solution" | "cheat-sheet";
   linked_entity_ids: string[];
   created_at: string;
 }

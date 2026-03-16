@@ -16,6 +16,7 @@ import { HabitCalendarTab } from "./calendar/HabitCalendarTab";
 import { HabitAnalyticsTab } from "./analytics/HabitAnalyticsTab";
 import { HabitXPTab } from "./xp/HabitXPTab";
 import { HabitCoachTab } from "./coach/HabitCoachTab";
+import { SDEPrepSuggestions } from "./suggestions/SDEPrepSuggestions";
 
 export function HabitTrackerClient() {
   const [habits, setHabits, habitsConnected] = useSupabaseRealtimeSync<Habit>("pj-habits", "habits", []);
@@ -174,6 +175,16 @@ export function HabitTrackerClient() {
             setShowAddForm(false);
             setEditingHabit(null);
           }}
+        />
+      )}
+
+      {/* SDE Prep Suggestions */}
+      {activeTab === "overview" && (
+        <SDEPrepSuggestions
+          existingHabits={habits}
+          existingChains={habitChains}
+          onAddHabit={addHabit}
+          onAddChain={addChain}
         />
       )}
 
