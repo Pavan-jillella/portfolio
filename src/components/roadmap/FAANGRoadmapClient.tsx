@@ -22,7 +22,11 @@ import {
 import { PHASE_CLUSTERS } from "@/lib/roadmap-mindmap-utils";
 import { DailyStudyTracker } from "./DailyStudyTracker";
 import { StudyCalendar } from "./StudyCalendar";
+import DailyQuestionsView from "./DailyQuestionsView";
 import type { RoadmapProgress, UploadedFile } from "@/types";
+
+/* Tab types */
+type TabId = "mission" | "daily-questions";
 
 /* ================================================================
    HELPERS
@@ -454,6 +458,7 @@ export function FAANGRoadmapClient() {
   const [files, setFiles] = useLocalStorage<UploadedFile[]>("pj-roadmap-solutions", []);
   const { upload, remove } = useSupabaseStorage();
   const [selId, setSelId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>("mission");
   const detailRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -520,8 +525,42 @@ export function FAANGRoadmapClient() {
   const sel = selId ? ROADMAP_PHASES.find((p) => p.id === selId) : null;
   const totalHrs = DAILY_COMMITMENT.reduce((s, d) => s + d.hours, 0);
 
+  const TABS = [
+    { id: "mission" as TabId, label: "Mission Control", icon: "🎯" },
+    { id: "daily-questions" as TabId, label: "Daily Questions", icon: "📝" },
+  ];
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
+      {/* ─── TAB NAVIGATION ─────────────────────────────────── */}
+      <div className="flex justify-center">
+        <div className="inline-flex gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "px-5 py-2.5 rounded-xl font-mono text-sm transition-all flex items-center gap-2",
+                activeTab === tab.id
+                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                  : "text-white/40 hover:text-white/60 hover:bg-white/[0.02]"
+              )}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── DAILY QUESTIONS TAB ────────────────────────────── */}
+      {activeTab === "daily-questions" && (
+        <DailyQuestionsView />
+      )}
+
+      {/* ─── MISSION CONTROL TAB ────────────────────────────── */}
+      {activeTab === "mission" && (
+        <div className="space-y-12">
 
       {/* ─── 1  HERO ──────────────────────────────────────── */}
       <section className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-blue-500/[0.04] via-transparent to-violet-500/[0.04] p-6 md:p-10 relative overflow-hidden">
@@ -747,6 +786,8 @@ export function FAANGRoadmapClient() {
           </div>
         </div>
       </section>
+        </div>
+      )}
     </div>
   );
 }
