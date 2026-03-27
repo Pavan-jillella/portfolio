@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   StudySession,
   Course,
@@ -23,7 +23,6 @@ import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { motion } from "framer-motion";
 import { AIInsightsPanel } from "../ai/AIInsightsPanel";
 import { LearningAnalyticsPanel } from "../analytics/LearningAnalyticsPanel";
-import { LearningResumeTab } from "../resume/LearningResumeTab";
 import { ReadingList } from "./ReadingList";
 
 interface OverviewTabProps {
@@ -38,7 +37,6 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ sessions, courses, notes, projects, readingList, onAddReadingItem, onDeleteReadingItem, onUpdateReadingItem }: OverviewTabProps) {
-  const [showResume, setShowResume] = useState(false);
   const [githubUsername] = useLocalStorage<string>("pj-github-username", "");
   const [leetcodeUsername] = useLocalStorage<string>("pj-leetcode-username", "");
   const { data: githubData } = useGitHubData(githubUsername);
@@ -176,25 +174,6 @@ export function OverviewTab({ sessions, courses, notes, projects, readingList, o
         onDelete={onDeleteReadingItem}
         onUpdate={onUpdateReadingItem}
       />
-
-      {/* Learning Resume */}
-      <div>
-        <button
-          onClick={() => setShowResume(!showResume)}
-          className="glass-card px-5 py-2.5 rounded-xl text-sm font-body text-white/60 hover:text-white transition-all hover:border-blue-500/30"
-        >
-          {showResume ? "Hide Resume" : "Export Learning Resume"}
-        </button>
-        {showResume && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            className="mt-4"
-          >
-            <LearningResumeTab sessions={sessions} courses={courses} projects={projects} skills={skills} />
-          </motion.div>
-        )}
-      </div>
     </div>
   );
 }
