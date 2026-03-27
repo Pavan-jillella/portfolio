@@ -23,10 +23,11 @@ import { PHASE_CLUSTERS } from "@/lib/roadmap-mindmap-utils";
 import { DailyStudyTracker } from "./DailyStudyTracker";
 import { StudyCalendar } from "./StudyCalendar";
 import DailyQuestionsView from "./DailyQuestionsView";
+import ProductivityDashboard from "./ProductivityDashboard";
 import type { RoadmapProgress, UploadedFile } from "@/types";
 
 /* Tab types */
-type TabId = "mission" | "daily-questions";
+type TabId = "mission" | "daily-questions" | "productivity";
 
 /* ================================================================
    HELPERS
@@ -528,6 +529,7 @@ export function FAANGRoadmapClient() {
   const TABS = [
     { id: "mission" as TabId, label: "Mission Control", icon: "🎯" },
     { id: "daily-questions" as TabId, label: "Daily Questions", icon: "📝" },
+    { id: "productivity" as TabId, label: "Productivity Tools", icon: "⚡" },
   ];
 
   return (
@@ -556,6 +558,11 @@ export function FAANGRoadmapClient() {
       {/* ─── DAILY QUESTIONS TAB ────────────────────────────── */}
       {activeTab === "daily-questions" && (
         <DailyQuestionsView />
+      )}
+
+      {/* ─── PRODUCTIVITY TOOLS TAB ─────────────────────────── */}
+      {activeTab === "productivity" && (
+        <ProductivityDashboard streak={stk} />
       )}
 
       {/* ─── MISSION CONTROL TAB ────────────────────────────── */}
