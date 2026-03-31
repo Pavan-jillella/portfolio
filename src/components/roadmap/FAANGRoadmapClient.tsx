@@ -24,10 +24,11 @@ import { DailyStudyTracker } from "./DailyStudyTracker";
 import { StudyCalendar } from "./StudyCalendar";
 import DailyQuestionsView from "./DailyQuestionsView";
 import ProductivityDashboard from "./ProductivityDashboard";
+import AdvancedFeatures from "./AdvancedFeatures";
 import type { RoadmapProgress, UploadedFile } from "@/types";
 
 /* Tab types */
-type TabId = "mission" | "daily-questions" | "productivity";
+type TabId = "mission" | "daily-questions" | "productivity" | "advanced";
 
 /* ================================================================
    HELPERS
@@ -530,6 +531,7 @@ export function FAANGRoadmapClient() {
     { id: "mission" as TabId, label: "Mission Control", icon: "🎯" },
     { id: "daily-questions" as TabId, label: "Daily Questions", icon: "📝" },
     { id: "productivity" as TabId, label: "Productivity Tools", icon: "⚡" },
+    { id: "advanced" as TabId, label: "Advanced Training", icon: "🚀" },
   ];
 
   return (
@@ -563,6 +565,11 @@ export function FAANGRoadmapClient() {
       {/* ─── PRODUCTIVITY TOOLS TAB ─────────────────────────── */}
       {activeTab === "productivity" && (
         <ProductivityDashboard streak={stk} />
+      )}
+
+      {/* ─── ADVANCED TRAINING TAB ───────────────────────────── */}
+      {activeTab === "advanced" && (
+        <AdvancedFeatures />
       )}
 
       {/* ─── MISSION CONTROL TAB ────────────────────────────── */}
