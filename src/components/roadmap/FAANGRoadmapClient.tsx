@@ -31,6 +31,21 @@ import type { RoadmapProgress, UploadedFile } from "@/types";
 type TabId = "mission" | "daily-questions" | "productivity" | "advanced";
 
 /* ================================================================
+   LIGHT THEME COLOR MAPPINGS
+   ================================================================ */
+
+const LIGHT_PHASE_COLORS: Record<number, { bg: string; border: string; text: string; gradient: string; ring: string }> = {
+  1: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", gradient: "from-emerald-400 to-teal-500", ring: "ring-emerald-200" },
+  2: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-600", gradient: "from-blue-400 to-indigo-500", ring: "ring-blue-200" },
+  3: { bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-600", gradient: "from-violet-400 to-purple-500", ring: "ring-violet-200" },
+  4: { bg: "bg-fuchsia-50", border: "border-fuchsia-200", text: "text-fuchsia-600", gradient: "from-fuchsia-400 to-pink-500", ring: "ring-fuchsia-200" },
+  5: { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600", gradient: "from-orange-400 to-amber-500", ring: "ring-orange-200" },
+  6: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", gradient: "from-amber-400 to-yellow-500", ring: "ring-amber-200" },
+  7: { bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-600", gradient: "from-rose-400 to-red-500", ring: "ring-rose-200" },
+  8: { bg: "bg-cyan-50", border: "border-cyan-200", text: "text-cyan-600", gradient: "from-cyan-400 to-sky-500", ring: "ring-cyan-200" },
+};
+
+/* ================================================================
    HELPERS
    ================================================================ */
 
@@ -82,9 +97,9 @@ function heatmap(progress: RoadmapProgress) {
 }
 
 function phaseStatus(pct: number) {
-  if (pct === 100) return { text: "Complete", style: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" };
-  if (pct > 0) return { text: "In Progress", style: "bg-sky-500/20 text-sky-300 border-sky-500/30" };
-  return { text: "Locked", style: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20" };
+  if (pct === 100) return { text: "Complete", style: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+  if (pct > 0) return { text: "In Progress", style: "bg-blue-100 text-blue-700 border-blue-200" };
+  return { text: "Locked", style: "bg-slate-100 text-slate-500 border-slate-200" };
 }
 
 function activePhase() {
@@ -93,19 +108,22 @@ function activePhase() {
 }
 
 /* ================================================================
-   PROGRESS RING  — Feature 1
+   PROGRESS RING — Apple-style with light theme
    ================================================================ */
 
 function ProgressRing({ value }: { value: number }) {
-  const size = 160;
-  const sw = 12;
+  const size = 180;
+  const sw = 14;
   const r = (size - sw) / 2;
   const c = 2 * Math.PI * r;
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+      {/* Subtle shadow/glow */}
+      <div className="absolute inset-4 rounded-full bg-gradient-to-br from-blue-100 to-violet-100 blur-2xl opacity-60" />
+
+      <svg viewBox={`0 0 ${size} ${size}`} className="-rotate-90 relative">
         {/* track */}
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={sw} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#f1f5f9" strokeWidth={sw} />
         {/* value */}
         <motion.circle
           cx={size / 2}
@@ -118,21 +136,26 @@ function ProgressRing({ value }: { value: number }) {
           initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: c - (value / 100) * c }}
           transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-          className="stroke-blue-500"
+          stroke="url(#progressGradient)"
         />
+        <defs>
+          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="50%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#ec4899" />
+          </linearGradient>
+        </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center select-none">
-        <span className="font-display font-extrabold text-4xl text-white tabular-nums">{value}</span>
-        <span className="font-mono text-[9px] text-white/30 uppercase tracking-[0.15em] -mt-0.5">percent</span>
+        <span className="font-display font-extrabold text-5xl bg-gradient-to-br from-slate-800 to-slate-600 bg-clip-text text-transparent tabular-nums">{value}</span>
+        <span className="font-mono text-[10px] text-slate-400 uppercase tracking-[0.2em] mt-1">percent</span>
       </div>
-      {/* glow */}
-      <div className="absolute inset-4 rounded-full bg-blue-500/[0.07] blur-2xl pointer-events-none" />
     </div>
   );
 }
 
 /* ================================================================
-   HEATMAP  — Feature 4
+   HEATMAP — GitHub-style with light colors
    ================================================================ */
 
 function Heatmap({ data }: { data: { date: string; n: number }[] }) {
@@ -141,22 +164,27 @@ function Heatmap({ data }: { data: { date: string; n: number }[] }) {
   for (let i = 0; i < data.length; i += 7) weeks.push(data.slice(i, i + 7));
 
   return (
-    <div className="space-y-1">
-      <p className="font-mono text-[8px] text-white/20 uppercase tracking-widest">Last 5 Weeks</p>
-      <div className="flex gap-[3px]">
+    <div className="space-y-2">
+      <p className="font-mono text-[9px] text-slate-400 uppercase tracking-widest">Last 5 Weeks</p>
+      <div className="flex gap-1">
         {weeks.map((wk, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
+          <div key={wi} className="flex flex-col gap-1">
             {wk.map((d) => (
               <div
                 key={d.date}
                 title={`${d.date} — ${d.n} topic${d.n !== 1 ? "s" : ""}`}
-                className="w-[11px] h-[11px] rounded-sm"
-                style={{
-                  backgroundColor:
-                    d.n === 0
-                      ? "rgba(255,255,255,0.025)"
-                      : `rgba(59,130,246,${Math.max(0.2, d.n / max)})`,
-                }}
+                className={cn(
+                  "w-3 h-3 rounded-sm transition-all",
+                  d.n === 0
+                    ? "bg-slate-100"
+                    : d.n <= max * 0.25
+                    ? "bg-emerald-200"
+                    : d.n <= max * 0.5
+                    ? "bg-emerald-300"
+                    : d.n <= max * 0.75
+                    ? "bg-emerald-400"
+                    : "bg-emerald-500"
+                )}
               />
             ))}
           </div>
@@ -167,33 +195,40 @@ function Heatmap({ data }: { data: { date: string; n: number }[] }) {
 }
 
 /* ================================================================
-   STAT PILL  — used in hero
+   STAT PILL — Notion-style cards
    ================================================================ */
 
 function Stat({
   label,
   value,
   sub,
-  accent,
+  color = "blue",
 }: {
   label: string;
   value: string | number;
   sub?: string;
-  accent?: string;
+  color?: "blue" | "amber" | "orange" | "emerald";
 }) {
+  const colorMap = {
+    blue: "bg-blue-50 border-blue-100",
+    amber: "bg-amber-50 border-amber-100",
+    orange: "bg-orange-50 border-orange-100",
+    emerald: "bg-emerald-50 border-emerald-100",
+  };
+
   return (
-    <div className={cn("rounded-2xl px-4 py-3 border bg-white/[0.02] min-w-[80px] text-center", accent ?? "border-white/[0.06]")}>
-      <p className="font-mono text-[7px] text-white/25 uppercase tracking-widest leading-none mb-1.5">{label}</p>
-      <p className="font-display font-bold text-xl text-white leading-none tabular-nums">
+    <div className={cn("rounded-2xl px-5 py-4 border min-w-[90px] text-center backdrop-blur-sm", colorMap[color])}>
+      <p className="font-mono text-[8px] text-slate-400 uppercase tracking-widest leading-none mb-2">{label}</p>
+      <p className="font-display font-bold text-2xl text-slate-800 leading-none tabular-nums">
         {value}
-        {sub && <span className="text-white/20 text-[11px] font-normal">{sub}</span>}
+        {sub && <span className="text-slate-300 text-sm font-normal">{sub}</span>}
       </p>
     </div>
   );
 }
 
 /* ================================================================
-   PHASE CARD  — Feature 5, 6, 7
+   PHASE CARD — Netflix-style cards with light theme
    ================================================================ */
 
 function PhaseCard({
@@ -213,59 +248,58 @@ function PhaseCard({
 }) {
   const s = phaseStatus(pct);
   const done = Math.round((pct / 100) * phase.topics.length);
+  const colors = LIGHT_PHASE_COLORS[phase.id];
 
   return (
     <motion.button
       onClick={onSelect}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.45, delay: idx * 0.05 }}
-      whileHover={{ y: -3, transition: { duration: 0.15 } }}
+      transition={{ duration: 0.5, delay: idx * 0.06 }}
+      whileHover={{ y: -6, scale: 1.02, transition: { duration: 0.2 } }}
       className={cn(
-        "snap-start flex-shrink-0 w-[200px] rounded-2xl p-5 text-left transition-all relative overflow-hidden",
-        "border",
+        "snap-start flex-shrink-0 w-[220px] rounded-3xl p-6 text-left transition-all relative overflow-hidden",
+        "border shadow-sm hover:shadow-xl",
         selected
-          ? `${phase.borderColor} ring-1 ring-inset ${phase.borderColor}`
+          ? `${colors.bg} ${colors.border} ring-2 ${colors.ring}`
           : active
-          ? `${phase.borderColor} bg-white/[0.02]`
-          : "border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.025]"
+          ? `${colors.bg} ${colors.border}`
+          : "bg-white border-slate-200 hover:border-slate-300"
       )}
     >
-      {/* top accent */}
-      {(active || selected) && (
-        <motion.div layoutId="phase-accent" className={cn("absolute inset-x-0 top-0 h-[2px]", phase.bgColor)} />
-      )}
+      {/* Gradient accent bar */}
+      <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", colors.gradient)} />
 
-      {/* number */}
+      {/* Icon */}
       <div
         className={cn(
-          "w-10 h-10 rounded-xl flex items-center justify-center font-mono text-sm font-bold border mb-3",
-          `bg-gradient-to-br ${phase.gradient} ${phase.color} ${phase.borderColor}`
+          "w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-4 shadow-sm",
+          `bg-gradient-to-br ${colors.gradient} text-white`
         )}
       >
         {phase.icon}
       </div>
 
-      {/* title */}
-      <p className={cn("font-display font-bold text-[13px] leading-snug mb-0.5", selected || active ? phase.color : "text-white/50")}>
+      {/* Title */}
+      <p className={cn("font-display font-bold text-base leading-snug mb-1", selected || active ? colors.text : "text-slate-700")}>
         {phase.title}
       </p>
-      <p className="font-mono text-[9px] text-white/20 mb-4">{phase.subtitle}</p>
+      <p className="font-mono text-[10px] text-slate-400 mb-4">{phase.subtitle}</p>
 
-      {/* progress bar */}
-      <div className="h-[3px] rounded-full bg-white/[0.04] mb-2 overflow-hidden">
+      {/* Progress bar */}
+      <div className="h-2 rounded-full bg-slate-100 mb-3 overflow-hidden">
         <motion.div
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className={cn("h-full rounded-full", phase.bgColor + "/60")}
+          className={cn("h-full rounded-full bg-gradient-to-r", colors.gradient)}
         />
       </div>
 
-      {/* footer */}
+      {/* Footer */}
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] text-white/20 tabular-nums">{done}/{phase.topics.length}</span>
-        <span className={cn("font-mono text-[8px] px-1.5 py-[2px] rounded border leading-none", s.style)}>
+        <span className="font-mono text-xs text-slate-400 tabular-nums">{done}/{phase.topics.length}</span>
+        <span className={cn("font-mono text-[9px] px-2 py-1 rounded-full border leading-none font-medium", s.style)}>
           {s.text}
         </span>
       </div>
@@ -274,7 +308,7 @@ function PhaseCard({
 }
 
 /* ================================================================
-   PHASE DETAIL  — Feature 8, 9
+   PHASE DETAIL — Expanded view with light theme
    ================================================================ */
 
 function PhaseDetail({
@@ -294,16 +328,19 @@ function PhaseDetail({
   const filtered = searching
     ? phase.topics.filter((t) => t.label.toLowerCase().includes(q.toLowerCase()))
     : null;
+  const colors = LIGHT_PHASE_COLORS[phase.id];
 
-  const Checkbox = ({ checked, color }: { checked: boolean; color: string }) => (
+  const Checkbox = ({ checked }: { checked: boolean }) => (
     <div
       className={cn(
-        "w-[18px] h-[18px] rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0",
-        checked ? `${color}/30 border-current` : "border-white/10 group-hover:border-white/20"
+        "w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all flex-shrink-0",
+        checked
+          ? `bg-gradient-to-br ${colors.gradient} border-transparent`
+          : "border-slate-300 group-hover:border-slate-400"
       )}
     >
       {checked && (
-        <motion.svg initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <motion.svg initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </motion.svg>
       )}
@@ -315,99 +352,98 @@ function PhaseDetail({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("rounded-3xl border p-6 md:p-8 bg-white/[0.015]", phase.borderColor)}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className={cn("rounded-3xl border p-8 shadow-lg", colors.bg, colors.border)}
     >
-      {/* header */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
+        <div className="flex items-center gap-5">
           <div
             className={cn(
-              "w-14 h-14 rounded-2xl flex items-center justify-center font-mono text-base font-bold border",
-              `bg-gradient-to-br ${phase.gradient} ${phase.color} ${phase.borderColor}`
+              "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg",
+              `bg-gradient-to-br ${colors.gradient} text-white`
             )}
           >
             {phase.icon}
           </div>
           <div>
-            <h3 className={cn("font-display font-bold text-xl", phase.color)}>{phase.title}</h3>
-            <p className="font-mono text-[10px] text-white/25 mt-0.5">{phase.duration}</p>
-            <p className="font-body text-xs text-white/40 mt-1 max-w-md">{phase.goal}</p>
+            <h3 className={cn("font-display font-bold text-2xl", colors.text)}>{phase.title}</h3>
+            <p className="font-mono text-xs text-slate-400 mt-1">{phase.duration}</p>
+            <p className="font-body text-sm text-slate-500 mt-2 max-w-md">{phase.goal}</p>
           </div>
         </div>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-6">
           <div className="text-center">
-            <p className={cn("font-display font-bold text-2xl tabular-nums", phase.color)}>{pct}%</p>
-            <p className="font-mono text-[8px] text-white/20 uppercase">Progress</p>
+            <p className={cn("font-display font-bold text-3xl tabular-nums", colors.text)}>{pct}%</p>
+            <p className="font-mono text-[9px] text-slate-400 uppercase">Progress</p>
           </div>
           <div className="text-center">
-            <p className="font-display font-bold text-2xl text-white tabular-nums">{done}<span className="text-white/15 text-sm">/{phase.topics.length}</span></p>
-            <p className="font-mono text-[8px] text-white/20 uppercase">Topics</p>
+            <p className="font-display font-bold text-3xl text-slate-700 tabular-nums">{done}<span className="text-slate-300 text-lg">/{phase.topics.length}</span></p>
+            <p className="font-mono text-[9px] text-slate-400 uppercase">Topics</p>
           </div>
         </div>
       </div>
 
-      {/* progress bar */}
-      <div className="h-1 rounded-full bg-white/[0.04] mb-6 overflow-hidden">
-        <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }} className={cn("h-full rounded-full", phase.bgColor + "/50")} />
+      {/* Progress bar */}
+      <div className="h-2 rounded-full bg-white/80 mb-8 overflow-hidden shadow-inner">
+        <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }} className={cn("h-full rounded-full bg-gradient-to-r", colors.gradient)} />
       </div>
 
-      {/* search — Feature 8 */}
-      <div className="relative mb-5">
-        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Search */}
+      <div className="relative mb-6">
+        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={`Search ${phase.topics.length} topics…`}
-          className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/[0.025] border border-white/[0.06] text-sm text-white placeholder:text-white/15 font-mono outline-none focus:border-white/15 transition-colors"
+          className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 text-sm text-slate-700 placeholder:text-slate-300 font-mono outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all shadow-sm"
         />
         {searching && (
-          <button onClick={() => setQ("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <button onClick={() => setQ("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         )}
       </div>
 
-      {/* search results */}
+      {/* Topics */}
       {filtered ? (
-        <div className="space-y-1 mb-6">
+        <div className="space-y-2 mb-6">
           {filtered.length === 0 && (
-            <p className="text-center py-8 font-body text-sm text-white/20">No topics match &ldquo;{q}&rdquo;</p>
+            <p className="text-center py-10 font-body text-sm text-slate-400">No topics match &ldquo;{q}&rdquo;</p>
           )}
           {filtered.map((topic) => {
             const checked = isTopicCompleted(progress, phase.id, topic.id);
             return (
-              <label key={topic.id} className={cn("flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer group transition-colors", phase.color, checked ? "bg-white/[0.015]" : "hover:bg-white/[0.02]")}>
+              <label key={topic.id} className={cn("flex items-center gap-4 px-5 py-3 rounded-2xl cursor-pointer group transition-all", checked ? "bg-white/50" : "hover:bg-white/80")}>
                 <input type="checkbox" checked={checked} onChange={() => onToggle(phase.id, topic.id)} className="sr-only" />
-                <Checkbox checked={checked} color={phase.bgColor} />
-                <span className={cn("font-body text-sm", checked ? "text-white/25 line-through" : "text-white/60")}>{topic.label}</span>
+                <Checkbox checked={checked} />
+                <span className={cn("font-body text-sm", checked ? "text-slate-400 line-through" : "text-slate-600")}>{topic.label}</span>
               </label>
             );
           })}
         </div>
       ) : (
-        /* clustered view — Feature 9 */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
           {clusters.map((name, ci) => {
             const per = Math.ceil(phase.topics.length / clusters.length);
             const items = phase.topics.slice(ci * per, (ci + 1) * per);
             const cDone = items.filter((t) => isTopicCompleted(progress, phase.id, t.id)).length;
             return (
-              <div key={name} className="rounded-2xl bg-white/[0.02] border border-white/[0.05] p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className={cn("font-mono text-[10px] uppercase tracking-wider font-medium", phase.color)}>{name}</p>
-                  <span className="font-mono text-[10px] text-white/15 tabular-nums">{cDone}/{items.length}</span>
+              <div key={name} className="rounded-2xl bg-white/70 border border-white p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <p className={cn("font-mono text-xs uppercase tracking-wider font-semibold", colors.text)}>{name}</p>
+                  <span className="font-mono text-xs text-slate-400 tabular-nums">{cDone}/{items.length}</span>
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {items.map((topic) => {
                     const checked = isTopicCompleted(progress, phase.id, topic.id);
                     return (
-                      <label key={topic.id} className={cn("flex items-center gap-2.5 px-2.5 py-[7px] rounded-xl cursor-pointer group transition-colors", phase.color, checked ? "" : "hover:bg-white/[0.015]")}>
+                      <label key={topic.id} className={cn("flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer group transition-all", checked ? "" : "hover:bg-slate-50")}>
                         <input type="checkbox" checked={checked} onChange={() => onToggle(phase.id, topic.id)} className="sr-only" />
-                        <Checkbox checked={checked} color={phase.bgColor} />
-                        <span className={cn("font-body text-[13px] leading-snug", checked ? "text-white/25 line-through" : "text-white/55")}>{topic.label}</span>
+                        <Checkbox checked={checked} />
+                        <span className={cn("font-body text-sm leading-snug", checked ? "text-slate-400 line-through" : "text-slate-600")}>{topic.label}</span>
                       </label>
                     );
                   })}
@@ -418,29 +454,29 @@ function PhaseDetail({
         </div>
       )}
 
-      {/* bottom info */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-5 border-t border-white/[0.04]">
+      {/* Bottom info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-white/50">
         <div>
-          <p className="font-mono text-[9px] text-white/15 uppercase tracking-widest mb-2">Daily Practice</p>
-          <p className="font-body text-[13px] text-white/40 leading-relaxed">{phase.practice}</p>
+          <p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mb-3">Daily Practice</p>
+          <p className="font-body text-sm text-slate-500 leading-relaxed">{phase.practice}</p>
         </div>
         <div>
-          <p className="font-mono text-[9px] text-white/15 uppercase tracking-widest mb-2">Milestones</p>
-          <ul className="space-y-1.5">
+          <p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mb-3">Milestones</p>
+          <ul className="space-y-2">
             {phase.milestones.map((m) => (
               <li key={m} className="flex items-start gap-2">
-                <div className={cn("w-1 h-1 rounded-full mt-[7px] flex-shrink-0", phase.bgColor)} />
-                <span className="font-body text-[13px] text-white/40 leading-snug">{m}</span>
+                <div className={cn("w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-gradient-to-r", colors.gradient)} />
+                <span className="font-body text-sm text-slate-500 leading-snug">{m}</span>
               </li>
             ))}
           </ul>
         </div>
         {phase.platforms && (
           <div>
-            <p className="font-mono text-[9px] text-white/15 uppercase tracking-widest mb-2">Platforms</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mb-3">Platforms</p>
+            <div className="flex flex-wrap gap-2">
               {phase.platforms.map((p) => (
-                <span key={p} className="px-2.5 py-1 rounded-lg font-mono text-[11px] bg-white/[0.03] text-white/30 border border-white/[0.05]">{p}</span>
+                <span key={p} className="px-3 py-1.5 rounded-xl font-mono text-xs bg-white text-slate-500 border border-slate-200 shadow-sm">{p}</span>
               ))}
             </div>
           </div>
@@ -509,17 +545,21 @@ export function FAANGRoadmapClient() {
   }, [setFiles, remove]);
 
   /* loading */
-  if (loading) return <div className="flex justify-center py-32"><div className="w-6 h-6 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" /></div>;
+  if (loading) return (
+    <div className="flex justify-center py-32">
+      <div className="w-8 h-8 border-3 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+    </div>
+  );
 
   /* auth */
   if (!user) {
     return (
-      <div className="rounded-3xl border border-red-500/20 bg-red-500/[0.03] p-16 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
-          <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v.01M12 12v-4m0 12a8 8 0 100-16 8 8 0 000 16z" /></svg>
+      <div className="rounded-3xl border border-rose-200 bg-rose-50 p-16 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-rose-100 border border-rose-200 flex items-center justify-center mx-auto mb-6">
+          <svg className="w-7 h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v.01M12 12v-4m0 12a8 8 0 100-16 8 8 0 000 16z" /></svg>
         </div>
-        <h2 className="font-display font-bold text-xl text-white mb-2">Access Restricted</h2>
-        <p className="font-body text-sm text-white/35">Sign in to view this roadmap.</p>
+        <h2 className="font-display font-bold text-xl text-slate-800 mb-2">Access Restricted</h2>
+        <p className="font-body text-sm text-slate-500">Sign in to view this roadmap.</p>
       </div>
     );
   }
@@ -536,9 +576,9 @@ export function FAANGRoadmapClient() {
 
   return (
     <div className="space-y-8">
-      {/* ─── TAB NAVIGATION ─────────────────────────────────── */}
+      {/* ─── TAB NAVIGATION — Apple-style segmented control ─── */}
       <div className="flex justify-center">
-        <div className="inline-flex gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+        <div className="inline-flex gap-1 p-1.5 rounded-2xl bg-slate-100 border border-slate-200 shadow-sm">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -546,8 +586,8 @@ export function FAANGRoadmapClient() {
               className={cn(
                 "px-5 py-2.5 rounded-xl font-mono text-sm transition-all flex items-center gap-2",
                 activeTab === tab.id
-                  ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                  : "text-white/40 hover:text-white/60 hover:bg-white/[0.02]"
+                  ? "bg-white text-slate-800 shadow-sm border border-slate-200"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
               )}
             >
               <span>{tab.icon}</span>
@@ -574,42 +614,71 @@ export function FAANGRoadmapClient() {
 
       {/* ─── MISSION CONTROL TAB ────────────────────────────── */}
       {activeTab === "mission" && (
-        <div className="space-y-12">
+        <div className="space-y-10">
 
-      {/* ─── 1  HERO ──────────────────────────────────────── */}
-      <section className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-blue-500/[0.04] via-transparent to-violet-500/[0.04] p-6 md:p-10 relative overflow-hidden">
-        {/* dot pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.02]" style={{ backgroundImage: "radial-gradient(white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+      {/* ─── 1  HERO — Apple-style glass card ─────────────── */}
+      <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-blue-50/30 to-violet-50/30 p-8 md:p-12 relative overflow-hidden shadow-xl">
+        {/* Subtle pattern */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: "radial-gradient(#64748b 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
-        <div className="relative flex flex-col lg:flex-row items-center gap-10">
+        {/* Gradient orbs */}
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-200 rounded-full blur-[100px] opacity-40" />
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-violet-200 rounded-full blur-[100px] opacity-40" />
 
-          {/* ring */}
+        <div className="relative flex flex-col lg:flex-row items-center gap-12">
+
+          {/* Progress Ring */}
           <ProgressRing value={overallPct} />
 
-          {/* text + stat pills */}
-          <div className="flex-1 text-center lg:text-left space-y-5">
+          {/* Text + Stats */}
+          <div className="flex-1 text-center lg:text-left space-y-6">
             <div>
-              <p className="font-mono text-[9px] text-blue-400/80 uppercase tracking-[0.25em] mb-1">Mission Control</p>
-              <h2 className="font-display font-extrabold text-[28px] leading-tight text-white">Google SDE Preparation</h2>
-              <p className="font-body text-sm text-white/30 mt-1">8-month structured roadmap &middot; Mar 14 – Nov 17, 2026</p>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="font-mono text-xs text-blue-500 uppercase tracking-[0.3em] mb-2"
+              >
+                Mission Control
+              </motion.p>
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="font-display font-extrabold text-4xl leading-tight bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 bg-clip-text text-transparent"
+              >
+                Google SDE Preparation
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="font-body text-base text-slate-400 mt-2"
+              >
+                8-month structured roadmap · Mar 14 – Nov 17, 2026
+              </motion.p>
             </div>
 
-            <div className="flex flex-wrap justify-center lg:justify-start gap-2.5">
-              <Stat label="Day" value={day.current} sub={`/${TOTAL_DAYS}`} />
-              <Stat label="Left" value={`${day.remaining}d`} accent="border-amber-500/15" />
-              <Stat label="Streak" value={`${stk}d`} accent="border-orange-500/15" />
-              <Stat label="Topics" value={totalDone} sub={`/${totalTopics}`} accent="border-emerald-500/15" />
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-3"
+            >
+              <Stat label="Day" value={day.current} sub={`/${TOTAL_DAYS}`} color="blue" />
+              <Stat label="Left" value={`${day.remaining}d`} color="amber" />
+              <Stat label="Streak" value={`${stk}d`} color="orange" />
+              <Stat label="Topics" value={totalDone} sub={`/${totalTopics}`} color="emerald" />
+            </motion.div>
           </div>
 
-          {/* heatmap + targets */}
-          <div className="flex flex-col gap-5 flex-shrink-0">
+          {/* Heatmap + Targets */}
+          <div className="flex flex-col gap-6 flex-shrink-0">
             <Heatmap data={heat} />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {TARGETS.map((t) => (
-                <div key={t.label} className="text-center px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                  <p className="font-display font-bold text-base text-white leading-none">{t.target}</p>
-                  <p className="font-mono text-[7px] text-white/20 uppercase mt-1">{t.label}</p>
+                <div key={t.label} className="text-center px-4 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                  <p className="font-display font-bold text-xl text-slate-700 leading-none">{t.target}</p>
+                  <p className="font-mono text-[8px] text-slate-400 uppercase mt-1">{t.label}</p>
                 </div>
               ))}
             </div>
@@ -634,48 +703,56 @@ export function FAANGRoadmapClient() {
         <StudyCalendar progress={progress} files={files} />
       </section>
 
-      {/* ─── 3  TIMELINE ──────────────────────────────────── */}
+      {/* ─── 3  TIMELINE — Netflix-style phase cards ────── */}
       <section>
-        <div className="flex items-center justify-between mb-5">
-          <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest">The Journey &mdash; 8 Phases</p>
-          <div className="flex gap-1.5">
-            <button onClick={() => scrollRef.current?.scrollBy({ left: -224, behavior: "smooth" })} className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/20 hover:text-white/50 transition-colors">&#8592;</button>
-            <button onClick={() => scrollRef.current?.scrollBy({ left: 224, behavior: "smooth" })} className="w-8 h-8 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/20 hover:text-white/50 transition-colors">&#8594;</button>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="font-mono text-xs text-slate-400 uppercase tracking-widest">The Journey</p>
+            <h3 className="font-display font-bold text-xl text-slate-700 mt-1">8 Phases to Success</h3>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => scrollRef.current?.scrollBy({ left: -240, behavior: "smooth" })} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all shadow-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <button onClick={() => scrollRef.current?.scrollBy({ left: 240, behavior: "smooth" })} className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all shadow-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
           </div>
         </div>
 
-        {/* connected dots — Feature 6 */}
-        <div className="flex items-center px-3 mb-5">
+        {/* Progress dots */}
+        <div className="flex items-center px-4 mb-6">
           {ROADMAP_PHASES.map((p, i) => {
             const ppct = getPhaseProgress(progress, p.id);
             const full = ppct === 100;
             const isAct = p.id === act;
+            const colors = LIGHT_PHASE_COLORS[p.id];
             return (
               <div key={p.id} className="flex items-center flex-1">
                 <button
                   onClick={() => pick(p.id)}
                   title={p.title}
                   className={cn(
-                    "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 hover:scale-[1.3]",
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 hover:scale-125",
                     full
-                      ? `${p.bgColor} border-transparent`
+                      ? `bg-gradient-to-br ${colors.gradient} border-transparent shadow-md`
                       : isAct
-                      ? "border-blue-400 bg-blue-400/25"
+                      ? `${colors.border} ${colors.bg}`
                       : ppct > 0
-                      ? `${p.borderColor} bg-white/[0.04]`
-                      : "border-white/10"
+                      ? `${colors.border} bg-white`
+                      : "border-slate-200 bg-white"
                   )}
                 >
                   {full && (
-                    <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                   )}
                 </button>
                 {i < ROADMAP_PHASES.length - 1 && (
-                  <div className="flex-1 h-[2px] bg-white/[0.04] mx-1.5 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1 bg-slate-100 mx-2 rounded-full overflow-hidden">
                     <motion.div
                       animate={{ width: `${ppct}%` }}
                       transition={{ duration: 0.8 }}
-                      className={cn("h-full", ppct > 0 ? p.bgColor + "/40" : "")}
+                      className={cn("h-full rounded-full bg-gradient-to-r", colors.gradient)}
                     />
                   </div>
                 )}
@@ -684,8 +761,8 @@ export function FAANGRoadmapClient() {
           })}
         </div>
 
-        {/* scrollable cards — Feature 5 */}
-        <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+        {/* Scrollable cards */}
+        <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
           {ROADMAP_PHASES.map((p, i) => (
             <PhaseCard
               key={p.id}
@@ -707,75 +784,99 @@ export function FAANGRoadmapClient() {
         </AnimatePresence>
       </div>
 
-      {/* ─── 5  WEEKLY + DAILY ────────────────────────────── */}
+      {/* ─── 5  WEEKLY + DAILY — Notion-style cards ──────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="rounded-3xl border border-white/[0.05] bg-white/[0.015] p-6">
-          <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest mb-5">Weekly Rhythm</p>
+        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <p className="font-mono text-xs text-slate-400 uppercase tracking-widest mb-6">Weekly Rhythm</p>
           <div className="space-y-2">
-            {WEEKLY_PLAN.map((w) => (
-              <div key={w.day} className="flex items-center gap-3">
-                <span className="font-mono text-[10px] text-white/20 w-8">{w.day.slice(0, 3)}</span>
-                <div className={cn("flex-1 h-9 rounded-xl flex items-center px-3 border border-white/[0.04]", w.color)}>
-                  <span className="font-mono text-[11px] truncate">{w.focus}</span>
+            {WEEKLY_PLAN.map((w, i) => {
+              const dayColors = [
+                "bg-emerald-50 text-emerald-600 border-emerald-100",
+                "bg-blue-50 text-blue-600 border-blue-100",
+                "bg-violet-50 text-violet-600 border-violet-100",
+                "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100",
+                "bg-amber-50 text-amber-600 border-amber-100",
+                "bg-rose-50 text-rose-600 border-rose-100",
+                "bg-cyan-50 text-cyan-600 border-cyan-100",
+              ];
+              return (
+                <div key={w.day} className="flex items-center gap-4">
+                  <span className="font-mono text-xs text-slate-400 w-10 font-medium">{w.day.slice(0, 3)}</span>
+                  <div className={cn("flex-1 h-11 rounded-xl flex items-center px-4 border", dayColors[i])}>
+                    <span className="font-mono text-sm">{w.focus}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
-        <section className="rounded-3xl border border-white/[0.05] bg-white/[0.015] p-6">
-          <div className="flex items-center justify-between mb-5">
-            <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest">Daily Commitment</p>
-            <span className="font-mono text-xs text-blue-400 font-bold">{totalHrs}h</span>
+        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <p className="font-mono text-xs text-slate-400 uppercase tracking-widest">Daily Commitment</p>
+            <span className="font-display text-sm text-blue-500 font-bold">{totalHrs} hours</span>
           </div>
-          <div className="space-y-4">
-            {DAILY_COMMITMENT.map((d) => (
-              <div key={d.activity} className="flex items-center gap-3">
-                <span className="font-body text-[13px] text-white/40 flex-1">{d.activity}</span>
-                <div className="w-28 h-[5px] rounded-full bg-white/[0.04] overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${(d.hours / totalHrs) * 100}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="h-full rounded-full bg-blue-500/35"
-                  />
+          <div className="space-y-5">
+            {DAILY_COMMITMENT.map((d, i) => {
+              const barColors = [
+                "from-emerald-400 to-teal-500",
+                "from-blue-400 to-indigo-500",
+                "from-violet-400 to-purple-500",
+                "from-amber-400 to-orange-500",
+                "from-rose-400 to-pink-500",
+              ];
+              return (
+                <div key={d.activity} className="flex items-center gap-4">
+                  <span className="font-body text-sm text-slate-600 flex-1">{d.activity}</span>
+                  <div className="w-32 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${(d.hours / totalHrs) * 100}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                      className={cn("h-full rounded-full bg-gradient-to-r", barColors[i % barColors.length])}
+                    />
+                  </div>
+                  <span className="font-mono text-sm text-slate-500 w-8 text-right tabular-nums font-medium">{d.hours}h</span>
                 </div>
-                <span className="font-mono text-xs text-blue-400/80 w-8 text-right tabular-nums">{d.hours}h</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/[0.04]">
-            <span className="font-body text-sm text-white/25">Total</span>
-            <span className="font-mono text-sm text-white font-bold">{totalHrs} hours / day</span>
+          <div className="flex items-center justify-between mt-6 pt-5 border-t border-slate-100">
+            <span className="font-body text-sm text-slate-400">Total</span>
+            <span className="font-display text-lg text-slate-700 font-bold">{totalHrs} hours / day</span>
           </div>
         </section>
       </div>
 
-      {/* ─── 6  RESOURCES ─────────────────────────────────── */}
+      {/* ─── 6  RESOURCES — LeetCode-style grid ─────────── */}
       <section>
-        <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest mb-4">Resources</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5">
+        <p className="font-mono text-xs text-slate-400 uppercase tracking-widest mb-5">Resources</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
           {RESOURCES.map((r) => (
             <a
               key={r.name}
               href={r.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-2xl p-3.5 border border-white/[0.05] bg-white/[0.01] hover:bg-white/[0.03] hover:border-blue-500/20 transition-all text-center group"
+              className="rounded-2xl p-4 border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 transition-all text-center group shadow-sm hover:shadow-md"
             >
-              <p className="font-body text-[12px] text-white/45 group-hover:text-white transition-colors leading-tight mb-1">{r.name}</p>
-              <p className="font-mono text-[8px] text-white/15 uppercase">{r.category}</p>
+              <p className="font-body text-sm text-slate-600 group-hover:text-blue-600 transition-colors leading-tight mb-1">{r.name}</p>
+              <p className="font-mono text-[9px] text-slate-400 uppercase">{r.category}</p>
             </a>
           ))}
         </div>
       </section>
 
-      {/* ─── 7  FOOTER GOAL ───────────────────────────────── */}
-      <section className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-blue-500/[0.03] via-transparent to-violet-500/[0.03] p-10 text-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-[0.012]" style={{ backgroundImage: "radial-gradient(white 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+      {/* ─── 7  FOOTER GOAL — Motivational ────────────────── */}
+      <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-12 text-center relative overflow-hidden shadow-lg">
+        <div className="absolute inset-0 pointer-events-none opacity-[0.02]" style={{ backgroundImage: "radial-gradient(#64748b 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-200 rounded-full blur-[120px] opacity-30" />
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-violet-200 rounded-full blur-[120px] opacity-30" />
+
         <div className="relative">
-          <p className="font-mono text-[10px] text-blue-400/70 uppercase tracking-[0.25em] mb-6">Mission Target — November 17, 2026</p>
+          <p className="font-mono text-xs text-blue-500 uppercase tracking-[0.3em] mb-6">Mission Target — November 17, 2026</p>
+          <h3 className="font-display font-extrabold text-2xl text-slate-700 mb-8">Ready for Google</h3>
           <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
             {[
               "Python mastery for interviews",
@@ -790,11 +891,11 @@ export function FAANGRoadmapClient() {
                 initial={{ opacity: 0, y: 8 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/[0.02] border border-white/[0.05]"
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm"
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
-                <span className="font-body text-[13px] text-white/45">{g}</span>
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-violet-500" />
+                <span className="font-body text-sm text-slate-600">{g}</span>
               </motion.div>
             ))}
           </div>
