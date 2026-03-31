@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /dashboard
+Disallow: /finance/tracker
+Disallow: /education/dashboard
+
+# Host
+Host: https://pavanjillella.com
+
+# Sitemaps
+Sitemap: https://pavanjillella.com/sitemap.xml
