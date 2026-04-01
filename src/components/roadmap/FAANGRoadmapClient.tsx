@@ -25,10 +25,11 @@ import { StudyCalendar } from "./StudyCalendar";
 import DailyQuestionsView from "./DailyQuestionsView";
 import ProductivityDashboard from "./ProductivityDashboard";
 import AdvancedFeatures from "./AdvancedFeatures";
+import ResourcesView from "./ResourcesView";
 import type { RoadmapProgress, UploadedFile } from "@/types";
 
 /* Tab types */
-type TabId = "mission" | "daily-questions" | "productivity" | "advanced";
+type TabId = "mission" | "daily-questions" | "productivity" | "advanced" | "resources";
 
 /* ================================================================
    LIGHT THEME COLOR MAPPINGS
@@ -572,6 +573,7 @@ export function FAANGRoadmapClient() {
     { id: "daily-questions" as TabId, label: "Daily Questions", icon: "📝" },
     { id: "productivity" as TabId, label: "Productivity Tools", icon: "⚡" },
     { id: "advanced" as TabId, label: "Advanced Training", icon: "🚀" },
+    { id: "resources" as TabId, label: "Resources", icon: "📚" },
   ];
 
   return (
@@ -610,6 +612,11 @@ export function FAANGRoadmapClient() {
       {/* ─── ADVANCED TRAINING TAB ───────────────────────────── */}
       {activeTab === "advanced" && (
         <AdvancedFeatures />
+      )}
+
+      {/* ─── RESOURCES TAB ───────────────────────────────────── */}
+      {activeTab === "resources" && (
+        <ResourcesView />
       )}
 
       {/* ─── MISSION CONTROL TAB ────────────────────────────── */}
