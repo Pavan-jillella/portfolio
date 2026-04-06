@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function RoadmapPage() {
   return (
-    <section className="px-4 md:px-6 py-8 pb-24 md:pb-12">
+    <section className="px-4 md:px-6 pt-20 md:pt-24 pb-24 md:pb-12">
       <div className="max-w-7xl mx-auto">
         <RoadmapClientV2 />
       </div>
