@@ -25,6 +25,7 @@ export function RoadmapNav({ currentView, onViewChange, className }: RoadmapNavP
         {navItems.map((item) => (
           <button
             key={item.id}
+            type="button"
             onClick={() => onViewChange(item.id)}
             className={cn(
               "relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200",
@@ -36,7 +37,7 @@ export function RoadmapNav({ currentView, onViewChange, className }: RoadmapNavP
             {currentView === item.id && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-lg border border-emerald-500/30"
+                className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-lg border border-emerald-500/30 pointer-events-none"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               />
             )}
@@ -52,9 +53,10 @@ export function RoadmapNav({ currentView, onViewChange, className }: RoadmapNavP
           {navItems.map((item) => (
             <button
               key={item.id}
+              type="button"
               onClick={() => onViewChange(item.id)}
               className={cn(
-                "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200 min-w-[72px]",
+                "relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200 min-w-[72px]",
                 currentView === item.id
                   ? "text-emerald-400"
                   : "text-white/60"
@@ -63,7 +65,7 @@ export function RoadmapNav({ currentView, onViewChange, className }: RoadmapNavP
               {currentView === item.id && (
                 <motion.div
                   layoutId="mobileActiveTab"
-                  className="absolute inset-0 bg-emerald-500/10 rounded-xl"
+                  className="absolute inset-0 bg-emerald-500/10 rounded-xl pointer-events-none"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}

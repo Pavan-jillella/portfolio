@@ -59,7 +59,7 @@ export function TodayProblems({
             >
               <div className="flex items-start gap-4">
                 {/* Solve toggle */}
-                <button
+                <button type="button"
                   onClick={() => onSolve?.(problem)}
                   className={cn(
                     "mt-1 transition-colors",
@@ -104,7 +104,7 @@ export function TodayProblems({
                     </div>
 
                     {/* Bookmark button */}
-                    <button
+                    <button type="button"
                       onClick={() => onBookmark?.(problem.id)}
                       className={cn(
                         "p-2 rounded-lg transition-colors",

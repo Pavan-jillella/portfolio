@@ -149,6 +149,7 @@ export function DailyQuestCard({ quest, onStartQuest, className }: DailyQuestCar
         
         {!quest.completed && (
           <motion.button
+            type="button"
             onClick={onStartQuest}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-medium transition-colors"
             whileHover={{ scale: 1.02 }}

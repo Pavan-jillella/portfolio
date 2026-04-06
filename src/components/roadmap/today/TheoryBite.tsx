@@ -71,7 +71,7 @@ export function TheoryBite({ theory, isRead = false, onMarkRead, className }: Th
           </div>
 
           {!isRead && (
-            <button
+            <button type="button"
               onClick={onMarkRead}
               className="p-2 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 text-violet-400 transition-colors"
             >

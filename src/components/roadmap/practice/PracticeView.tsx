@@ -139,7 +139,7 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
           {/* Difficulty Filter */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
             {(["all", "easy", "medium", "hard"] as FilterDifficulty[]).map(diff => (
-              <button
+              <button type="button"
                 key={diff}
                 onClick={() => setFilterDifficulty(diff)}
                 className={cn(
@@ -160,7 +160,7 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
           {/* Status Filter */}
           <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
             {(["all", "unsolved", "solved", "bookmarked"] as FilterStatus[]).map(status => (
-              <button
+              <button type="button"
                 key={status}
                 onClick={() => setFilterStatus(status)}
                 className={cn(
@@ -179,11 +179,11 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
           <select
             value={filterPhase ?? ""}
             onChange={(e) => setFilterPhase(e.target.value ? Number(e.target.value) : null)}
-            className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none"
+            className="px-3 py-2 rounded-lg bg-charcoal-800 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500/50 cursor-pointer"
           >
-            <option value="">All Phases</option>
+            <option value="" className="bg-charcoal-800">All Phases</option>
             {ROADMAP_PHASES.map(phase => (
-              <option key={phase.id} value={phase.id}>
+              <option key={phase.id} value={phase.id} className="bg-charcoal-800">
                 Phase {phase.id}: {phase.title}
               </option>
             ))}
@@ -191,7 +191,7 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
 
           {/* View Toggle */}
           <div className="ml-auto flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
-            <button
+            <button type="button"
               onClick={() => setViewMode("list")}
               className={cn(
                 "p-2 rounded-md transition-colors",
@@ -200,7 +200,7 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
             >
               <List className="w-4 h-4" />
             </button>
-            <button
+            <button type="button"
               onClick={() => setViewMode("grid")}
               className={cn(
                 "p-2 rounded-md transition-colors",
@@ -244,7 +244,7 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
             >
               <div className="flex items-start gap-3">
                 {/* Solve toggle */}
-                <button
+                <button type="button"
                   onClick={() => {
                     if (!isSolved && onSolveProblem) {
                       onSolveProblem({
@@ -293,7 +293,7 @@ export function PracticeView({ progress, onSolveProblem, onBookmark, className }
                       <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 flex-shrink-0" />
                     </a>
 
-                    <button
+                    <button type="button"
                       onClick={() => onBookmark?.(problem.id)}
                       className={cn(
                         "p-1.5 rounded-lg transition-colors flex-shrink-0",

@@ -131,7 +131,7 @@ export function JourneyView({ progress, className }: JourneyViewProps) {
                   transition={{ delay: index * 0.05 }}
                 >
                   {/* Phase card */}
-                  <button
+                  <button type="button"
                     onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
                     className={cn(
                       "w-full text-left p-4 pl-16 rounded-xl border transition-all relative",
