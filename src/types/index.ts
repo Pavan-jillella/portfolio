@@ -1248,7 +1248,7 @@ export interface MockInterviewSession {
 }
 
 // View State
-export type RoadmapView = 'today' | 'journey' | 'practice';
+export type RoadmapView = 'today' | 'journey' | 'practice' | 'resources';
 
 export interface RoadmapViewState {
   currentView: RoadmapView;

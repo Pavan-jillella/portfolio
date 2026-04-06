@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { RoadmapView } from "@/types";
 import { motion } from "framer-motion";
-import { Target, Map, Swords } from "lucide-react";
+import { Target, Map, Swords, BookOpen } from "lucide-react";
 
 interface RoadmapNavProps {
   currentView: RoadmapView;
@@ -15,6 +15,7 @@ const navItems: { id: RoadmapView; label: string; icon: React.ReactNode; shortLa
   { id: "today", label: "Today", shortLabel: "Today", icon: <Target className="w-5 h-5" /> },
   { id: "journey", label: "Journey", shortLabel: "Journey", icon: <Map className="w-5 h-5" /> },
   { id: "practice", label: "Practice", shortLabel: "Practice", icon: <Swords className="w-5 h-5" /> },
+  { id: "resources", label: "Resources", shortLabel: "Learn", icon: <BookOpen className="w-5 h-5" /> },
 ];
 
 export function RoadmapNav({ currentView, onViewChange, className }: RoadmapNavProps) {

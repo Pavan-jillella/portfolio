@@ -15,6 +15,7 @@ import { useRoadmapProgress, useTodaysPlan } from "./data";
 import { TodayView } from "./today";
 import { JourneyView } from "./journey";
 import { PracticeView } from "./practice";
+import { ResourcesView } from "./resources";
 
 // Shared
 import { XPBar } from "./shared";
@@ -131,6 +132,10 @@ export function RoadmapClientV2({ className }: RoadmapClientV2Props) {
               onSolveProblem={handlePracticeSolve}
               onBookmark={toggleBookmark}
             />
+          )}
+
+          {currentView === "resources" && (
+            <ResourcesView />
           )}
         </motion.div>
       </AnimatePresence>
