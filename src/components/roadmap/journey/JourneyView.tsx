@@ -3,17 +3,18 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { RoadmapProgressV2 } from "@/types";
-import { ROADMAP_PHASES, RoadmapPhase } from "@/lib/roadmap-data";
+import { ROADMAP_PHASES } from "@/lib/roadmap-data";
 import { ProgressRing, AchievementBadge } from "../shared";
 import { ChevronRight, CheckCircle2, Circle, Calendar, Target, Trophy, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 interface JourneyViewProps {
   progress: RoadmapProgressV2;
+  onToggleTopic?: (phaseId: number, topicId: string) => void;
   className?: string;
 }
 
-export function JourneyView({ progress, className }: JourneyViewProps) {
+export function JourneyView({ progress, onToggleTopic, className }: JourneyViewProps) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
 
   // Calculate overall stats
@@ -201,11 +202,14 @@ export function JourneyView({ progress, className }: JourneyViewProps) {
                           )?.completed;
                           
                           return (
-                            <div
+                            <button
+                              type="button"
                               key={topic.id}
+                              onClick={() => onToggleTopic?.(phase.id, topic.id)}
                               className={cn(
-                                "flex items-center gap-2 p-2 rounded-lg text-sm",
-                                isCompleted ? "bg-emerald-500/10 text-emerald-400" : "text-white/60"
+                                "flex items-center gap-2 p-2 rounded-lg text-sm text-left transition-all",
+                                "hover:bg-white/10 cursor-pointer",
+                                isCompleted ? "bg-emerald-500/10 text-emerald-400" : "text-white/60 hover:text-white/80"
                               )}
                             >
                               {isCompleted ? (
@@ -214,7 +218,7 @@ export function JourneyView({ progress, className }: JourneyViewProps) {
                                 <Circle className="w-4 h-4 flex-shrink-0" />
                               )}
                               <span className="truncate">{topic.label.split("(")[0].trim()}</span>
-                            </div>
+                            </button>
                           );
                         })}
                       </div>

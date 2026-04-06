@@ -31,6 +31,7 @@ export function RoadmapClientV2({ className }: RoadmapClientV2Props) {
     isLoaded,
     solveProblem,
     toggleBookmark,
+    toggleTopic,
     addXP,
   } = useRoadmapProgress();
   
@@ -121,7 +122,7 @@ export function RoadmapClientV2({ className }: RoadmapClientV2Props) {
           )}
 
           {currentView === "journey" && (
-            <JourneyView progress={progress} />
+            <JourneyView progress={progress} onToggleTopic={toggleTopic} />
           )}
 
           {currentView === "practice" && (
