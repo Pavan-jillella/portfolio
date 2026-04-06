@@ -1062,3 +1062,199 @@ export interface AboutMetaData {
   resumeUrl: string;
   resumeFileName: string;
 }
+
+// ===== Enhanced Roadmap Types (Redesign v2) =====
+
+// XP & Leveling System
+export interface XPAction {
+  type: 'easy_problem' | 'medium_problem' | 'hard_problem' | 'theory_read' | 'daily_streak' | 'quest_complete' | 'mock_interview' | 'achievement_unlock';
+  xp: number;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UserLevel {
+  level: number;
+  title: string;
+  minXP: number;
+  maxXP: number;
+}
+
+export const LEVEL_TIERS: UserLevel[] = [
+  { level: 1, title: 'Beginner', minXP: 0, maxXP: 100 },
+  { level: 2, title: 'Beginner', minXP: 100, maxXP: 250 },
+  { level: 3, title: 'Beginner', minXP: 250, maxXP: 450 },
+  { level: 4, title: 'Beginner', minXP: 450, maxXP: 700 },
+  { level: 5, title: 'Apprentice', minXP: 700, maxXP: 1000 },
+  { level: 6, title: 'Apprentice', minXP: 1000, maxXP: 1400 },
+  { level: 7, title: 'Apprentice', minXP: 1400, maxXP: 1900 },
+  { level: 8, title: 'Apprentice', minXP: 1900, maxXP: 2500 },
+  { level: 9, title: 'Apprentice', minXP: 2500, maxXP: 3200 },
+  { level: 10, title: 'Apprentice', minXP: 3200, maxXP: 4000 },
+  { level: 11, title: 'Problem Solver', minXP: 4000, maxXP: 5000 },
+  { level: 12, title: 'Problem Solver', minXP: 5000, maxXP: 6200 },
+  { level: 13, title: 'Problem Solver', minXP: 6200, maxXP: 7600 },
+  { level: 14, title: 'Problem Solver', minXP: 7600, maxXP: 9200 },
+  { level: 15, title: 'Problem Solver', minXP: 9200, maxXP: 11000 },
+  { level: 16, title: 'Algorithm Master', minXP: 11000, maxXP: 13000 },
+  { level: 17, title: 'Algorithm Master', minXP: 13000, maxXP: 15500 },
+  { level: 18, title: 'Algorithm Master', minXP: 15500, maxXP: 18500 },
+  { level: 19, title: 'Algorithm Master', minXP: 18500, maxXP: 22000 },
+  { level: 20, title: 'Algorithm Master', minXP: 22000, maxXP: 26000 },
+  { level: 21, title: 'Interview Ready', minXP: 26000, maxXP: 31000 },
+  { level: 22, title: 'Interview Ready', minXP: 31000, maxXP: 37000 },
+  { level: 23, title: 'Interview Ready', minXP: 37000, maxXP: 44000 },
+  { level: 24, title: 'Interview Ready', minXP: 44000, maxXP: 52000 },
+  { level: 25, title: 'Google Ready', minXP: 52000, maxXP: Infinity },
+];
+
+export const XP_VALUES = {
+  easy_problem: 10,
+  medium_problem: 25,
+  hard_problem: 50,
+  theory_read: 5,
+  daily_streak: 15,
+  quest_complete: 30,
+  mock_interview: 100,
+  achievement_unlock: 50,
+} as const;
+
+// Daily Quest System
+export interface DailyQuest {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  phaseId: number;
+  topicId: string;
+  objectives: QuestObjective[];
+  bonusObjectives: QuestObjective[];
+  totalXP: number;
+  completed: boolean;
+  completedAt?: string;
+}
+
+export interface QuestObjective {
+  id: string;
+  type: 'problems' | 'theory' | 'time' | 'notes';
+  description: string;
+  target: number;
+  current: number;
+  xpReward: number;
+  completed: boolean;
+}
+
+// Problem Tracking
+export interface TrackedProblem {
+  id: string;
+  leetcodeNumber: number;
+  title: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  url: string;
+  topicId: string;
+  phaseId: number;
+  tags: string[];
+  solved: boolean;
+  solvedAt?: string;
+  attempts: number;
+  timeSpent?: number; // minutes
+  notes?: string;
+  bookmarked: boolean;
+  lastReviewDate?: string;
+  masteryLevel: 0 | 1 | 2 | 3; // 0=unsolved, 1=solved, 2=reviewed, 3=mastered
+}
+
+// Achievement System
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: 'problems' | 'streak' | 'patterns' | 'mock' | 'speed' | 'dedication';
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+  requirement: {
+    type: string;
+    value: number;
+  };
+  xpReward: number;
+  unlockedAt?: string;
+}
+
+// Enhanced Progress State
+export interface RoadmapProgressV2 {
+  // Core progress
+  phases: RoadmapPhaseProgress[];
+  dailyEntries: DailyStudyEntry[];
+  
+  // XP & Leveling
+  totalXP: number;
+  xpHistory: XPAction[];
+  
+  // Problems
+  problemsSolved: Record<string, TrackedProblem>;
+  problemStats: {
+    easy: number;
+    medium: number;
+    hard: number;
+    total: number;
+  };
+  
+  // Streaks
+  currentStreak: number;
+  longestStreak: number;
+  lastActivityDate: string;
+  
+  // Achievements
+  achievements: Achievement[];
+  unlockedAchievements: string[];
+  
+  // Quests
+  dailyQuests: DailyQuest[];
+  completedQuests: number;
+  
+  // Mock Interviews
+  mockInterviews: MockInterviewSession[];
+  mockInterviewsDone: number;
+  
+  // Bookmarks & Notes
+  bookmarkedProblems: string[];
+  problemNotes: Record<string, string>;
+  
+  // Misc
+  systemDesignsDone: number;
+  projectsCompleted: string[];
+  updatedAt: string;
+}
+
+export interface MockInterviewSession {
+  id: string;
+  startedAt: string;
+  completedAt?: string;
+  duration: number; // minutes
+  problems: {
+    id: string;
+    title: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    solved: boolean;
+    timeSpent: number;
+  }[];
+  score: {
+    coding: number;
+    communication: number;
+    problemSolving: number;
+    overall: number;
+  };
+  notes?: string;
+}
+
+// View State
+export type RoadmapView = 'today' | 'journey' | 'practice';
+
+export interface RoadmapViewState {
+  currentView: RoadmapView;
+  todayTab?: 'quest' | 'problems' | 'theory';
+  journeyTab?: 'timeline' | 'achievements' | 'stats';
+  practiceTab?: 'arena' | 'mock' | 'patterns' | 'blind75' | 'bookmarks';
+  selectedPhase?: number;
+  selectedProblem?: string;
+}

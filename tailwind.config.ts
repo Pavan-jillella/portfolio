@@ -87,6 +87,8 @@ const config: Config = {
         "float-fast": "float 4s ease-in-out infinite 0.5s",
         "pulse-glow": "pulseGlow 3s ease-in-out infinite",
         grain: "grain 0.5s steps(1) infinite",
+        flame: "flame 0.5s ease-in-out infinite alternate",
+        shine: "shine 2s ease-in-out infinite",
       },
       keyframes: {
         float: {
@@ -109,6 +111,14 @@ const config: Config = {
           "70%": { transform: "translate(-3%, 1%)" },
           "80%": { transform: "translate(2%, 3%)" },
           "90%": { transform: "translate(-1%, -1%)" },
+        },
+        flame: {
+          "0%": { transform: "scale(1) rotate(-2deg)" },
+          "100%": { transform: "scale(1.1) rotate(2deg)" },
+        },
+        shine: {
+          "0%": { transform: "translateX(-100%)" },
+          "50%, 100%": { transform: "translateX(100%)" },
         },
       },
       backdropBlur: {
