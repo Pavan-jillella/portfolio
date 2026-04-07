@@ -1159,6 +1159,8 @@ export interface TrackedProblem {
   attempts: number;
   timeSpent?: number; // minutes
   notes?: string;
+  solution?: string; // User's solution code
+  explanation?: string; // User's explanation of approach
   bookmarked: boolean;
   lastReviewDate?: string;
   masteryLevel: 0 | 1 | 2 | 3; // 0=unsolved, 1=solved, 2=reviewed, 3=mastered

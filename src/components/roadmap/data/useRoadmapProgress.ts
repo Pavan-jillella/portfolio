@@ -278,6 +278,22 @@ export function useRoadmapProgress() {
     saveProgress({ ...progress, bookmarkedProblems: bookmarks, problemsSolved });
   }, [progress, saveProgress]);
 
+  // Save problem solution and explanation
+  const saveProblemNotes = useCallback((problemId: string, solution: string, explanation: string) => {
+    if (!progress) return;
+    
+    const problemsSolved = { ...progress.problemsSolved };
+    if (problemsSolved[problemId]) {
+      problemsSolved[problemId] = {
+        ...problemsSolved[problemId],
+        solution,
+        explanation,
+      };
+    }
+    
+    saveProgress({ ...progress, problemsSolved });
+  }, [progress, saveProgress]);
+
   // Complete daily quest
   const completeQuest = useCallback((questId: string) => {
     if (!progress) return;
@@ -367,6 +383,7 @@ export function useRoadmapProgress() {
     solveProblem,
     toggleTopic,
     toggleBookmark,
+    saveProblemNotes,
     completeQuest,
     addMockInterview,
     getOverallProgress,

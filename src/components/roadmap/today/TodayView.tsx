@@ -15,6 +15,7 @@ interface TodayViewProps {
   todaysPlan: TodaysPlan | null;
   onSolveProblem?: (problem: Parameters<typeof TodayProblems>[0]["problems"][0]) => void;
   onBookmarkProblem?: (problemId: string) => void;
+  onSaveProblemNotes?: (problemId: string, solution: string, explanation: string) => void;
   onMarkTheoryRead?: () => void;
   className?: string;
 }
@@ -24,6 +25,7 @@ export function TodayView({
   todaysPlan, 
   onSolveProblem,
   onBookmarkProblem,
+  onSaveProblemNotes,
   onMarkTheoryRead,
   className 
 }: TodayViewProps) {
@@ -56,7 +58,7 @@ export function TodayView({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="p-5 rounded-xl bg-white/5 border border-white/10"
+            className="p-5 rounded-xl bg-glass-white border border-glass-border"
           >
             <TodayProblems
               problems={todaysPlan.recommendedProblems}
@@ -64,6 +66,7 @@ export function TodayView({
               bookmarkedIds={progress.bookmarkedProblems}
               onSolve={onSolveProblem}
               onBookmark={onBookmarkProblem}
+              onSaveNotes={onSaveProblemNotes}
             />
           </motion.div>
 
@@ -85,9 +88,9 @@ export function TodayView({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-5 rounded-xl bg-white/5 border border-white/10"
+              className="p-5 rounded-xl bg-glass-white border border-glass-border"
             >
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
                 <span>💡</span>
                 Learning Tips
               </h3>
@@ -95,19 +98,19 @@ export function TodayView({
                 {todaysPlan.curriculumContent.learningTips.slice(0, 3).map((tip, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-white/5"
+                    className="flex items-start gap-3 p-3 rounded-lg bg-charcoal-950"
                   >
                     <span className={cn(
                       "px-2 py-0.5 rounded text-xs font-medium",
-                      tip.category === "shortcut" && "bg-blue-500/20 text-blue-400",
-                      tip.category === "pattern" && "bg-violet-500/20 text-violet-400",
-                      tip.category === "trick" && "bg-amber-500/20 text-amber-400",
-                      tip.category === "mindset" && "bg-emerald-500/20 text-emerald-400",
-                      tip.category === "optimization" && "bg-orange-500/20 text-orange-400",
+                      tip.category === "shortcut" && "bg-gold/20 text-gold-dark",
+                      tip.category === "pattern" && "bg-taupe/20 text-taupe",
+                      tip.category === "trick" && "bg-gold/20 text-gold-dark",
+                      tip.category === "mindset" && "bg-sage/20 text-sage-dark",
+                      tip.category === "optimization" && "bg-gold/20 text-gold-dark",
                     )}>
                       {tip.category}
                     </span>
-                    <p className="text-sm text-white/70 flex-1">{tip.tip}</p>
+                    <p className="text-sm text-muted-foreground flex-1">{tip.tip}</p>
                   </div>
                 ))}
               </div>
@@ -127,12 +130,12 @@ export function TodayView({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="p-5 rounded-xl bg-gradient-to-r from-charcoal-800/50 to-charcoal-900/50 border border-white/10"
+          className="p-5 rounded-xl bg-gradient-to-r from-cream-warm to-cream border border-glass-border"
         >
-          <h3 className="text-sm uppercase tracking-wider text-white/40 mb-2">
+          <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">
             Tomorrow&apos;s Preview
           </h3>
-          <p className="text-white/70">{todaysPlan.curriculumContent.tomorrowPreview}</p>
+          <p className="text-foreground">{todaysPlan.curriculumContent.tomorrowPreview}</p>
         </motion.div>
       )}
     </motion.div>

@@ -33,6 +33,7 @@ export function RoadmapClientV2({ className }: RoadmapClientV2Props) {
     solveProblem,
     toggleBookmark,
     toggleTopic,
+    saveProblemNotes,
     addXP,
   } = useRoadmapProgress();
   
@@ -118,6 +119,7 @@ export function RoadmapClientV2({ className }: RoadmapClientV2Props) {
               todaysPlan={todaysPlan}
               onSolveProblem={handleSolveProblem}
               onBookmarkProblem={toggleBookmark}
+              onSaveProblemNotes={saveProblemNotes}
               onMarkTheoryRead={handleTheoryRead}
             />
           )}
