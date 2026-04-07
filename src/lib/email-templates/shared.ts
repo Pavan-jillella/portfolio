@@ -1,4 +1,5 @@
 // Email template utilities and shared styles
+// Matches the website's elegant editorial theme
 
 export const EMAIL_CONFIG = {
   name: "Pavan Jillella",
@@ -13,16 +14,33 @@ export const EMAIL_CONFIG = {
   responseTime: "24-48 hours",
 };
 
+// Matches website's dark mode colors
 export const COLORS = {
-  bgDark: "#0a0c12",
-  bgCard: "#12141a",
-  border: "#1e2028",
-  textPrimary: "#ffffff",
-  textSecondary: "#9ca3af",
-  textMuted: "#6b7280",
-  accentBlue: "#3b82f6",
+  // Backgrounds
+  bgDark: "#1a1a18",
+  bgCard: "#232320",
+  bgCardLight: "#2d2d2a",
+  
+  // Borders
+  border: "rgba(255, 255, 255, 0.08)",
+  borderSolid: "#3a3a36",
+  
+  // Text
+  textPrimary: "#f8f5f0",
+  textSecondary: "#a8a5a0",
+  textMuted: "#6b6b68",
+  
+  // Accents (matching website)
   accentGold: "#c9a96e",
-  accentGreen: "#34d399",
+  accentTaupe: "#8b7355",
+  accentSage: "#7a9e7a",
+  accentBlue: "#6b9bd1",
+};
+
+// Web-safe fonts that match website feel
+export const FONTS = {
+  display: "Georgia, 'Times New Roman', serif", // Similar to Cormorant Garamond
+  body: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", // Similar to Outfit
 };
 
 export function formatDate(date: Date = new Date()): string {
