@@ -1,113 +1,114 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* ===== Dark Mode (default) ===== */
+  /* ===== Elegant Editorial Theme (default - light) ===== */
   :root {
     /* Color channel triplets for Tailwind alpha support */
-    --color-white: 255 255 255;
-    --charcoal-950: 8 10 15;
-    --charcoal-900: 13 17 23;
-    --charcoal-800: 19 25 32;
-    --charcoal-700: 26 34 48;
+    --color-white: 26 26 24;
+    --charcoal-950: 248 245 240;
+    --charcoal-900: 255 255 255;
+    --charcoal-800: 232 228 223;
+    --charcoal-700: 139 115 85;
 
     /* Semantic colors */
-    --background: #080a0f;
-    --foreground: #e8eaf0;
-    --neon-blue: #3b82f6;
-    --neon-cyan: #06b6d4;
+    --background: #f8f5f0;
+    --foreground: #1a1a18;
+    --accent-gold: #c9a96e;
+    --accent-taupe: #8b7355;
+    --accent-sage: #7a9e7a;
 
-    /* Glass */
+    /* Glass (warm tones) */
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(232, 228, 223, 1);
+    --glass-hover: rgba(255, 255, 255, 0.95);
+    --glass-border-hover: rgba(201, 169, 110, 0.3);
+
+    /* Nav */
+    --nav-bg: rgba(248, 245, 240, 0.9);
+    --nav-border: rgba(232, 228, 223, 1);
+
+    /* Grain */
+    --grain-opacity: 0.012;
+
+    /* Cursor glow */
+    --cursor-glow: rgba(201, 169, 110, 0.1);
+
+    /* Scrollbar */
+    --scrollbar-thumb: rgba(201, 169, 110, 0.4);
+    --scrollbar-thumb-hover: rgba(201, 169, 110, 0.7);
+
+    /* Prose */
+    --prose-heading: #1a1a18;
+    --prose-body: #6b6b68;
+    --prose-muted: #8b7355;
+    --prose-border: rgba(232, 228, 223, 1);
+    --prose-border-light: rgba(232, 228, 223, 0.5);
+    --prose-code-bg: rgba(201, 169, 110, 0.1);
+    --prose-code-text: #8b7355;
+
+    /* Section label */
+    --section-label-color: #8b7355;
+
+    /* HSL tokens for shadcn compatibility */
+    --card: 40 20% 99%;
+    --card-foreground: 40 5% 10%;
+    --popover: 40 20% 98%;
+    --popover-foreground: 40 5% 10%;
+    --primary: 38 45% 61%;
+    --primary-foreground: 40 5% 10%;
+    --secondary: 35 15% 90%;
+    --secondary-foreground: 40 5% 10%;
+    --muted: 35 15% 90%;
+    --muted-foreground: 30 20% 45%;
+    --accent: 38 45% 61%;
+    --accent-foreground: 40 5% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 15% 90%;
+    --input: 35 15% 90%;
+    --ring: 38 45% 61%;
+    --radius: 0.25rem;
+  }
+
+  /* ===== Dark Mode ===== */
+  html.dark {
+    --color-white: 248 245 240;
+    --charcoal-950: 26 26 24;
+    --charcoal-900: 35 35 32;
+    --charcoal-800: 45 45 42;
+    --charcoal-700: 60 60 56;
+
+    --background: #1a1a18;
+    --foreground: #f8f5f0;
+
     --glass-bg: rgba(255, 255, 255, 0.04);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-hover: rgba(255, 255, 255, 0.07);
-    --glass-border-hover: rgba(255, 255, 255, 0.12);
+    --glass-border-hover: rgba(201, 169, 110, 0.2);
 
-    /* Nav */
-    --nav-bg: rgba(8, 10, 15, 0.7);
-    --nav-border: rgba(255, 255, 255, 0.05);
+    --nav-bg: rgba(26, 26, 24, 0.9);
+    --nav-border: rgba(255, 255, 255, 0.08);
 
-    /* Grain */
-    --grain-opacity: 0.025;
+    --grain-opacity: 0.02;
 
-    /* Cursor glow */
-    --cursor-glow: rgba(59, 130, 246, 0.08);
+    --cursor-glow: rgba(201, 169, 110, 0.1);
 
-    /* Scrollbar */
-    --scrollbar-thumb: rgba(59, 130, 246, 0.3);
-    --scrollbar-thumb-hover: rgba(59, 130, 246, 0.6);
+    --scrollbar-thumb: rgba(201, 169, 110, 0.3);
+    --scrollbar-thumb-hover: rgba(201, 169, 110, 0.5);
 
-    /* Prose */
-    --prose-heading: #ffffff;
-    --prose-body: rgba(255, 255, 255, 0.7);
-    --prose-muted: rgba(255, 255, 255, 0.5);
+    --prose-heading: #f8f5f0;
+    --prose-body: rgba(248, 245, 240, 0.7);
+    --prose-muted: rgba(248, 245, 240, 0.5);
     --prose-border: rgba(255, 255, 255, 0.08);
     --prose-border-light: rgba(255, 255, 255, 0.05);
-    --prose-code-bg: rgba(255, 255, 255, 0.06);
-    --prose-code-text: #93c5fd;
+    --prose-code-bg: rgba(201, 169, 110, 0.15);
+    --prose-code-text: #c9a96e;
 
-    /* Section label */
-    --section-label-color: rgba(59, 130, 246, 0.7);
-
-    /* HSL tokens for shadcn compatibility */
-    --card: 0 0% 4%;
-    --card-foreground: 220 20% 92%;
-    --popover: 215 30% 6%;
-    --popover-foreground: 220 20% 92%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 100% / 0.04;
-    --secondary-foreground: 220 20% 92%;
-    --muted: 0 0% 100% / 0.04;
-    --muted-foreground: 0 0% 100% / 0.5;
-    --accent: 0 0% 100% / 0.07;
-    --accent-foreground: 220 20% 92%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 100% / 0.08;
-    --input: 0 0% 100% / 0.08;
-    --ring: 217 91% 60%;
-    --radius: 0.75rem;
-  }
-
-  /* ===== Light Mode ===== */
-  html.light {
-    --color-white: 26 32 48;
-    --charcoal-950: 248 249 252;
-    --charcoal-900: 241 243 248;
-    --charcoal-800: 233 236 243;
-    --charcoal-700: 224 228 237;
-
-    --background: #f8f9fc;
-    --foreground: #1a2030;
-
-    --glass-bg: rgba(0, 0, 0, 0.03);
-    --glass-border: rgba(0, 0, 0, 0.08);
-    --glass-hover: rgba(0, 0, 0, 0.06);
-    --glass-border-hover: rgba(0, 0, 0, 0.12);
-
-    --nav-bg: rgba(248, 249, 252, 0.8);
-    --nav-border: rgba(0, 0, 0, 0.06);
-
-    --grain-opacity: 0.015;
-
-    --cursor-glow: rgba(59, 130, 246, 0.05);
-
-    --scrollbar-thumb: rgba(59, 130, 246, 0.2);
-    --scrollbar-thumb-hover: rgba(59, 130, 246, 0.4);
-
-    --prose-heading: #1a2030;
-    --prose-body: rgba(26, 32, 48, 0.7);
-    --prose-muted: rgba(26, 32, 48, 0.5);
-    --prose-border: rgba(0, 0, 0, 0.08);
-    --prose-border-light: rgba(0, 0, 0, 0.05);
-    --prose-code-bg: rgba(59, 130, 246, 0.06);
-    --prose-code-text: #2563eb;
-
-    --section-label-color: rgba(59, 130, 246, 0.8);
+    --section-label-color: #c9a96e;
   }
 }
 
@@ -122,7 +123,8 @@ html {
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

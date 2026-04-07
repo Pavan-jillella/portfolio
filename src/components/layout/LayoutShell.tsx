@@ -8,7 +8,7 @@ import { Footer } from "@/components/sections/Footer";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isMinimalPage = pathname === "/login" || pathname === "/blog/write" || pathname === "/terms" || pathname === "/privacy";
+  const isMinimalPage = pathname === "/login" || pathname === "/blog/write" || pathname === "/terms" || pathname === "/privacy" || pathname === "/theme-preview";
 
   return (
     <>

@@ -11,8 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ["'Syne'", "sans-serif"],
-        body: ["'DM Sans'", "sans-serif"],
+        display: ["'Cormorant Garamond'", "serif"],
+        body: ["'Outfit'", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
       colors: {
@@ -28,46 +28,57 @@ const config: Config = {
           border: "var(--glass-border)",
           hover: "var(--glass-hover)",
         },
-        neon: {
-          blue: "#3b82f6",
-          cyan: "#06b6d4",
-          glow: "rgba(59,130,246,0.15)",
+        gold: {
+          DEFAULT: "#c9a96e",
+          light: "#d4bc8a",
+          dark: "#a68b4f",
+          glow: "rgba(201, 169, 110, 0.15)",
         },
-        warm: {
-          DEFAULT: "#f59e0b",
-          light: "#fbbf24",
-          glow: "rgba(245,158,11,0.15)",
+        taupe: {
+          DEFAULT: "#8b7355",
+          light: "#a08b6d",
+          dark: "#6b5a42",
+        },
+        sage: {
+          DEFAULT: "#7a9e7a",
+          light: "#96b496",
+          dark: "#5e7e5e",
+        },
+        cream: {
+          DEFAULT: "#f8f5f0",
+          warm: "#f5f0e8",
+          light: "#fdfcfa",
         },
         section: {
-          education: "#3b82f6",
-          finance: "#10b981",
-          projects: "#8b5cf6",
-          blog: "#f97316",
+          education: "#c9a96e",
+          finance: "#7a9e7a",
+          projects: "#8b7355",
+          blog: "#c9a96e",
         },
         border: "var(--glass-border)",
         input: "var(--glass-border)",
-        ring: "#3b82f6",
+        ring: "#c9a96e",
         background: "var(--background)",
         foreground: "var(--foreground)",
         primary: {
-          DEFAULT: "#3b82f6",
-          foreground: "rgb(var(--color-white) / <alpha-value>)",
+          DEFAULT: "#c9a96e",
+          foreground: "#1a1a18",
         },
         secondary: {
           DEFAULT: "var(--glass-bg)",
           foreground: "var(--foreground)",
         },
         destructive: {
-          DEFAULT: "#ef4444",
-          foreground: "rgb(var(--color-white) / <alpha-value>)",
+          DEFAULT: "#c45b5b",
+          foreground: "#fdfcfa",
         },
         muted: {
           DEFAULT: "var(--glass-bg)",
-          foreground: "rgb(var(--color-white) / 0.5)",
+          foreground: "#8b7355",
         },
         accent: {
-          DEFAULT: "var(--glass-hover)",
-          foreground: "var(--foreground)",
+          DEFAULT: "#c9a96e",
+          foreground: "#1a1a18",
         },
         popover: {
           DEFAULT: "rgb(var(--charcoal-900) / <alpha-value>)",
