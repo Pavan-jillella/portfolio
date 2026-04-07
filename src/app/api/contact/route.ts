@@ -3,6 +3,10 @@ import { z } from "zod";
 import nodemailer from "nodemailer";
 import { rateLimit } from "@/lib/rate-limit";
 import * as Sentry from "@sentry/nextjs";
+import {
+  generateContactNotificationEmail,
+  generateContactConfirmationEmail,
+} from "@/lib/email-templates";
 
 function escapeHtml(str: string): string {
   return str
@@ -91,17 +95,34 @@ export async function POST(req: NextRequest) {
       auth: { user: smtpUser, pass: smtpPass },
     });
 
+    // Generate beautiful HTML emails
+    const notificationHtml = generateContactNotificationEmail({
+      senderName: escapeHtml(name),
+      senderEmail: escapeHtml(email),
+      message: escapeHtml(message).replace(/\n/g, "<br>"),
+    });
+
+    const confirmationHtml = generateContactConfirmationEmail({
+      senderName: escapeHtml(name),
+    });
+
+    // Send notification to you (Pavan)
     await transporter.sendMail({
       from: `"Portfolio Contact" <${smtpUser}>`,
       to: contactEmail,
       replyTo: email,
-      subject: `Portfolio Contact: ${name}`,
+      subject: `📬 New message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-      html: `<h3>New Contact Form Submission</h3>
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        <p><strong>Message:</strong></p>
-        <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>`,
+      html: notificationHtml,
+    });
+
+    // Send confirmation to the sender
+    await transporter.sendMail({
+      from: `"Pavan Jillella" <${smtpUser}>`,
+      to: email,
+      subject: `Thanks for reaching out, ${name.split(' ')[0]}! 👋`,
+      text: `Hi ${name.split(' ')[0]},\n\nThank you for reaching out! I've received your message and will get back to you within 24-48 hours.\n\nIn the meantime, feel free to explore my portfolio at https://pavanjillella.com\n\nBest regards,\nPavan Jillella\nData Analyst @ Morgan Stanley`,
+      html: confirmationHtml,
     });
 
     return NextResponse.json({ success: true });
