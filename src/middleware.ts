@@ -11,6 +11,7 @@ const PUBLIC_PATHS = [
   "/contact",
   "/finance",
   "/education",
+  "/theme-preview",
   "/api/auth",
   "/api/contact",
   "/api/comments",
