@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
 import { UserProject } from "@/types";
@@ -12,6 +12,17 @@ import { isOwner } from "@/lib/roles";
 const LANGUAGES = ["All", "TypeScript", "JavaScript", "Python", "Go", "Rust", "Java", "Other"];
 
 const FEATURED_PROJECTS: UserProject[] = [
+  {
+    id: "feat-urstudios",
+    name: "UR Pixel Studio",
+    description: "Professional photography portfolio website built for urpixelstudio.com. Features elegant cinematic design, image galleries, booking system, and responsive layouts optimized for showcasing visual content.",
+    language: "TypeScript",
+    url: "https://github.com/Pavan-jillella/ur-studios",
+    stars: 0,
+    forks: 0,
+    topics: ["nextjs", "photography", "portfolio", "tailwindcss", "client-project"],
+    created_at: "2025-03-01T00:00:00Z",
+  },
   {
     id: "feat-1",
     name: "Predictive Maintenance ML Pipeline",
@@ -86,9 +97,49 @@ const inputClass =
 export default function ProjectsPage() {
   const { user } = useAuth();
   const [projects, setProjects] = useSupabaseRealtimeSync<UserProject>("pj-user-projects", "user_projects", []);
+  const [githubRepos, setGithubRepos] = useState<UserProject[]>([]);
+  const [loadingGithub, setLoadingGithub] = useState(true);
 
-  // Merge featured projects (shown alongside user projects, user's appear first)
-  const allProjects = [...projects, ...FEATURED_PROJECTS.filter((fp) => !projects.some((p) => p.id === fp.id))];
+  // Fetch all GitHub repos on mount
+  useEffect(() => {
+    async function fetchGithubRepos() {
+      try {
+        const res = await fetch("/api/github?username=Pavan-jillella&all=true");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.repos && Array.isArray(data.repos)) {
+            const mapped: UserProject[] = data.repos.map((r: any) => ({
+              id: `gh-${r.id}`,
+              name: r.name,
+              description: r.description || "No description available",
+              language: r.language || "Other",
+              url: r.html_url,
+              stars: r.stargazers_count || 0,
+              forks: r.forks_count || 0,
+              topics: r.topics || [],
+              created_at: r.updated_at || new Date().toISOString(),
+            }));
+            setGithubRepos(mapped);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch GitHub repos:", error);
+      } finally {
+        setLoadingGithub(false);
+      }
+    }
+    fetchGithubRepos();
+  }, []);
+
+  // Merge: user projects first, then featured, then GitHub repos (deduplicated)
+  const allProjects = [
+    ...projects,
+    ...FEATURED_PROJECTS.filter((fp) => !projects.some((p) => p.id === fp.id)),
+    ...githubRepos.filter((gr) => 
+      !projects.some((p) => p.url === gr.url) && 
+      !FEATURED_PROJECTS.some((fp) => fp.url === gr.url || fp.name.toLowerCase().includes(gr.name.toLowerCase()))
+    ),
+  ];
 
   const [activeLang, setActiveLang] = useState("All");
   const [manageMode, setManageMode] = useState(false);
@@ -170,7 +221,7 @@ export default function ProjectsPage() {
       <PageHeader
         label="Projects"
         title="Things I've built."
-        description="Open source tools, libraries, and applications. Most are built to scratch my own itch."
+        description={`Open source tools, libraries, and applications.${loadingGithub ? "" : ` Showing ${allProjects.length} projects from GitHub and featured work.`}`}
       />
 
       <section className="px-6 pb-20">
