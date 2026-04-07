@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSupabaseRealtimeSync } from "@/hooks/useSupabaseRealtimeSync";
@@ -16,7 +16,10 @@ type ContentTab = "articles" | "videos";
 const vlogCategories = ["All", "Technology", "Education", "Finance", "Lifestyle", "Other"];
 
 export default function BlogPage() {
-  const [posts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+  // For logged-in users, use realtime sync (can see their drafts)
+  const [userPosts, setUserPosts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+  // For public viewing, fetch from public API
+  const [publicPosts, setPublicPosts] = useState<BlogPost[]>([]);
   const [vlogs, setVlogs] = useSupabaseRealtimeSync<Vlog>("pj-vlogs", "vlogs", []);
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") === "videos" ? "videos" : "articles";
@@ -24,6 +27,30 @@ export default function BlogPage() {
   const [vlogCategory, setVlogCategory] = useState("All");
   const [manageMode, setManageMode] = useState(false);
   const { user } = useAuth();
+
+  // Fetch public posts on mount (for non-logged-in users or public view)
+  useEffect(() => {
+    async function fetchPublicPosts() {
+      try {
+        const res = await fetch("/api/blog");
+        if (res.ok) {
+          const data = await res.json();
+          setPublicPosts(data.posts || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch public posts:", error);
+      }
+    }
+    fetchPublicPosts();
+  }, []);
+
+  // Use user posts if logged in and owner, otherwise use public posts
+  // Merge to show all published posts
+  const posts = user && isOwner(user.email)
+    ? userPosts
+    : publicPosts.length > 0 
+      ? publicPosts 
+      : userPosts.filter(p => p.published);
 
   const published = posts
     .filter((p) => p.published)

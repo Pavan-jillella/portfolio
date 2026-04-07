@@ -1,5 +1,23 @@
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+
+// Service role client - bypasses RLS for public data access
+export function createServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!url || !serviceKey) {
+    throw new Error("Missing Supabase service role configuration");
+  }
+  
+  return createClient(url, serviceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
 
 export async function createServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

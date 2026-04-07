@@ -36,13 +36,31 @@ interface BlogPostPageProps {
 export default function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = params;
   const router = useRouter();
-  const [posts, setPosts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+  const [userPosts, setPosts] = useSupabaseRealtimeSync<BlogPost>("pj-blog-posts", "blog_posts", []);
+  const [publicPost, setPublicPost] = useState<BlogPost | null>(null);
   const [ready, setReady] = useState(false);
   const [likes, setLikes] = useState(0);
   const [liked, setLiked] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [readProgress, setReadProgress] = useState(0);
   const [copied, setCopied] = useState(false);
+
+  // Fetch post from public API (for non-logged-in users)
+  useEffect(() => {
+    async function fetchPublicPost() {
+      try {
+        const res = await fetch("/api/blog");
+        if (res.ok) {
+          const data = await res.json();
+          const found = (data.posts || []).find((p: BlogPost) => p.slug === slug);
+          if (found) setPublicPost(found);
+        }
+      } catch (error) {
+        console.error("Failed to fetch public post:", error);
+      }
+    }
+    fetchPublicPost();
+  }, [slug]);
 
   // After a short delay, consider data loaded
   useEffect(() => {
@@ -52,8 +70,8 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
   // Mark ready immediately if we have posts
   useEffect(() => {
-    if (posts.length > 0) setReady(true);
-  }, [posts.length]);
+    if (userPosts.length > 0 || publicPost) setReady(true);
+  }, [userPosts.length, publicPost]);
 
   // Load likes from localStorage
   useEffect(() => {
@@ -76,7 +94,8 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const post = posts.find((p) => p.slug === slug);
+  // Use user's post if available, otherwise use public post
+  const post = userPosts.find((p) => p.slug === slug) || publicPost;
 
   const handleLike = useCallback(() => {
     if (liked) {
